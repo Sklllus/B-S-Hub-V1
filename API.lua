@@ -57,6 +57,7 @@ local Client = Players.LocalPlayer
 
 getgenv()["DH"] = true
 getgenv()["PL"] = true
+getgenv()["TWW"] = true
 
 RunService.RenderStepped:Connect(function()
     for i, v in pairs(CoreGui:GetChildren()) do
@@ -172,6 +173,42 @@ elseif game.PlaceId == 443406476 and getgenv()["PL"] == true then
 			}
 		})
 	end
+elseif game.PlaceId == 2317712696 and getgenv()["TWW"] == true then
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/Break-Skill-Hub-V1/main/The%20Wild%20West.lua"))()
+
+	if getgenv()["Break-Skill_Hub_TheWildWest_Loaded"] == true then
+		local End = (tick() - Start)
+
+		Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Loading script time: </font><font color=\"rgb(30, 255, 30)\">" .. End .. " </font><font color=\"rgb(255, 30, 30)\">ms.</font></b>", "rbxassetid://7771536804", {
+			Duration = 10,
+			TitleSettings = {
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Font = Enum.Font.SourceSansBold
+			},
+			GradientSettings = {
+				GradientEnabled = false,
+				SolidColorEnabled = true,
+				SolidColor = Color3.fromRGB(255, 30, 30),
+				Retract = true
+			}
+		})
+	end
+
+	if getgenv()["Break-Skill_Hub_Loaded"] == true then
+		Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Successfully loaded script for</font> <font color=\"rgb(30, 255, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font><font color=\"rgb(255, 30, 30)\">!</font></b>", "rbxassetid://7771536804", {
+			Duration = 10,
+			TitleSettings = {
+				TextXAlignment = Enum.TextXAlignment.Left,
+				Font = Enum.Font.SourceSansBold
+			},
+			GradientSettings = {
+				GradientEnabled = false,
+				SolidColorEnabled = true,
+				SolidColor = Color3.fromRGB(255, 30, 30),
+				Retract = true
+			}
+		})
+	end
 elseif game.PlaceId == 142823291 and getgenv()["DH"] == false then
     Client:Kick("\n[Break-Skill Hub - V1]:\n[Game Error]:\nGame disabled!\nYou can find enabled games on our discord!\ndiscord.gg/ev8bxrAa9p (Copied)")
 
@@ -179,6 +216,12 @@ elseif game.PlaceId == 142823291 and getgenv()["DH"] == false then
 
     return
 elseif game.PlaceId == 443406476 and getgenv()["PL"] == false then
+	Client:Kick("\n[Break-Skill Hub - V1]:\n[Game Error]:\nGame disabled!\nYou can find enabled games on our discord!\ndiscord.gg/ev8bxrAa9p (Copied)")
+
+	setclipboard("discord.gg/ev8bxrAa9p")
+
+	return
+elseif game.PlaceId == 2317712696 and getgenv()["TWW"] == false then
 	Client:Kick("\n[Break-Skill Hub - V1]:\n[Game Error]:\nGame disabled!\nYou can find enabled games on our discord!\ndiscord.gg/ev8bxrAa9p (Copied)")
 
 	setclipboard("discord.gg/ev8bxrAa9p")
