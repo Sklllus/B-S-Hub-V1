@@ -28,12 +28,25 @@ library.fileext = ".json"
 
 getgenv()["Developer_345RTHD1"] = true
 
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local LogService = game:GetService("LogService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local ScriptContext = game:GetService("ScriptContext")
+local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Client = Players.LocalPlayer
+
+local BackgroundList = {
+    Floral = "rbxassetid://5553946656",
+    Flowers = "rbxassetid://6071575925",
+    Circles = "rbxassetid://6071579801",
+    Hearts = "rbxassetid://6073763717"
+}
 
 local FOV = Drawing.new("Circle")
 
