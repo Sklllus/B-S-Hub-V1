@@ -513,7 +513,7 @@ ConfigsSection:AddButton({
 library:Init()
 library:selectTab(library.tabs[1])
 
-getgenv()["Break-Skill_Hub_BlackHawkRescue5_Loaded"] = true
+getgenv()["Break-Skill_Hub_TheWildWest_Loaded"] = true
 getgenv()["Break-Skill_Hub_Loaded"] = true
 
 --Memory Check Bypass
