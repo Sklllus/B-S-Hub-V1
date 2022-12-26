@@ -14,7 +14,7 @@ local TeleportPlaceLibrary = loadstring(game:HttpGet("https://raw.githubusercont
 
 getgenv()["IrisAd"] = true
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/Break-Skill-Hub-V1/main/UI.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/Scripts/main/UI.lua"))()
 
 local Warning = library:AddWarning({
     type = "confirm"
@@ -84,7 +84,7 @@ local BreakNetwork = {
                 Functions.DamageKey = Vals[2]
 
                 Vals1["Damage"] = (getgenv()["InstantKill"] and math.huge) or Vals1["Damage"]
-                Vals1["Freeze"] = (getgenv()["FrostbiteBullet"] and true) or Vals1["Freeze"]
+                Vals1["Freeze"] = (getgenv()["FreezeRay"] and true) or Vals1["Freeze"]
 
                 if getgenv()["FreezeHit"] and val1.Parent.ClassName == "Humanoid" then
                     Functions.Slow(val1.Parent.Parent)
@@ -438,7 +438,7 @@ local FrostBiteBullet = WeaponsModsSection:AddToggle({
     text = "Frostbite Bullet",
     flag = "MiscTab_WeaponsModsSection_FrostbiteBullet",
     callback = function(val)
-        getgenv()["FrostbiteBullet"] = val
+        getgenv()["FreezeRay"] = val
     end
 })
 
@@ -775,7 +775,7 @@ ConfigsSection:AddButton({
 library:Init()
 library:selectTab(library.tabs[1])
 
-getgenv()["Break-Skill_Hub_DaHood_Loaded"] = true
+getgenv()["Break-Skill_Hub_ProjectLazarus_Loaded"] = true
 getgenv()["Break-Skill_Hub_Loaded"] = true
 
 --Memory Check Bypass
