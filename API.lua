@@ -20,7 +20,7 @@ local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/Iri
 
 --While Loading Script
 
-if getgenv()["Break-Skill_Hub_V1_Loaded"] and getgenv()["Break-Skill_Hub_V1_Loaded"].Game then
+if BreakSkill_Hub_V1_Loaded and BreakSkill_Hub_V1_Loaded.Game then
     Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Break-Skill Hub - V1 Already executed!</font></b>", "rbxassetid://7771536804", {
 			Duration = 10,
 			TitleSettings = {
@@ -95,7 +95,7 @@ end
 local function GetSupportedGame()
     local Game
 
-    for id, info in pairs(getgenv()["Break-Skill_Hub_V1_Loaded"].Games) do
+    for id, info in pairs(BreakSkill_Hub_V1_Loaded.Games) do
         if tostring(game.GameId) == id then
             Game = info
 
@@ -104,7 +104,7 @@ local function GetSupportedGame()
     end
 
     if not Game then
-        return getgenv()["Break-Skill_Hub_V1_Loaded"].Games.Universal
+        return BreakSkill_Hub_V1_Loaded.Games.Universal
     end
 
     return Game
@@ -121,18 +121,18 @@ local function Concat(array, separator)
 end
 
 local function GetScript(script)
-    return getgenv()["Break-Skill_Hub_V1_Loaded"].Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(getgenv()["Break-Skill_Hub_V1_Loaded"].Domain, script))
+    return BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script))
 end
 
 local function LoadScript(script)
-    return loadstring(getgenv()["Break-Skill_Hub_V1_Loaded"].Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(getgenv()["Break-Skill_Hub_V1_Loaded"].Domain, script)))
+    return loadstring(BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script)))
 end
 
 --[
 --Game Script Loading
 --]
 
-getgenv()["Break-Skill_Hub_V1_Loaded"] = {
+getgenv()["BreakSkill_Hub_V1_Loaded"] = {
     Debug = LoadArgs[1],
     Utilities = {},
     Domain = "https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/",
@@ -156,9 +156,9 @@ getgenv()["Break-Skill_Hub_V1_Loaded"] = {
     }
 }
 
-getgenv()["Break-Skill_Hub_V1_Loaded"].UI = LoadScript("Utilities/UI")
-getgenv()["Break-Skill_Hub_V1_Loaded"].Misc = LoadScript("Utilities/Misc")
-getgenv()["Break-Skill_Hub_V1_Loaded"].Drawing = LoadScript("Utilities/Drawing")
+BreakSkill_Hub_V1_Loaded.UI = LoadScript("Utilities/UI")
+BreakSkill_Hub_V1_Loaded.Misc = LoadScript("Utilities/Misc")
+BreakSkill_Hub_V1_Loaded.Drawing = LoadScript("Utilities/Drawing")
 
 local SupportedGame = GetSupportedGame()
 
@@ -168,12 +168,12 @@ Client.OnTeleport:Connect(function(teleportState)
             %s
         }
 
-        loadstring(LoadArgs[1] and readfile(%sLoader.lua))(unpack(LoadArgs))]]):format(Concat(LoadArgs, ","), getgenv()["Break-Skill_Hub_V1_Loaded"].Domain))
+        loadstring(LoadArgs[1] and readfile(%sLoader.lua))(unpack(LoadArgs))]]):format(Concat(LoadArgs, ","), BreakSkill_Hub_V1_Loaded.Domain))
     end
 end)
 
 if SupportedGame then
-    getgenv()["Break-Skill_Hub_V1_Loaded"].Game = SupportedGame.Name
+    BreakSkill_Hub_V1_Loaded.Game = SupportedGame.Name
 
     LoadScript(SupportedGame.Script)
 
