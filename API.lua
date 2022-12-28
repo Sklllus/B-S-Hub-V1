@@ -6,18 +6,34 @@
 --Game Loading
 --]
 
-local Start = tick()
-
 repeat
     task.wait()
 until game.GameId ~= 0 and game:IsLoaded() and game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Health > 0
 
+--Notification Library
+
+getgenv()["IrisAd"] = true
+
+local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
+
 --While Loading Script
 
 if BreakSkill_Hub_V1_Loaded and BreakSkill_Hub_V1_Loaded.Game then
-    print("ALREADY LOADED NOTIFICATION")
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script already executed!</font></b>", "rbxassetid://7771536804", {
+        Duration = 5,
+        TitleSettings = {
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Font = Enum.Font.SourceSansBold
+        },
+        GradientSettings = {
+            GradientEnabled = false,
+            SolidColorEnabled = true,
+            SolidColor = Color3.fromRGB(255, 30, 30),
+            Retract = true
+        }
+    })
 
-    error("Break-Skill Hub - V1 | Already executed!")
+    error("Break-Skill Hub - V1 | Script already executed!")
 
     return
 end
@@ -25,7 +41,6 @@ end
 --Instances And Functions
 
 local CoreGui = game:GetService("CoreGui")
-local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
@@ -115,7 +130,6 @@ end
 
 getgenv()["BreakSkill_Hub_V1_Loaded"] = {
     Debug = LoadArgs[1],
-    Utilities = {},
     Domain = "https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/",
     Games = {
         ["Universal"] = {
@@ -137,10 +151,6 @@ getgenv()["BreakSkill_Hub_V1_Loaded"] = {
     }
 }
 
-BreakSkill_Hub_V1_Loaded.Utilities.UI = LoadScript("Utilities/UI")
-BreakSkill_Hub_V1_Loaded.Utilities.Misc = LoadScript("Utilities/Misc")
-BreakSkill_Hub_V1_Loaded.Utilities.Drawing = LoadScript("Utilities/Drawing")
-
 local SupportedGame = GetSupportedGame()
 
 Client.OnTeleport:Connect(function(teleportState)
@@ -160,7 +170,17 @@ if SupportedGame then
 
     LoadScript(SupportedGame.Script)
 
-    print("TIME NOTIFICATION")
-
-    print("GAME SCRIPT LOADED NOTIFICATION")
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. BreakSkill_Hub_V1_Loaded.Game .. "</font></b> loaded!", "rbxassetid://7771536804", {
+        Duration = 10,
+        TitleSettings = {
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Font = Enum.Font.SourceSansBold
+        },
+        GradientSettings = {
+            GradientEnabled = false,
+            SolidColorEnabled = true,
+            SolidColor = Color3.fromRGB(255, 30, 30),
+            Retract = true
+        }
+    })
 end
