@@ -12,29 +12,10 @@ repeat
     task.wait()
 until game.GameId ~= 0 and game:IsLoaded() and game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Health > 0
 
---Notification Library
-
-getgenv()["IrisAd"] = true
-
-local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
-
 --While Loading Script
 
 if BreakSkill_Hub_V1_Loaded and BreakSkill_Hub_V1_Loaded.Game then
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Break-Skill Hub - V1 Already executed!</font></b>", "rbxassetid://7771536804", {
-			Duration = 10,
-			TitleSettings = {
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.SourceSansBold
-			},
-			GradientSettings = {
-				GradientEnabled = false,
-				SolidColorEnabled = true,
-				SolidColor = Color3.fromRGB(255, 30, 30),
-				Retract = true
-			}
-		}
-	)
+    print("ALREADY LOADED NOTIFICATION")
 
     error("Break-Skill Hub - V1 | Already executed!")
 
@@ -110,14 +91,14 @@ local function GetSupportedGame()
     return Game
 end
 
-local function Concat(array, separator)
-    local Ouput = ""
+local function Concat(array, sep)
+    local Output = ""
 
-    for i, v in pairs(array) do
-        Ouput = i == #array and Ouput .. tostring(v) or Ouput .. tostring(v) .. separator
+    for i, v in ipairs(array) do
+        Output = i == #array and Output .. tostring(v) or Output .. tostring(v) .. sep
     end
 
-    return Ouput
+    return Output
 end
 
 local function GetScript(script)
@@ -125,7 +106,7 @@ local function GetScript(script)
 end
 
 local function LoadScript(script)
-    return loadstring(BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script)))
+    return loadstring(BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script)))()
 end
 
 --[
@@ -141,34 +122,36 @@ getgenv()["BreakSkill_Hub_V1_Loaded"] = {
             Name = "Universal",
             Script = "Universal"
         },
-        ["1054526971"] = {
+        ["2916899287"] = {
             Name = "Blackhawk Rescue Mission 5",
-            Script = "Games/BlackHawkRescueMission5"
+            Script = "Games/BRM5"
         },
         ["2788229376"] = {
             Name = "Da Hood",
-            Script = "Games/DaHood"
+            Script = "Games/DH"
         },
         ["443406476"] = {
             Name = "Project Lazarus",
-            Script = "Games/ProjectLazarus"
+            Script = "Games/PL"
         }
     }
 }
 
-BreakSkill_Hub_V1_Loaded.UI = LoadScript("Utilities/UI")
-BreakSkill_Hub_V1_Loaded.Misc = LoadScript("Utilities/Misc")
-BreakSkill_Hub_V1_Loaded.Drawing = LoadScript("Utilities/Drawing")
+BreakSkill_Hub_V1_Loaded.Utilities.UI = LoadScript("Utilities/UI")
+BreakSkill_Hub_V1_Loaded.Utilities.Misc = LoadScript("Utilities/Misc")
+BreakSkill_Hub_V1_Loaded.Utilities.Drawing = LoadScript("Utilities/Drawing")
 
 local SupportedGame = GetSupportedGame()
 
 Client.OnTeleport:Connect(function(teleportState)
     if teleportState == Enum.TeleportState.InProgress then
-        QueueOnTeleport(([[local LoadArgs = {
-            %s
-        }
+        QueueOnTeleport(([[
+            local LoadArgs = {
+                %s
+            }
 
-        loadstring(LoadArgs[1] and readfile(%sLoader.lua))(unpack(LoadArgs))]]):format(Concat(LoadArgs, ","), BreakSkill_Hub_V1_Loaded.Domain))
+            loadstring(LoadArgs[1] and readfile("Break-Skill Hub - V1/Loader.lua") or game:HttpGetAsync("%sLoader.lua"))(unpack(LoadArgs))
+        ]]):format(Concat(LoadArgs, ","), BreakSkill_Hub_V1_Loaded.Domain))
     end
 end)
 
@@ -177,35 +160,7 @@ if SupportedGame then
 
     LoadScript(SupportedGame.Script)
 
-    local End = (tick() - Start)
+    print("TIME NOTIFICATION")
 
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\"><b><font color=\"rgb(255, 30, 30)\">Loading script time: </font><font color=\"rgb(30, 255, 30)\">" .. End .. " </font><font color=\"rgb(255, 30, 30)\">ms.</font></b>", "rbxassetid://7771536804", {
-			Duration = 10,
-			TitleSettings = {
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.SourceSansBold
-			},
-			GradientSettings = {
-				GradientEnabled = false,
-				SolidColorEnabled = true,
-				SolidColor = Color3.fromRGB(255, 30, 30),
-				Retract = true
-			}
-		}
-	)
-
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Successfully loaded script for</font> <font color=\"rgb(30, 255, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font><font color=\"rgb(255, 30, 30)\">!</font></b>", "rbxassetid://7771536804", {
-			Duration = 10,
-			TitleSettings = {
-				TextXAlignment = Enum.TextXAlignment.Left,
-				Font = Enum.Font.SourceSansBold
-			},
-			GradientSettings = {
-				GradientEnabled = false,
-				SolidColorEnabled = true,
-				SolidColor = Color3.fromRGB(255, 30, 30),
-				Retract = true
-			}
-		}
-	)
+    print("GAME SCRIPT LOADED NOTIFICATION")
 end
