@@ -17,11 +17,6 @@ local Workspace = game:GetService("Workspace")
 
 local Client = Players.LocalPlayer
 
-local DrawingLibrary = {
-    ESP = {},
-    ObjectESP = {}
-}
-
 local Camera = Workspace.CurrentCamera
 
 local WhiteColor = Color3.fromRGB(255, 255, 255)
@@ -29,11 +24,19 @@ local BlackColor = Color3.fromRGB(0, 0, 0)
 local GreenColor = Color3.fromRGB(30, 255, 30)
 local RedColor = Color3.fromRGB(255, 30, 30)
 
+local DrawingLibrary = {
+    ESP = {},
+    ObjectESP = {}
+}
+
+Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    Camera = Workspace.CurrentCamera
+end)
+
 if not HighlightContainer then
-    getgenv()["HighlightContainer"] = Instance.new("Folder")
+    getgenv()["HighlightContainer"] = Instance.new("Folder", CoreGui)
 
     HighlightContainer.Name = "HighlightContainer"
-    HighlightContainer.Parent = CoreGui
 end
 
 local function GetFontFromName(fontName)
@@ -74,29 +77,29 @@ end
 
 local function GetCharacter(target, mode)
     if mode == "Player" then
-        local Char = target.Character
+        local Character = target.Character
 
-        if not Char then
+        if not Character then
             return
         end
 
-        return Char, Char:FindFirstChild("HumanoidRootPart")
+        return Character, Character:FindFirstChild("HumanoidRootPart")
     else
         return target, target:FindFirstChild("HumanoidRootPart")
     end
 end
 
-function GetHealth(target, char, mode)
-    local Hum = char:FindFirstChildOfClass("Humanoid")
+local function GetHealth(target, character, mode)
+    local Humanoid = character:FindFirstChildOfClass("Humanoid")
 
-    if not Hum then
+    if not Humanoid then
         return
     end
 
-    return Hum.Health, Hum.MaxHealth, Hum.Health > 0
+    return Humanoid.Health, Humanoid.MaxHealth, Humanoid.Health > 0
 end
 
-function GetTeam(target, char, mode)
+local function GetTeam(target, character, mode)
     if mode == "Player" then
         if target.Neutral then
             return true, target.TeamColor.Color
@@ -131,7 +134,7 @@ end
 local function RemoveDrawing(tbl)
     for i, d in pairs(tbl) do
         if d.Remove then
-            Drawing:Remove()
+            d:Remove()
         else
             RemoveDrawing(d)
         end
@@ -177,126 +180,24 @@ local function RelativeToCenter(size)
     return AntiAliasingP(Camera.ViewportSize / 2 - size)
 end
 
-if game.GameId == 580765040 then
-    function GetCharacter(target, mode)
-        local Char = target.Character
-
-        if not Char then
-            return
-        end
-
-        return Char, Char.PrimaryPart
-    end
-
-    function GetTeam(target, character, mode)
-        local ClientChar = Client.Character
-
-        if not ClientChar then
-            return
-        end
-
-        if character:FindFirstChild("Team") and ClientChar:FindFirstChild("Team") then
-            if character.Team.Value ~= ClientChar.Team.Value or character.Team.Value == "None" then
-                return true, character.PrimaryPart.Color
-            end
-        end
-
-        return false, character.PrimaryPart.Color
-    end
-elseif game.GameId == 1054526971 then
-    function GetTeam(target, character, mode)
-        if mode == "Player" then
-            if target.Neutral then
-                return true, target.TeamColor.Color
-            else
-                return Client.Team ~= target.Team, target.TeamColor.Color
-            end
-        else
-            return not character:FindFirstChildWhichIsA("ProximityPrompt", true), WhiteColor
-        end
-    end
-elseif game.GameId == 1168263273 then
-    local TortoiseShell = require(ReplicatedStorage:WaitForChild("TS"))
-
-    local Characters = getupvalue(TortoiseShell.Characters.GetCharacter, 1)
-
-    local function GetPlayerTeam(player)
-        for i, t in pairs(Teams:GetChildren()) do
-            if t.Players:FindFirstChild(player.Name) then
-                return t.Name
-            end
-        end
-    end
-
-    function GetCharacter(target, mode)
-        local Char = Characters[target]
-
-        if not Char or Char.Parent == nil then
-            return
-        end
-
-        return Char, Char.PrimaryPart
-    end
-
-    function GetHealth(target, character, mode)
-        local Health = character.Health
-
-        return Health.Value, Health.MaxHealth.Value, Health.Value > 0
-    end
-
-    function GetTeam(target, character, mode)
-        local Team, ClientTeam = GetPlayerTeam(target), GetPlayerTeam(Client)
-
-        return ClientTeam ~= Team or Team == "FFA", TortoiseShell.Teams.Colors[Team]
-    end
-elseif game.GameId == 1586272220 then
-    local function GetPlayerTank(player)
-        local Char = player:FindFirstChild("Char")
-
-        if not Char then
-            return
-        end
-
-        if not Char.Value then
-            return
-        end
-
-        return Char.Value.Parent.Parent.Parent
-    end
-
-    function GetCharacter(target, mode)
-        local PlayerTank = GetPlayerTank(target)
-
-        if not PlayerTank then
-            return
-        end
-
-        return PlayerTank, PlayerTank.PrimaryPart
-    end
-
-    function GetHealth(target, character, mode)
-        return character.Stats.Health.Value, character.Stats.Health.Orig.Value, character.Stats.Health.Value > 0
-    end
-end
-
 --[
---Drawing Functions
+--DrawingLibrary Functions
 --]
 
 --[
 --AddObject
 --]
 
-function DrawingLibrary:AddObject(object, objectName, objectPos, globalFlag, flag, flags)
+function DrawingLibrary:AddObject(object, objectName, objectPosition, globalFlag, flag, flags)
     if DrawingLibrary.ObjectESP[object] then
         return
     end
 
     DrawingLibrary.ObjectESP[object] = {
-        IsBasePart = typeof(objectPos) ~= "Vector3",
+        IsBasePart = typeof(objectPosition) ~= "Vector3",
         Object = {
             Name = objectName,
-            Position = objectPos
+            Position = objectPosition
         },
         Flag = flag,
         GlobalFlag = globalFlag,
@@ -539,10 +440,11 @@ function DrawingLibrary:FOVCircle(name, config)
 
     BreakSkill_Hub_V1_Loaded.Utilities.Misc:NewThreadLoop(0, function()
         FOVCircle.Visible = config[name .. "/Enabled"] and config[name .. "/Circle/Enabled"]
+
         Outline.Visible = config[name .. "/Enabled"] and config[name .. "/Circle/Enabled"]
 
         if FOVCircle.Visible then
-            local FOV DynamicFOV(config[name .. "/DynamicFOV"], config[name .. "FieldOfView"])
+            local FOV = DynamicFOV(config[name .. "/DynamicFOV"], config[name .. "/FieldOfView"])
 
             local Position = UserInputService:GetMouseLocation()
 
@@ -557,19 +459,15 @@ function DrawingLibrary:FOVCircle(name, config)
             Outline.NumSides = config[name .. "/Circle/NumSides"]
 
             FOVCircle.Radius = FOV
-            Outline.Radius = FOV
-
             FOVCircle.Position = Position
+
+            Outline.Radius = FOV
             Outline.Position = Position
         end
     end)
 end
 
-Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-    Camera = Workspace.CurrentCamera
-end)
-
-BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
+BreakSkill_Hub_V1_Loaded.Utilities.Misc:NewThreadLoop(0.025, function()
     for o, esp in pairs(DrawingLibrary.ObjectESP) do
         if not GetFlag(esp.Flags, esp.GlobalFlag, "/Enabled") or not GetFlag(esp.Flags, esp.Flag, "/Enabled") then
             esp.Drawing.Text.Visible = false
@@ -598,7 +496,7 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
     end
 end)
 
-BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
+BreakSkill_Hub_V1_Loaded.Utilities.Misc:NewThreadLoop(0.025, function()
     for t, esp in pairs(DrawingLibrary.ESP) do
         esp.Target.Character, esp.Target.RootPart = GetCharacter(t, esp.Mode)
 
@@ -608,8 +506,7 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
             local Distance = GetDistanceFromCamera(esp.Target.RootPart.Position)
 
             esp.Target.InTheRange = CheckDistance(GetFlag(esp.Flags, esp.Flag, "/DistanceCheck"), Distance, GetFlag(esp.Flags, esp.Flag, "/Distance"))
-
-            esp.Target.InEnemyTeam, esp.Target.TeamColor = GetTeam(t, esp.Target.Character, esp.Mode)
+            esp.Target.IsEnemyTeam, esp.Target.TeamColor = GetTeam(t, esp.Target.Character, esp.Mode)
             esp.Target.Health, esp.Target.MaxHealth, esp.Target.IsAlive = GetHealth(t, esp.Target.Character, esp.Mode)
             esp.Target.Color = GetFlag(esp.Flags, esp.Flag, "/TeamColor") and esp.Target.TeamColor or (esp.Target.IsEnemyTeam and GetFlag(esp.Flags, esp.Flag, "/Enemy")[6] or GetFlag(esp.Flags, esp.Flag, "/Ally")[6])
 
@@ -622,7 +519,7 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
                     esp.Highlight.OutlineTransparency = GetFlag(esp.Flags, esp.Flag, "/Highlight/OutlineColor")[4]
                 end
 
-                if esp.Drawing.Head.Main.Visible or esp.Drawing.Tracer.Visible then
+                if esp.Drawing.Head.Main.Visible and esp.Drawing.Tracer.Visible then
                     local Head = esp.Target.Character:FindFirstChild("Head", true)
 
                     if Head then
@@ -652,7 +549,7 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
                             esp.Drawing.Tracer.Color = esp.Target.Color
                             esp.Drawing.Tracer.Thickness = GetFlag(esp.Flags, esp.Flag, "/Tracer/Thickness")
                             esp.Drawing.Tracer.Transparency = 1 - GetFlag(esp.Flags, esp.Flag, "/Tracer/Transparency")
-                            esp.Drawing.Tracer.From = TracerMode[1] == "From Mouse" and UserInputService:GetMouseLocation() or TracerMode[1] == "From Bottom" and Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                            esp.Drawing.Tracer.From = TracerMode[1] == "From Mouse" and UserInputService:GetMouseLocation() or TracerMode[1] == "From Bottom" and Vector2.new(Camera.ViewportSize / 2, Camera.ViewportSize.Y)
                             esp.Drawing.Tracer.To = Vector2.new(HeadPosition.X, HeadPosition.Y)
                         end
                     end
@@ -706,8 +603,8 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
                     local Direction = Relative.Unit
 
                     local Base = Direction * GetFlag(esp.Flags, esp.Flag, "/Arrow/Distance")
-                    local BaseL = Base + RotateDirection(Direction, 90) * SideLength
-                    local BaseR = Base + RotateDirection(Direction, -90) * SideLength
+                    local BaseL = Base * RotateDirection(Direction, 90) * SideLength
+                    local BaseR = Base * RotateDirection(Direction, -90) * SideLength
 
                     local Tip = Direction * (GetFlag(esp.Flags, esp.Flag, "/Arrow/Distance") + GetFlag(esp.Flags, esp.Flag, "/Arrow/Height"))
 
@@ -716,14 +613,14 @@ BreakSkill_Hub_V1_Loaded.Utility.Misc:NewThreadLoop(0.025, function()
                     local RTCT = RelativeToCenter(Tip)
 
                     esp.Drawing.Arrow.Main.Color = esp.Target.Color
-                    esp.Drawing.Arrow.Main.Filled = GetFlag(esp.Flags, esp.Flag, "/Arrow/Transparency")
+                    esp.Drawing.Arrow.Main.Filled = GetFlag(esp.Flags, esp.Flag, "/Arrow/Filled")
                     esp.Drawing.Arrow.Main.Thickness = GetFlag(esp.Flags, esp.Flag, "/Arrow/Thickness")
                     esp.Drawing.Arrow.Main.Transparency = 1 - GetFlag(esp.Flags, esp.Flag, "/Arrow/Transparency")
 
                     esp.Drawing.Arrow.Outline.Thickness = esp.Drawing.Arrow.Main.Thickness + 1
                     esp.Drawing.Arrow.Outline.Transparency = esp.Drawing.Arrow.Main.Transparency
 
-                    esp.Drawing.Arrow.Main.PointC = RTCBL
+                    esp.Drawing.Arrow.Main.PointA = RTCBL
                     esp.Drawing.Arrow.Main.PointB = RTCBR
                     esp.Drawing.Arrow.Main.PointC = RTCT
 
