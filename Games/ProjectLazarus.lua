@@ -26,8 +26,6 @@ library.fileext = ".json"
 
 --Instances And Functions
 
-getgenv()["Developer_345RTHD1"] = true
-
 local HttpService = game:GetService("HttpService")
 local MarketplaceService = game:GetService("MarketplaceService")
 local CoreGui = game:GetService("CoreGui")
