@@ -3,14 +3,16 @@
 --]
 
 --[
---UI Library And Teleport Place Library
+--UI Library And Notification Library And Teleport Place Library
 --]
 
 local TeleportPlaceLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/LeoKholYt/roblox/main/lk_serverhop.lua"))()
 
 getgenv()["IrisAd"] = true
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/Break-Skill-Hub-V1/main/UI.lua"))()
+local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/Scripts/main/UI.lua"))()
 
 local Warning = library:AddWarning({
     type = "confirm"
@@ -21,8 +23,6 @@ library.foldername = "Break-Skill Hub - V1"
 library.fileext = ".json"
 
 --Instances And Functions
-
-getgenv()["Developer_345RTHD1"] = true
 
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
@@ -43,6 +43,8 @@ local Utility = {}
 local DeSyncStuff = {}
 
 local Client = Players.LocalPlayer
+
+local Method = "Lerp"
 
 local BackgroundList = {
     Floral = "rbxassetid://5553946656",
@@ -97,12 +99,47 @@ local function RandomVectorRange(a, b, c)
     return Vector3.new(RandomNumberRange(a), RandomNumberRange(b), RandomNumberRange(c))
 end
 
-local function Teleport(cframe)
-    local Tween = TweenService:Create(Client.Character:FindFirstChild("HumanoidRootPart"), TweenInfo.new(((Client.Character:FindFirstChild("HumanoidRootPart").Position - cframe.p).Magnitude / getgenv()["TeleportSpeed"]), Enum.EasingStyle.Linear, Enum.EasingDirection.In), {CFrame = cframe})
+local function Teleport(position)
+    if Method == "Instant" then
+        Client.Character.HumanoidRootPart.CFrame = position
+    elseif Method == "Tween" then
+        local Target1 = CFrame.new(Client.Character.HumanoidRootPart.Position) * CFrame.new(0, -100, 0)
+        local Target2 = position * CFrame.new(0, -100, 0)
+        local Target3 = position
 
-    Tween:Play()
+        Client.Character.HumanoidRootPart.CFrame = Target1
 
-    Tween.Completed:Wait()
+        local Tween = TweenService:Create(Client.Character.HumanoidRootPart, TweenInfo.new(0.75, Enum.EasingStyle.Linear), {CFrame = Target2})
+
+        Tween:Play()
+        Tween.Completed:Wait()
+
+        Client.Character.HumanoidRootPart.CFrame = Target3
+    elseif Method == "PivotTo" then
+        local Number = 0
+
+        repeat
+            Client.Character:PivotTo(position)
+
+            Number = Number + 1
+        until Number == 15
+    elseif Method == "Lerp" then
+        local Target1 = CFrame.new(Client.Character.HumanoidRootPart.Position) * CFrame.new(0, -100, 0)
+        local Target2 = position * CFrame.new(0, -100, 0)
+        local Target3 = position
+
+        Client.Character.HumanoidRootPart.CFrame = Target1
+
+        for i = 0.00, 0.75, task.wait() do
+            Client.Character.HumanoidRootPart.CFrame = Client.Character.HumanoidRootPart.Position:Lerp(Target2, i)
+
+            task.wait()
+        end
+
+        if Client.Character.HumanoidRootPart.CFrame == Target2 then
+            Client.Character.HumanoidRootPart.CFrame = Target3
+        end
+    end
 end
 
 function Utility:Connect(connection, func)
@@ -147,6 +184,10 @@ local AutoBreakCashiers = AutoFarmsSection:AddToggle({
 
                             Teleport(v.Open.CFrame * CFrame.new(0, 0, 2))
 
+                            repeat
+                                task.wait()
+                            until Client.Character.HumanoidRootPart.CFrame == v.Open.CFrame * CFrame.new(0, 0, 2)
+
                             if Client.Backpack:FindFirstChild("Combat") then
                                 Client.Character.Humanoid:EquipTool(Client.Backpack.Combat)
                             end
@@ -160,6 +201,10 @@ local AutoBreakCashiers = AutoFarmsSection:AddToggle({
                                     task.wait()
 
                                     Teleport(v2.CFrame)
+
+                                    repeat
+                                        task.wait()
+                                    until Client.Character.HumanoidRootPart.CFrame == v2.CFrame
 
                                     if (v2.Position - Client.Character.HumanoidRootPart.Position).Magnitude <= 12 and v2:FindFirstChildWhichIsA("ClickDetector") then
                                         fireclickdetector(v2:FindFirstChildWhichIsA("ClickDetector"))
@@ -190,6 +235,10 @@ local AutoGrabCashAndItems = AutoFarmsSection:AddToggle({
                         if v.ClassName == "Part" and v:FindFirstChild("ClickDetector") then
                             Teleport(v.CFrame)
 
+                            repeat
+                                task.wait()
+                            until Client.Character.HumanoidRootPart.CFrame == v.CFrame
+
                             task.wait(getgenv()["TeleportCooldown"])
 
                             fireclickdetector(v.ClickDetector)
@@ -214,6 +263,10 @@ local AutoHospitalJob = AutoFarmsSection:AddToggle({
                         Patient = v.Name
 
                         Teleport(HospitalJob[v.Name].HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 0, 4), Vector3.new(0, 100, 0)))
+
+                        repeat
+                            task.wait()
+                        until Client.Character.HumanoidRootPart.CFrame == HospitalJob[v.Name].HumanoidRootPart.CFrame * CFrame.new(Vector3.new(0, 0, 4), Vector3.new(0, 100, 0))
                     end
                 end
 
@@ -247,7 +300,9 @@ local AutoShoesJob = AutoFarmsSection:AddToggle({
                     if v.Transparency == 0 and v:IsA("MeshPart") then
                         Teleport(v.CFrame)
 
-                        task.wait()
+                        repeat
+                            task.wait()
+                        until Client.Character.HumanoidRootPart.CFrame == v.CFrame
 
                         fireclickdetector(v.ClickDetector)
                     end
@@ -262,6 +317,31 @@ local AutoShoesJob = AutoFarmsSection:AddToggle({
 local AutoFarmsSettingsSection = AutoFarmsColumn2:AddSection("Auto Farms Settings")
 
 AutoFarmsSettingsSection:AddDivider("Settings")
+
+local TeleportMethod = AutoFarmsSettingsSection:AddList({
+    text = "Teleport Method",
+    flag = "RageTab/TeleportMethod",
+    multiselect = false,
+    max = 4,
+    values = {
+        "Instant (Not recommended)",
+        "Tween (Recommended)",
+        "PivotTo (Not recommended)",
+        "Lerp (Recommended)"
+    },
+    value = "Lerp (Recommended)",
+    callback = function(val)
+        if val == "Instant (Not recommended)" then
+            Method = "Instant"
+        elseif val == "Tween (Recommended)" then
+            Method = "Tween"
+        elseif val == "PivotTo (Not recommended)" then
+            Method = "PivotTo"
+        elseif val == "Lerp (Recommended)" then
+            Method = "Lerp"
+        end
+    end
+})
 
 local TeleportCooldown = AutoFarmsSettingsSection:AddSlider({
     text = "Teleport Cooldown",
