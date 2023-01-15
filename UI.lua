@@ -560,7 +560,29 @@ function library:CreateWindow(options)
         Select.Frame.Icon.Image = icon
 
         local function GetElementMethod(holder)
-            
+            local Elements = {}
+
+            local ElementIncrement = 1
+
+            --[
+            --AddDivider
+            --]
+
+            function Elements:AddDivider()
+                local Element = {}
+
+                local Obj = Atlas.Objects.Divider:Clone()
+
+                Obj.Name = string.rep("a", ElementIncrement)
+
+                ElementIncrement = ElementIncrement + 1
+
+                Obj.Parent = holder
+
+                return Element
+            end
+
+            return Elements
         end
 
         local SectionIncrement = 1
