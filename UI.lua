@@ -26,14 +26,16 @@ if not LPH_OBFUSCATED then
     LPH_JIT = R
 end
 
-local library = {}
+local library = {
+    Connections = {}
+}
 
-local AtlasLib = game:GetObjects("rbxassetid://11653746072")[1]
+local Atlas = game:GetObjects("rbxassetid://11653746072")[1]
 
-AtlasLib.Blank.Enabled = false
+Atlas.Blank.Enabled = false
 
 pcall(function()
-    AtlasLib.Test:Destroy()
+    Atlas.Test:Destroy()
 end)
 
 --[
@@ -270,7 +272,7 @@ function library:CreateWindow(options)
 
     options.Watermark = library.Watermark or options.Name or "Break-Skill Hub - V1 | " .. MarketplaceService:GetProductInfo(game.PlaceId).Name
 
-    local FlagWatermark, Invite = "B-S_Hub-V1/Watermark", "https://discord.com/ev8bxrAa9p"
+    local FlagWatermark, Invite = "Watermark", "https://discord.com/ev8bxrAa9p"
 
     local Configs = {
         [FlagWatermark] = Invite
@@ -280,7 +282,7 @@ function library:CreateWindow(options)
         [FlagWatermark] = true
     }
 
-    local RemoveOldVar = "[BREAKSKILL_STORAGE]"
+    local RemoveOldVar = "[BREAK-SKILL_STORAGE]"
 
     if not getgenv()[RemoveOldVar] then
         getgenv()[RemoveOldVar] = {}
@@ -290,12 +292,10 @@ function library:CreateWindow(options)
         getgenv()[RemoveOldVar][options.Name]()
     end
 
-    local Connections = {}
-
     local function Connect(connection, func)
         local Con = connection:Connect(func)
 
-        table.insert(connection, Con)
+        table.insert(library.Connections, Con)
 
         return Con
     end
@@ -340,7 +340,7 @@ function library:CreateWindow(options)
         end)
     end
 
-    local UI = AtlasLib.Blank:Clone()
+    local UI = Atlas.Blank:Clone()
 
     UI.Name = options.Name
 
@@ -372,16 +372,17 @@ function library:CreateWindow(options)
         UI.Parent = CoreGui
     end
 
-    Background.Top.Active = true
-    UI.Watermark.Active = true
-
     local function StartDragging(...)
         local Init = library:InitDragging(...)
 
         for _, v in pairs(Init) do
-            table.insert(Connections, v)
+            table.insert(library.Connections, v)
         end
     end
+
+    Background.Top.Active = true
+
+    UI.Watermark.Active = true
 
     StartDragging(Background, Background.Top)
     StartDragging(UI.Keybinds, UI.Keybinds)
@@ -393,8 +394,8 @@ function library:CreateWindow(options)
             FontColor = Color3.fromRGB(215, 215, 215),
             MainColor = Color3.fromRGB(30, 30, 30),
             BackgroundColor = Color3.fromRGB(20, 20, 20),
-            AccentColor = Color3.fromRGB(255, 30, 30),
-            OutlineColor = Color3.fromRGB(50, 50, 50)
+            AccentColor = options.Color or Color3.fromRGB(255, 30, 30),
+            OutlineColor3 = Color3.fromRGB(50, 50, 50)
         }
     }
 
@@ -422,7 +423,6 @@ function library:CreateWindow(options)
         local MenuButton = library:CreateInvisButton(Background.Top.Menu)
 
         local State = false
-
         local Tween = nil
 
         local PagesInfo = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0)
@@ -456,10 +456,6 @@ function library:CreateWindow(options)
             SetState(not State)
         end)
 
-        --[
-        --CloseMenu
-        --]
-
         function CloseMenu()
             SetState(false)
         end
@@ -481,7 +477,7 @@ function library:CreateWindow(options)
             elseif Last then
                 UI.Mouse.Visible = false
 
-                UserInputService.MouseIconEnabled =  Before
+                UserInputService.MouseIconEnabled = Before
             end
 
             Last = Background.Visible
@@ -509,11 +505,17 @@ function library:CreateWindow(options)
     end
 
     --[
+    --CreatePage
+    --]
+
+
+
+    --[
     --Destroy
     --]
 
     function WindowFunctions:Destroy()
-        for _, v in pairs(Connections) do
+        for _, v in pairs(library.Connections) do
             pcall(function()
                 v:Disconnect()
             end)
