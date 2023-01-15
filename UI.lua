@@ -268,7 +268,7 @@ end
 --]
 
 function library:CreateWindow(options)
-    library:Require(options.Name, "Missing arg (Name) for library:CreateWindow")
+    library:Require(options.Name, "Missing argument (Name) for library:CreateWindow")
 
     options.Watermark = library.Watermark or options.Name or "Break-Skill Hub - V1 | " .. MarketplaceService:GetProductInfo(game.PlaceId).Name
 
@@ -508,7 +508,216 @@ function library:CreateWindow(options)
     --CreatePage
     --]
 
+    function WindowFunctions:CreatePage(name, icon)
+        if type(name) == "table" then
+            name = name.Name
+            icon = name.Icon
+        end
 
+        library:Require(name, "Missing argument (Name) for Window:CreatePage")
+
+        if icon then
+            icon = library:FormatAsset(icon)
+        end
+
+        local Select = Atlas.Objects.PageSelect:Clone()
+        local Holder = Atlas.Objects.Page:Clone()
+
+        LastPage = LastPage + 1
+
+        local PageNum = LastPage
+
+        do
+            local IntValue = Instance.new("IntValue", Select)
+
+            IntValue.Name = "PageNum"
+            IntValue.Value = PageNum
+
+            IntValue:Clone().Parent = Holder
+        end
+
+        local PageFunctions = {
+            ["Select"] = Select,
+            ["Holder"] = Holder
+        }
+
+        Connect(Select.Button.Activated, function()
+            if CurrentPage ~= PageNum then
+                CurrentPage = PageNum
+
+                CloseMenu()
+            end
+        end)
+
+        Select.Name = string.rep("a", PageNum)
+        Select.Parent = Background.Pages.Inner.ScrollingFrame
+
+        Holder.Name = string.rep("a", PageNum)
+        Holder.Parent = Background.Content.Pages
+
+        Select.Frame.TextLabel.Text = name
+
+        Select.Frame.Icon.Image = icon
+
+        local function GetElementMethod(holder)
+            
+        end
+
+        local SectionIncrement = 1
+
+        --[
+        --_CreateSection
+        --]
+
+        function PageFunctions:_CreateSection(side, title)
+            library:Require(title, "Missing argument (Name) for Page:CreateSection")
+
+            local SectionObj = Atlas.Objects.Section:Clone()
+
+            local Side = Holder:FindFirstChild(side)
+
+            SectionObj.Name = string.rep("a", SectionIncrement)
+
+            SectionIncrement = SectionIncrement + 1
+
+            local Section = GetElementMethod(SectionObj)
+
+            Section.Obj = SectionObj
+
+            SectionObj["!Title"].Text = title
+            SectionObj.Parent = Side
+
+            return Section
+        end
+
+        --[
+        --_CreateTabBox
+        --]
+
+        function PageFunctions:_CreateTabBox(side)
+            local SectionObj = Atlas.Objects.Groupbox:Clone()
+
+            local Side = Holder:FindFirstChild(side)
+
+            SectionObj.Name = string.rep("a", SectionIncrement)
+
+            SectionIncrement = SectionIncrement + 1
+
+            local TabBoxFunctions = {
+                ["Obj"] = SectionObj
+            }
+
+            local TabIncrement = 1
+            local CurrentTab = 1
+
+            local SectionTitle = SectionObj["!Title"].Inner
+
+            --[
+            --CreateTab
+            --]
+
+            function TabBoxFunctions:CreateTab(options)
+                library:Require(options.Name, "Missing argument (Name) for TabBox:CreateTab")
+
+                local TabButton = Atlas.Objects.GroupButton:Clone()
+
+                local TabNum = TabIncrement
+
+                TabIncrement = TabIncrement + 1
+
+                TabButton.Frame.TextLabel.Text = options.Name
+
+                TabButton.Name = string.rep("a", TabNum)
+                TabButton.Parent = SectionTitle
+                TabButton.Active = true
+
+                Connect(TabButton.InputBegan, function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        CurrentTab = TabNum
+                    end
+                end)
+
+                local TabInner = Atlas.Objects.InnerTabbox:Clone()
+
+                local TabNumObj = Instance.new("IntValue", TabInner)
+
+                TabNumObj.Name = "TabNum"
+                TabNumObj.Value = TabNum
+
+                TabNumObj:Clone().Parent = TabButton
+
+                TabInner.Name = string.rep("a", TabNum)
+                TabInner.Parent = SectionObj
+
+                local Tab = GetElementMethod(TabInner)
+
+                Tab.Button = TabButton
+                Tab.Inner = TabInner
+
+                return Tab
+            end
+
+            Connect(RunService.RenderStepped, function()
+                for _, v in pairs(SectionObj:GetChildren()) do
+                    if v:FindFirstChild("TabNum") then
+                        local TabNum = v:FindFirstChild("TabNum")
+
+                        v.Visible = CurrentTab == TabNum.Value
+                    end
+                end
+
+                for _, v in pairs(SectionTitle:GetChildren()) do
+                    if v:FindFirstChild("TabNum") then
+                        local TabNum = v:FindFirstChild("TabNum")
+
+                        local Page = CurrentTab == TabNum.Value
+
+                        v.Frame.BackgroundColor3 = Page and WindowFunctions.Theme.FontColor or WindowFunctions.Theme.MainColor
+
+                        v.Frame.TextLabel.TextColor3 = Page and WindowFunctions.Theme.MainColor or WindowFunctions.Theme.FontColor
+                    end
+                end
+            end)
+
+            SectionObj.Parent = Side
+
+            return TabBoxFunctions
+        end
+
+        --[
+        --CreateLeftSection
+        --]
+
+        function PageFunctions:CreateLeftSection(...)
+            return PageFunctions:_CreateSection("Left", ...)
+        end
+
+        --[
+        --CreateRightSection
+        --]
+
+        function PageFunctions:CreateRightSection(...)
+            PageFunctions:_CreateSection("Right", ...)
+        end
+
+        --[
+        --CreateLeftTabBox
+        --]
+
+        function PageFunctions:CreateLeftTabBox(...)
+            PageFunctions:_CreateTabBox("Left", ...)
+        end
+
+        --[
+        --CreateRightSection
+        --]
+
+        function PageFunctions:CreateRightTabBox(...)
+            PageFunctions:_CreateTabBox("Right", ...)
+        end
+
+        return PageFunctions
+    end
 
     --[
     --Destroy
