@@ -134,11 +134,11 @@ getgenv()["BreakSkill_Hub_V1_Loaded"] = {
     Games = {
         ["2788229376"] = {
             Name = "Da Hood",
-            Script = "Games"
+            Script = "Games/DH"
         },
         ["443406476"] = {
             Name = "Project Lazarus",
-            Script = "Games"
+            Script = "Games/PL"
         }
     }
 }
