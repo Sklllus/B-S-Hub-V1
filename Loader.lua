@@ -18,7 +18,7 @@ local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/Iri
 
 --While Loading Script
 
-if BreakSkill and BreakSkill.Game then
+if getgenv()["Break-Skill_Hub_V1_Loaded"] then
     Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script already executed!</font></b>", "rbxassetid://7771536804", {
         Duration = 5,
         TitleSettings = {
@@ -40,7 +40,17 @@ end
 
 --Instances And Functions
 
+local Games = {
+    ["2788229376"] = {
+        Script = "Games/DH.lua"
+    },
+    ["443406476"] = {
+        Script = "Games/PL.lua"
+    }
+}
+
 local CoreGui = game:GetService("CoreGui")
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
@@ -87,7 +97,7 @@ end
 local function GetSupportedGame()
     local Game
 
-    for id, info in pairs(BreakSkill.Games) do
+    for id, info in pairs(Games) do
         if tostring(game.GameId) == id then
             Game = info
 
@@ -95,51 +105,27 @@ local function GetSupportedGame()
         end
     end
 
-    if not Game then
-        return BreakSkill.Games.Universal
-    end
-
     return Game
-end
-
-local function LoadScript(script)
-    return loadstring(readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill.Domain, script)))()
 end
 
 --[
 --Game Script Loading
 --]
 
-getgenv()["BreakSkill"] = {
-    Domain = "https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/",
-    Games = {
-        ["2788229376"] = {
-            Name = "Da Hood",
-            Script = "Games/DH"
-        },
-        ["443406476"] = {
-            Name = "Project Lazarus",
-            Script = "Games/PL"
-        }
-    }
-}
-
 local SupportedGame = GetSupportedGame()
 
 Client.OnTeleport:Connect(function(teleportState)
     if teleportState == Enum.TeleportState.InProgress then
         QueueOnTeleport([[
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/API.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Loader.lua"))()
         ]])
     end
 end)
 
 if SupportedGame then
-    BreakSkill.Game = SupportedGame.Name
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/" .. GetSupportedGame.Script))()
 
-    LoadScript(SupportedGame.Script)
-
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. BreakSkill.Game .. "</font></b> loaded!", "rbxassetid://7771536804", {
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b> loaded!", "rbxassetid://7771536804", {
         Duration = 10,
         TitleSettings = {
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -152,4 +138,6 @@ if SupportedGame then
             Retract = true
         }
     })
+
+    getgenv()["Break-Skill_Hub_V1_Loaded"] = true
 end
