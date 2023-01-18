@@ -40,15 +40,6 @@ end
 
 --Instances And Functions
 
-local Games = {
-    ["2788229376"] = {
-        Script = "Games/DH.lua"
-    },
-    ["443406476"] = {
-        Script = "Games/PL.lua"
-    }
-}
-
 local CoreGui = game:GetService("CoreGui")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -94,25 +85,9 @@ else
     return
 end
 
-local function GetSupportedGame()
-    local Game
-
-    for id, info in pairs(Games) do
-        if tostring(game.GameId) == id then
-            Game = info
-
-            break
-        end
-    end
-
-    return Game
-end
-
 --[
 --Game Script Loading
 --]
-
-local SupportedGame = GetSupportedGame()
 
 Client.OnTeleport:Connect(function(teleportState)
     if teleportState == Enum.TeleportState.InProgress then
@@ -122,8 +97,26 @@ Client.OnTeleport:Connect(function(teleportState)
     end
 end)
 
-if SupportedGame then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/" .. GetSupportedGame.Script))()
+if game.PlaceId == 2788229376 then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/DH.lua"))()
+
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b> loaded!", "rbxassetid://7771536804", {
+        Duration = 10,
+        TitleSettings = {
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Font = Enum.Font.SourceSansBold
+        },
+        GradientSettings = {
+            GradientEnabled = false,
+            SolidColorEnabled = true,
+            SolidColor = Color3.fromRGB(255, 30, 30),
+            Retract = true
+        }
+    })
+
+    getgenv()["Break-Skill_Hub_V1_Loaded"] = true
+elseif game.PlaceId == 443406476 then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/PL.lua"))()
 
     Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b> loaded!", "rbxassetid://7771536804", {
         Duration = 10,
