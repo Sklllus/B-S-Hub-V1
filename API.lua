@@ -18,7 +18,7 @@ local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/Iri
 
 --While Loading Script
 
-if BreakSkill_Hub_V1_Loaded and BreakSkill_Hub_V1_Loaded.Game then
+if BreakSkill and BreakSkill.Game then
     Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script already executed!</font></b>", "rbxassetid://7771536804", {
         Duration = 5,
         TitleSettings = {
@@ -49,10 +49,6 @@ local Workspace = game:GetService("Workspace")
 local Client = Players.LocalPlayer
 
 local QueueOnTeleport = queue_on_teleport or (syn and syn.queue_on_teleport)
-
-local LoadArgs = {
-    ...
-}
 
 Client.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
@@ -91,7 +87,7 @@ end
 local function GetSupportedGame()
     local Game
 
-    for id, info in pairs(BreakSkill_Hub_V1_Loaded.Games) do
+    for id, info in pairs(BreakSkill.Games) do
         if tostring(game.GameId) == id then
             Game = info
 
@@ -100,36 +96,21 @@ local function GetSupportedGame()
     end
 
     if not Game then
-        return BreakSkill_Hub_V1_Loaded.Games.Universal
+        return BreakSkill.Games.Universal
     end
 
     return Game
 end
 
-local function Concat(array, sep)
-    local Output = ""
-
-    for i, v in ipairs(array) do
-        Output = i == #array and Output .. tostring(v) or Output .. tostring(v) .. sep
-    end
-
-    return Output
-end
-
-local function GetScript(script)
-    return BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script))
-end
-
 local function LoadScript(script)
-    return loadstring(BreakSkill_Hub_V1_Loaded.Debug and readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill_Hub_V1_Loaded.Domain, script)))()
+    return loadstring(readfile("Break-Skill Hub - V1/" .. script .. ".lua") or game:HttpGetAsync(("%s%s.lua"):format(BreakSkill.Domain, script)))()
 end
 
 --[
 --Game Script Loading
 --]
 
-getgenv()["BreakSkill_Hub_V1_Loaded"] = {
-    Debug = LoadArgs[1],
+getgenv()["BreakSkill"] = {
     Domain = "https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/",
     Games = {
         ["2788229376"] = {
@@ -147,22 +128,18 @@ local SupportedGame = GetSupportedGame()
 
 Client.OnTeleport:Connect(function(teleportState)
     if teleportState == Enum.TeleportState.InProgress then
-        QueueOnTeleport(([[
-            local LoadArgs = {
-                %s
-            }
-
-            loadstring(LoadArgs[1] and readfile("Break-Skill Hub - V1/Loader.lua") or game:HttpGetAsync("%sLoader.lua"))(unpack(LoadArgs))
-        ]]):format(Concat(LoadArgs, ","), BreakSkill_Hub_V1_Loaded.Domain))
+        QueueOnTeleport([[
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/API.lua"))()
+        ]])
     end
 end)
 
 if SupportedGame then
-    BreakSkill_Hub_V1_Loaded.Game = SupportedGame.Name
+    BreakSkill.Game = SupportedGame.Name
 
     LoadScript(SupportedGame.Script)
 
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. BreakSkill_Hub_V1_Loaded.Game .. "</font></b> loaded!", "rbxassetid://7771536804", {
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. BreakSkill.Game .. "</font></b> loaded!", "rbxassetid://7771536804", {
         Duration = 10,
         TitleSettings = {
             TextXAlignment = Enum.TextXAlignment.Left,
