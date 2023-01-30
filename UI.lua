@@ -1173,6 +1173,294 @@ function library:CreateWindow(options)
 	return mt
 end
 
+function library:CreateTab(options)
+	options = self:SetDefaults({
+		Name = "New Tab",
+		Icon = "rbxassetid://8569322835"
+	}, options)
+
+	local tab = self.container:Object("ScrollingFrame", {
+		AnchorPoint = Vector2.new(0, 1),
+		Visible = false,
+		BackgroundTransparency = 1,
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.fromScale(1, 1),
+		ScrollBarThickness = 0,
+		ScrollingDirection = Enum.ScrollingDirection.Y
+	})
+
+	local quickAccessButton
+	local quickAccessIcon
+
+	if not options.Internal then
+		quickAccessButton = self.quickAccess:Object("TextButton", {
+			Theme = {
+                BackgroundColor3 = "Secondary"
+            }
+		}):Round(5):ToolTip(options.Name)
+
+		quickAccessIcon = quickAccessButton:Object("ImageLabel", {
+			BackgroundTransparency = 1,
+			Theme = {
+                ImageColor3 = "StrongText"
+            },
+			Image = options.Icon,
+			Size = UDim2.fromScale(0.5, 0.5),
+			Centered = true
+		})
+	else
+		quickAccessButton = options.Internal
+	end
+
+	local layout = tab:Object("UIListLayout", {
+		Padding = UDim.new(0, 10),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center
+	})
+
+	tab:Object("UIPadding", {
+		PaddingTop = UDim.new(0, 10)
+	})
+
+	local tabButton = library:Object("TextButton", {
+		BackgroundTransparency = 1,
+		Parent = self.nilFolder.AbsoluteObject,
+		Theme = {
+            BackgroundColor3 = "Secondary"
+        },
+		Size = UDim2.new(0, 125, 0, 25),
+		Visible = false
+	}):Round(5)
+
+	self.Tabs[#self.Tabs + 1] = {
+        tab, tabButton,
+        options.Name
+    }
+
+	do
+		local down = false
+		local hovered = false
+
+		tabButton.MouseEnter:Connect(function()
+			hovered = true
+
+			tabButton:Tween({
+                BackgroundTransparency = ((selectedTab == tabButton) and 0.15) or 0.3
+            })
+		end)
+
+		tabButton.MouseLeave:Connect(function()
+			hovered = false
+
+			tabButton:Tween({
+                BackgroundTransparency = ((selectedTab == tabButton) and 0.15) or 1
+            })
+		end)
+
+		tabButton.MouseButton1Down:Connect(function()
+			down = true
+
+			tabButton:Tween({
+                BackgroundTransparency = 0
+            })
+		end)
+
+		UserInputService.InputEnded:Connect(function(key)
+			if key.UserInputType == Enum.UserInputType.MouseButton1 then
+				down = false
+
+				tabButton:Tween({
+                    BackgroundTransparency = ((selectedTab == tabButton) and 0.15) or (hovered and 0.3) or 1
+                })
+			end
+		end)
+
+		tabButton.MouseButton1Click:Connect(function()
+			for _, tabInfo in next, self.Tabs do
+				local page = tabInfo[1]
+				local button = tabInfo[2]
+
+				page.Visible = false
+			end
+
+			selectedTab:Tween({
+                BackgroundTransparency = ((selectedTab == tabButton) and 0.15) or 1
+            })
+
+			selectedTab = tabButton
+			tab.Visible = true
+
+			tabButton.BackgroundTransparency = 0
+
+			library.UrlLabel.Text = library.Url .. "/" .. options.Name:lower()
+		end)
+
+		quickAccessButton.MouseEnter:Connect(function()
+			quickAccessButton:Tween({
+                BackgroundColor3 = library.CurrentTheme.Tertiary
+            })
+		end)
+
+		quickAccessButton.MouseLeave:Connect(function()
+			quickAccessButton:Tween({
+                BackgroundColor3 = library.CurrentTheme.Secondary
+            })
+		end)
+
+		quickAccessButton.MouseButton1Click:Connect(function()
+			if not tabButton.Visible then
+				tabButton.Parent = self.navigation.AbsoluteObject
+				tabButton.Size = UDim2.new(0, 50, tabButton.Size.Y.Scale, tabButton.Size.Y.Offset)
+				tabButton.Visible = true
+
+				tabButton:Fade(false, library.CurrentTheme.Main, 0.1)
+
+				tabButton:Tween({
+                    Size = UDim2.new(0, 125, tabButton.Size.Y.Scale, tabButton.Size.Y.Offset),
+                    Length = 0.1
+                })
+
+				for _, tabInfo in next, self.Tabs do
+					local page = tabInfo[1]
+					local button = tabInfo[2]
+
+					page.Visible = false
+				end
+
+				selectedTab:Tween({
+                    BackgroundTransparency = ((selectedTab == tabButton) and 0.15) or 1
+                })
+				selectedTab = tabButton
+
+				tab.Visible = true
+
+				tabButton.BackgroundTransparency = 0
+
+				library.UrlLabel.Text = library.Url .. "/" .. options.Name:lower()
+			end
+		end)
+	end
+
+	local tabButtonText = tabButton:Object("TextLabel", {
+		Theme = {
+            TextColor3 = "StrongText"
+        },
+		AnchorPoint = Vector2.new(0, .5),
+		BackgroundTransparency = 1,
+		TextSize = 14,
+		Text = options.Name,
+		Position = UDim2.new(0, 25, 0.5, 0),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, -45, 0.5, 0),
+		Font = Enum.Font.SourceSans,
+		TextTruncate = Enum.TextTruncate.AtEnd
+	})
+
+	local tabButtonIcon = tabButton:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 5, 0.5, 0),
+		Size = UDim2.new(0, 15, 0, 15),
+		Image = options.Icon,
+		Theme = {
+            ImageColor3 = "StrongText"
+        }
+	})
+
+	local tabButtonClose = tabButton:Object("ImageButton", {
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -5, 0.5, 0),
+		Size = UDim2.fromOffset(14, 14),
+		Image = "rbxassetid://8497487650",
+		Theme = {
+            ImageColor3 = "StrongText"
+        }
+	})
+
+	tabButtonClose.MouseButton1Click:Connect(function()
+		tabButton:Fade(true, library.CurrentTheme.Main, 0.1)
+
+		tabButton:Tween({
+            Size = UDim2.new(0, 50, tabButton.Size.Y.Scale, tabButton.Size.Y.Offset),
+            Length = 0.1
+        }, function()
+			tabButton.Visible = false
+
+			tab.Visible = false
+
+			tabButton.Parent = self.nilFolder.AbsoluteObject
+
+			task.wait()
+		end)
+
+		local visible = {}
+
+		for _, tab in next, self.Tabs do
+			if not tab[2] == selectedTab then
+                tab[1].Visible = false
+            end
+
+			if tab[2].Visible then
+				visible[#visible + 1] = tab
+			end
+		end
+
+		local lastTab = visible[#visible]
+
+		if selectedTab == self.homeButton then
+			tab.Visible = false
+		elseif #visible == 2 then
+			selectedTab.Visible = false
+
+			tab.Visible = false
+
+			self.homePage.Visible = true
+
+			self.homeButton:Tween({
+                BackgroundTransparency = 0.15
+            })
+
+			selectedTab = self.homeButton
+
+			library.UrlLabel.Text = library.Url .. "/home"
+		elseif tabButton == lastTab[2] then
+			lastTab = visible[#visible - 1]
+
+			tab.Visible = false
+
+			lastTab[2]:Tween({
+                BackgroundTransparency = 0.15
+            })
+
+			lastTab[1].Visible = true
+
+			selectedTab = lastTab[2]
+
+			library.UrlLabel.Text = library.Url .. "/" .. lastTab[3]:lower()
+		else
+			tab.Visible = false
+
+			lastTab[2]:Tween({
+                BackgroundTransparency = 0.15
+            })
+
+			lastTab[1].Visible = true
+
+			selectedTab = lastTab[2]
+
+			library.UrlLabel.Text = library.Url .. "/" .. lastTab[3]:lower()
+		end
+	end)
+
+	return setmetatable({
+		statusText = self.statusText,
+		container = tab,
+		Theme = self.Theme,
+		core = self.core,
+		layout = layout
+	}, library)
+end
+
 return setmetatable(library, {
     __index = function(_, i)
         return rawget(library, i:lower())
