@@ -558,7 +558,7 @@ function library:CreateWindow(options)
 	}
 
 	if readfile and writefile and isfile and makefolder and isfolder then
-        if not isfolder("./Break-Skill Hub - V1") then
+		if not isfolder("./Break-Skill Hub - V1") then
             makefolder("./Break-Skill Hub - V1")
         end
 
@@ -566,15 +566,15 @@ function library:CreateWindow(options)
             makefolder("./Break-Skill Hub - V1/UI")
         end
 
-		if not isfile("./Break-Skill Hub - V1/UI/Settings.json") then
+        if not isfile("./Break-Skill Hub - V1/UI/Settings.json") then
 			writefile("./Break-Skill Hub - V1/UI/Settings.json", HttpService:JSONEncode(settings))
 		end
 
-		settings = HttpService:JSONDecode(readfile("./Break-Skill Hub - V1/UI/Settings.json"))
+        settings = HttpService:JSONDecode(readfile("./Break-Skill Hub - V1/UI/Settings.json"))
 
-		library.CurrentTheme = library.Themes[settings.Theme]
+        library.CurrentTheme = library.Themes[settings.Theme]
 
-		updateSettings = function(property, value)
+        updateSettings = function(property, value)
 			settings[property] = value
 
 			writefile("./Break-Skill Hub - V1/UI/Settings.json", HttpService:JSONEncode(settings))
@@ -583,13 +583,14 @@ function library:CreateWindow(options)
 
 	options = self:SetDefaults({
 		Name = "Break-Skill Hub - V1",
-		Size = UDim2.fromOffset(600, 500),
+		Size = UDim2.fromOffset(600, 400),
 		Theme = self.Themes[settings.Theme],
-		Link = "https://github.com/Sklllus/Break-Skill-Hub-V1/"
+		Link = "https://github.com/Skillus/Break-Skill-Hub-V1/"
 	}, options)
 
 	if getgenv and getgenv().BreakSkillUI then
 		getgenv():BreakSkillUI()
+
 		getgenv().BreakSkillUI = nil
 	end
 
@@ -603,7 +604,7 @@ function library:CreateWindow(options)
 
 	self.CurrentTheme = options.Theme
 
-	local gui = self:Object("ScreenGui", {
+	local gui = self:object("ScreenGui", {
 		Parent = (RunService:IsStudio() and Client.PlayerGui) or game:GetService("CoreGui"),
 		ZIndexBehavior = Enum.ZIndexBehavior.Global
 	})
@@ -656,15 +657,15 @@ function library:CreateWindow(options)
 							if library.LockDragging then
 								local FrameX, FrameY = math.clamp(Mouse.X - ObjectPosition.X, 0, gui.AbsoluteSize.X - core.AbsoluteSize.X), math.clamp(Mouse.Y - ObjectPosition.Y, 0, gui.AbsoluteSize.Y - core.AbsoluteSize.Y)
 
-								core:tween{
+								core:Tween({
 									Position = UDim2.fromOffset(FrameX + (core.Size.X.Offset * core.AnchorPoint.X), FrameY + (core.Size.Y.Offset * core.AnchorPoint.Y)),
 									Length = library.DragSpeed
-								}
+								})
 							else
-								core:tween{
+								core:Tween({
 									Position = UDim2.fromOffset(Mouse.X - ObjectPosition.X + (core.Size.X.Offset * core.AnchorPoint.X), Mouse.Y - ObjectPosition.Y + (core.Size.Y.Offset * core.AnchorPoint.Y)),
 									Length = library.DragSpeed
-								}
+								})
 							end
 						end
 					end
@@ -673,8 +674,8 @@ function library:CreateWindow(options)
 				local Leave
 
 				Leave = core.MouseLeave:Connect(function()
-					Input:disconnect()
-					Leave:disconnect()
+					Input:Disconnect()
+					Leave:Disconnect()
 				end)
 			end)
 		end
@@ -714,7 +715,7 @@ function library:CreateWindow(options)
 
 	closeButton.MouseEnter:Connect(function()
 		closeButton:Tween({
-            ImageColor3 = Color3.fromRGB(255, 125, 145)
+            ImageColor3 = Color3.fromRGB(255, 125, 140)
         })
 	end)
 
@@ -731,7 +732,7 @@ function library:CreateWindow(options)
 
 		task.wait(0.1)
 
-		core:tween({
+		core:Tween({
             Size = UDim2.new()
         }, function()
 			gui.AbsoluteObject:Destroy()
@@ -804,8 +805,7 @@ function library:CreateWindow(options)
 	local content = core:Object("Frame", {
 		Theme = {
             BackgroundColor3 = {
-                "Secondary",
-                -10
+                "Secondary", -10
             }
         },
 		AnchorPoint = Vector2.new(0.5, 1),
@@ -913,6 +913,7 @@ function library:CreateWindow(options)
                     BackgroundTransparency = ((selectedTab == homeButton) and 0.15) or (hovered and 0.3) or 1
                 })
 			end
+
 		end)
 
 		homeButton.MouseButton1Click:Connect(function()
@@ -979,15 +980,16 @@ function library:CreateWindow(options)
 
 		displayName = profile:Object("TextLabel", {
 			RichText = true,
-			Text = "Welcome, <font color='rgb(" ..  math.floor(c.R*255) .. "," .. math.floor(c.G*255) .. "," .. math.floor(c.B*255) .. ")'> <b>" .. Client.DisplayName .. "</b></font>",
+			Text = "Welcome, <font color='rgb(" ..  math.floor(c.R * 255) .. "," .. math.floor(c.G * 255) .. "," .. math.floor(c.B * 255) .. ")'> <b>" .. Client.DisplayName .. "</b></font>",
 			TextScaled = true,
 			Position = UDim2.new(0, 105,0, 10),
 			Theme = {
                 TextColor3 = {
-                    "Tertiary", 10
+                    "Tertiary",
+                    10
                 }
             },
-			Size = UDim2.new(0, 400,0, 40),
+			Size = UDim2.new(0, 400, 0, 40),
 			BackgroundTransparency = 1,
 			TextXAlignment = Enum.TextXAlignment.Left
 		})
@@ -1049,7 +1051,7 @@ function library:CreateWindow(options)
 		Position = UDim2.new(1, -10, 1, -10),
 		AnchorPoint = Vector2.new(1, 1),
 		Image = "http://www.roblox.com/asset/?id=8559790237"
-	}):ToolTip("Settings")
+	}):ToolTip("settings")
 
 	local creditsTabIcon = profile:Object("ImageButton", {
 		BackgroundTransparency = 1,
@@ -1105,13 +1107,13 @@ function library:CreateWindow(options)
 
 	settingsTab:AddKeybind({
 		Name = "Toggle Key",
-		Description = "Key to show/hide the UI.",
-		Keybind = Enum.KeyCode.Delete,
+		Description = "Key to show/hide UI.",
+		Keybind = Enum.KeyCode.RightShift,
 		Callback = function()
 			self.Toggled = not self.Toggled
 
 			library:Show(self.Toggled)
-		end
+		end,
 	})
 
 	settingsTab:AddToggle({
@@ -1120,7 +1122,7 @@ function library:CreateWindow(options)
 		StartingState = true,
 		Callback = function(state)
 			library.LockDragging = state
-		end
+		end,
 	})
 
 	settingsTab:AddSlider({
@@ -1130,7 +1132,7 @@ function library:CreateWindow(options)
 		Default = 14,
 		Callback = function(value)
 			library.DragSpeed = (20 - value) / 100
-		end
+		end,
 	})
 
 	local creditsTab = library.CreateTab(mt, {
