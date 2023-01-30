@@ -1452,6 +1452,310 @@ function library:CreateTab(options)
 	}, library)
 end
 
+--[
+--ResizeTab
+--]
+
+function library:_ResizeTab()
+	if self.container.ClassName == "ScrollingFrame" then
+		self.container.CanvasSize = UDim2.fromOffset(0, self.layout.AbsoluteContentSize.Y + 20)
+	else
+		self.sectionContainer.Size = UDim2.new(1, -24, 0, self.layout.AbsoluteContentSize.Y + 20)
+
+		self.parentContainer.CanvasSize = UDim2.fromOffset(0, self.parentLayout.AbsoluteContentSize.Y + 20)
+	end
+end
+
+--[
+--_ThemeSelector
+--]
+
+function library:_ThemeSelector()
+	local themesCount = 0
+
+	for _ in next, library.Themes do
+		themesCount += 1
+	end
+
+	local themeContainer = self.container:Object("Frame", {
+		Theme = {
+            BackgroundColor3 = "Secondary"
+        },
+		Size = UDim2.new(1, -20, 0, 127)
+	}):Round(7)
+
+	local text = themeContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, 5),
+		Size = UDim2.new(0.5, -10, 0, 22),
+		Text = "Theme",
+		TextSize = 22,
+		Theme = {
+            TextColor3 = "StrongText"
+        },
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+
+	local colorThemesContainer = themeContainer:Object("Frame", {
+		Size = UDim2.new(1, 0, 1, -32),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 1, -5),
+		AnchorPoint = Vector2.new(0.5, 1)
+	})
+
+	local grid = colorThemesContainer:Object("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(10, 10),
+		CellSize = UDim2.fromOffset(102, 83),
+		VerticalAlignment = Enum.VerticalAlignment.Center
+	})
+
+	colorThemesContainer:Object("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingTop = UDim.new(0, 5)
+	})
+
+	for themeName, themeColors in next, library.Themes do
+		local count = 0
+
+		for _, color in next, themeColors do
+			if not (type(color) == "boolean") then
+				count += 1
+			end
+		end
+
+		if count >= 5 then
+			local theme = colorThemesContainer:Object("TextButton", {
+				BackgroundTransparency = 1
+			})
+
+			local themeColorsContainer = theme:Object("Frame", {
+				Size = UDim2.new(1, 0, 1, -20),
+				BackgroundTransparency = 1
+			}):Round(5):Stroke("WeakText", 1)
+
+			local themeNameLabel = theme:Object("TextLabel", {
+				BackgroundTransparency = 1,
+				Text = themeName,
+				TextSize = 16,
+				Theme = {
+                    TextColor3 = "StrongText"
+                },
+				Size = UDim2.new(1, 0, 0, 20),
+				Position = UDim2.fromScale(0, 1),
+				AnchorPoint = Vector2.new(0, 1)
+			})
+
+			local colorMain = themeColorsContainer:Object("Frame", {
+				Centered = true,
+				Size = UDim2.fromScale(1, 1),
+				BackgroundColor3 = themeColors.Main
+			}):Round(4)
+
+			local colorSecondary = colorMain:Object("Frame", {
+				Centered = true,
+				Size = UDim2.new(1, -16, 1, -16),
+				BackgroundColor3 = themeColors.Secondary
+			}):Round(4)
+
+			colorSecondary:Object("UIListLayout", {
+				Padding = UDim.new(0, 5)
+			})
+
+			colorSecondary:Object("UIPadding", {
+				PaddingTop = UDim.new(0, 5),
+				PaddingLeft = UDim.new(0, 5)
+			})
+
+			local colorTertiary = colorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -20, 0, 9),
+				BackgroundColor3 = themeColors.Tertiary
+			}):Round(100)
+
+			local colorStrong = colorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -30, 0, 9),
+				BackgroundColor3 = themeColors.StrongText
+			}):Round(100)
+
+			local colorTertiary = colorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -40, 0, 9),
+				BackgroundColor3 = themeColors.WeakText
+			}):Round(100)
+
+			theme.MouseButton1Click:Connect(function()
+				library:ChangeTheme(library.Themes[themeName])
+
+				updateSettings("Theme", themeName)
+			end)
+		end
+	end
+
+	self:_ResizeTab()
+end
+
+--[
+--AddCredit
+--]
+
+function library:AddCredit(options)
+	options = self:SetDefaults({
+		Name = "Credit",
+		Description = nil
+	}, options)
+
+	options.V3rmillion = options.V3rmillion or options.V3rm
+
+	local creditContainer = (self.creditsContainer or self.container):Object("Frame", {
+		Theme = {
+            BackgroundColor3 = "Secondary"
+        },
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+
+	local name = creditContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+            TextColor3 = "StrongText"
+        },
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+
+	if options.Description then
+		local description = creditContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+                TextColor3 = "WeakText"
+            },
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+
+	if setclipboard then
+		if options.Github then
+			local githubContainer = creditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -8, 1, -8),
+				Theme = {
+                    BackgroundColor3 = {
+                        "Main",
+                        10
+                    }
+                }
+			}):Round(5):ToolTip("Copy Github")
+
+			local github = githubContainer:Object("ImageLabel", {
+				Image = "http://www.roblox.com/asset/?id=11965755499",
+				Size = UDim2.new(1, -4, 1, -4),
+				Centered = true,
+				BackgroundTransparency = 1
+			}):Round(100)
+
+			githubContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.Github)
+			end)
+		end
+
+		if options.Discord then
+			local discordContainer = creditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -8, 1, -8),
+				BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+			}):Round(5):ToolTip("Copy Discord")
+
+			local discord = discordContainer:Object("Frame", {
+				Size = UDim2.new(1, -6, 1, -6),
+				Centered = true,
+				BackgroundTransparency = 1
+			})
+
+			local tr = discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 0),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(1, 0, 0, -0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594150191",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local tl = discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0, 0),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(0, 0, 0, -0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594187532",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local bl = discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0, 1),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(0, 0, 1, 0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594194954",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local br = discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(1, 0, 1, 0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594206483",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			discordContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.Discord)
+			end)
+		end
+
+		if options.V3rmillion then
+			local v3rmillionContainer = creditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -40, 1, -8),
+				Theme = {
+                    BackgroundColor3 = {
+                        "Main",
+                        10
+                    }
+                }
+			}):Round(5):ToolTip("Copy V3rm")
+
+			local v3rmillion = v3rmillionContainer:Object("ImageLabel", {
+				Image = "http://www.roblox.com/asset/?id=8594086769",
+				Size = UDim2.new(1, -4, 1, -4),
+				Centered = true,
+				BackgroundTransparency = 1
+			})
+
+			v3rmillionContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.V3rmillion)
+			end)
+		end
+	end
+
+	self._ResizeTab({
+		container = self.creditsContainer or self.container,
+		layout = (self.creditsContainer and self.creditsContainer.AbsoluteObject.UIListLayout) or self.layout
+	})
+end
+
+--XD
+
 return setmetatable(library, {
     __index = function(_, i)
         return rawget(library, i:lower())
