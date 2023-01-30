@@ -13,7 +13,6 @@
 
 --Instances And Functions
 
-local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -25,77 +24,69 @@ local Client = Players.LocalPlayer
 local Mouse = Client:GetMouse()
 
 local library = {
-    WorkspaceName = "Break-Skill Hub - V1",
-    Flags = {},
-    Connections = {},
-    Configuration = {
-        HideKeybind = Enum.KeyCode.RightShift,
-        EasingStyle = Enum.EasingStyle.Quart,
-        EasingDirection = Enum.EasingDirection.Out,
-        SmoothDragging = true
-    },
     Themes = {
         Legacy = {
             Main = Color3.fromHSV(260 / 360, 60 / 255, 35 / 255),
-            Secondary = Color3.fromHSV(240 / 360, 40 / 255, 65 / 255),
-            Tertiary = Color3.fromHSV(260 / 360, 60 / 255, 150 / 255),
+			Secondary = Color3.fromHSV(240 / 360, 40 / 255, 65 / 255),
+			Tertiary = Color3.fromHSV(260 / 360, 60 / 255, 150 / 255),
             StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
         },
         Serika = {
             Main = Color3.fromRGB(50, 50, 55),
-            Secondary = Color3.fromRGB(80, 80, 85),
-            Tertiary = Color3.fromRGB(225, 185, 20),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
+			Secondary = Color3.fromRGB(80, 80, 85),
+			Tertiary = Color3.fromRGB(220, 185, 20),
+			StrongText = Color3.fromHSV(0, 0, 1),
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
         },
         Dark = {
             Main = Color3.fromRGB(30, 30, 35),
-            Secondary = Color3.fromRGB(50, 50, 55),
-            Tertiary = Color3.fromRGB(70, 130, 180),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
+			Secondary = Color3.fromRGB(50, 50, 55),
+			Tertiary = Color3.fromRGB(70, 130, 180),
+			StrongText = Color3.fromHSV(0, 0, 1),
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
         },
         Rust = {
             Main = Color3.fromRGB(35, 35, 35),
-            Secondary = Color3.fromRGB(65, 65, 65),
-            Tertiary = Color3.fromRGB(235, 95, 40),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
+			Secondary = Color3.fromRGB(65, 65, 65),
+			Tertiary = Color3.fromRGB(235, 95, 40),
+			StrongText = Color3.fromHSV(0, 0, 1),
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
         },
         Aqua = {
             Main = Color3.fromRGB(20, 20, 20),
-            Secondary = Color3.fromRGB(65, 65, 65),
-            Tertiary = Color3.fromRGB(50, 155, 135),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
+			Secondary = Color3.fromRGB(65, 65, 65),
+			Tertiary = Color3.fromRGB(50, 155, 135),
+			StrongText = Color3.fromHSV(0, 0, 1),
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
         },
         BreakSkill = {
-            Main = Color3.fromRGB(35, 35, 35),
-            Secondary = Color3.fromRGB(70, 70, 70),
-            Tertiary = Color3.fromRGB(225, 55, 55),
+            Main = Color3.fromRGB(30, 30, 30),
+            Secondary = Color3.fromRGB(65, 65, 65),
+            Tertiary = Color3.fromRGB(235, 60, 60),
             StrongText = Color3.fromHSV(0, 0, 1),
             WeakText = Color3.fromHSV(0, 0, 170 / 255)
         }
     },
     ColorPickerStyles = {
-        Legacy = 0,
-        Modern = 1
-    },
+		Legacy = 0,
+		Modern = 1
+	},
     ThemeObjects = {
-        Main = {},
-        Secondary = {},
-        Tertiary = {},
-        StrongText = {},
-        WeakText = {}
-    },
+		Main = {},
+		Secondary = {},
+		Tertiary = {},
+		StrongText = {},
+		WeakText = {}
+	},
     Toggled = true,
     LockDragging = false,
-    DisplayName = nil,
-    URLLabel = nil,
-    URL = nil,
-    DragSpeed = 0.05,
-    ToggleKey = Enum.KeyCode.RightShift
+    WelcomeText = nil,
+	DisplayName = nil,
+    UrlLabel = nil,
+	Url = nil,
+    DragSpeed = 0.06,
+    ToggleKey = Enum.KeyCode.Home,
 }
 
 library.__index = library
