@@ -515,7 +515,7 @@ function library:ChangeTheme(toTheme)
 
 	local Light = self:Lighten(toTheme.Tertiary, 20)
 
-	library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'> <b>" .. Client.DisplayName .. "</b></font>"
+	library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'><b>" .. Client.DisplayName .. "</b></font>"
 
 	for c, o in next, library.ThemeObjects do
 		local ThemeColor = library.CurrentTheme[c]
@@ -988,7 +988,7 @@ function library:CreateWindow(options)
 
 		DisplayName = Profile:Object("TextLabel", {
 			RichText = true,
-			Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'> <b>" .. Client.DisplayName .. "</b></font>",
+			Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'><b>" .. Client.DisplayName .. "</b></font>",
 			TextScaled = true,
 			Position = UDim2.new(0, 105, 0, 10),
 			Theme = {
