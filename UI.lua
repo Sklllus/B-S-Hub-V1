@@ -125,7 +125,7 @@ function library:Object(class, props)
 	--]
 
 	function Methods:Tween(options, callback)
-		local options = library:SetDefaults({
+		options = library:SetDefaults({
 			Length = 0.2,
 			Style = Enum.EasingStyle.Linear,
 			Direction = Enum.EasingDirection.InOut
@@ -498,7 +498,7 @@ function library:CreateWindow(options)
 		end
 	end
 
-	options = self:SetDefaults({
+	options = library:SetDefaults({
 		Name = "Break-Skill Hub - V1",
 		Size = UDim2.fromOffset(600, 500),
 		Theme = self.Themes[Settings.Theme],
