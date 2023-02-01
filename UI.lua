@@ -106,13 +106,13 @@ function library:Object(class, props)
 	local ForcedProps = {
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSans,
 		Text = ""
 	}
 
-	for p, v in next, ForcedProps do
+	for property, value in next, ForcedProps do
 		pcall(function()
-			LocalObject[p] = v
+			LocalObject[property] = value
 		end)
 	end
 
@@ -131,15 +131,15 @@ function library:Object(class, props)
 			Direction = Enum.EasingDirection.InOut
 		}, options)
 
-		callback = callback or function () return end
+		callback = callback or function() return end
 
-		local Info = TweenInfo.new(options.Length, options.Style, options.Direction)
+		local ti = TweenInfo.new(options.Length, options.Style, options.Direction)
 
 		options.Length = nil
 		options.Style = nil
 		options.Direction = nil
 
-		local Tween = TweenService:Create(LocalObject, Info, options)
+		local Tween = TweenService:Create(LocalObject, ti, options)
 
 		Tween:Play()
 
@@ -182,7 +182,7 @@ function library:Object(class, props)
 	--]
 
 	function Methods:CrossFade(p2, length)
-		length = length or 0.2
+		length = length or .2
 
 		self:Tween({
 			ImageTransparency = 1
@@ -200,8 +200,8 @@ function library:Object(class, props)
 	function Methods:Fade(state, colorOverride, length, instant)
 		length = length or 0.2
 
-		if not rawget(self, "FadeFrame") then
-			local Frame = self:Object("Frame", {
+		if not rawget(self, "fadeFrame") then
+			local frame = self:Object("Frame", {
 				BackgroundColor3 = colorOverride or self.BackgroundColor3,
 				BackgroundTransparency = (state and 1) or 0,
 				Size = UDim2.fromScale(1, 1),
@@ -209,36 +209,36 @@ function library:Object(class, props)
 				ZIndex = 999
 			}):Round(self.AbsoluteObject:FindFirstChildOfClass("UICorner") and self.AbsoluteObject:FindFirstChildOfClass("UICorner").CornerRadius.Offset or 0)
 
-			rawset(self, "FadeFrame", Frame)
+			rawset(self, "fadeFrame", frame)
 		else
-			self.FadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
+			self.fadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
 		end
 
 		if instant then
 			if state then
-				self.FadeFrame.BackgroundTransparency = 0
-				self.FadeFrame.Visible = true
+				self.fadeFrame.BackgroundTransparency = 0
+				self.fadeFrame.Visible = true
 			else
-				self.FadeFrame.BackgroundTransparency = 1
-				self.FadeFrame.Visible = false
+				self.fadeFrame.BackgroundTransparency = 1
+				self.fadeFrame.Visible = false
 			end
 		else
 			if state then
-				self.FadeFrame.BackgroundTransparency = 1
-				self.FadeFrame.Visible = true
+				self.fadeFrame.BackgroundTransparency = 1
+				self.fadeFrame.Visible = true
 
-				self.FadeFrame:Tween({
+				self.fadeFrame:Tween({
 					BackgroundTransparency = 0,
 					Length = length
 				})
 			else
-				self.FadeFrame.BackgroundTransparency = 0
+				self.fadeFrame.BackgroundTransparency = 0
 
-				self.FadeFrame:Tween({
+				self.fadeFrame:Tween({
 					BackgroundTransparency = 1,
 					Length = length
 				}, function()
-					self.FadeFrame.Visible = false
+					self.fadeFrame.Visible = false
 				end)
 			end
 		end
@@ -258,28 +258,28 @@ function library:Object(class, props)
 		})
 
 		if type(color) == "table" then
-			local Theme, ColorAlter = color[1], color[2] or 0
-			local ThemeColor = library.CurrentTheme[Theme]
-			local ModifiedColor = ThemeColor
+			local theme, colorAlter = color[1], color[2] or 0
+			local themeColor = library.CurrentTheme[theme]
+			local modifiedColor = themeColor
 
-			if ColorAlter < 0 then
-				ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-			elseif ColorAlter > 0 then
-				ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
+			if colorAlter < 0 then
+				modifiedColor = library:Darken(themeColor, -1 * colorAlter)
+			elseif colorAlter > 0 then
+				modifiedColor = library:Lighten(themeColor, colorAlter)
 			end
 
-			Stroke.Color = ModifiedColor
+			Stroke.Color = modifiedColor
 
-			table.insert(library.ThemeObjects[Theme], {
+			table.insert(library.ThemeObjects[theme], {
 				Stroke,
 				"Color",
-				Theme,
-				ColorAlter
+				theme,
+				colorAlter
 			})
 		elseif type(color) == "string" then
-			local ThemeColor = library.CurrentTheme[color]
+			local themeColor = library.CurrentTheme[color]
 
-			Stroke.Color = ThemeColor
+			Stroke.Color = themeColor
 
 			table.insert(library.ThemeObjects[color], {
 				Stroke,
@@ -299,7 +299,7 @@ function library:Object(class, props)
 	--]
 
 	function Methods:ToolTip(text)
-		local ToolTipContainer = Methods:Object("TextLabel", {
+		local tooltipContainer = Methods:Object("TextLabel", {
 			Theme = {
 				BackgroundColor3 = {
 					"Main",
@@ -319,9 +319,9 @@ function library:Object(class, props)
 			TextTransparency = 1
 		}):Round(5)
 
-		ToolTipContainer.Size = UDim2.fromOffset(ToolTipContainer.TextBounds.X + 16, ToolTipContainer.TextBounds.Y + 8)
+		tooltipContainer.Size = UDim2.fromOffset(tooltipContainer.TextBounds.X + 16, tooltipContainer.TextBounds.Y + 8)
 
-		local ToolTipArrow = ToolTipContainer:Object("ImageLabel", {
+		local tooltipArrow = tooltipContainer:Object("ImageLabel", {
 			Image = "http://www.roblox.com/asset/?id=4292970642",
 			Theme = {
 				ImageColor3 = {
@@ -337,34 +337,34 @@ function library:Object(class, props)
 			ImageTransparency = 1
 		})
 
-		local Hovered = false
+		local hovered = false
 
 		Methods.MouseEnter:Connect(function()
-			Hovered = true
+			hovered = true
 
-			task.wait(0.2)
+			wait(0.2)
 
-			if Hovered then
-				ToolTipContainer:Tween({
+			if hovered then
+				tooltipContainer:Tween({
 					BackgroundTransparency = 0.2,
 					TextTransparency = 0.2
 				})
 
-				ToolTipArrow:Tween({
+				tooltipArrow:Tween({
 					ImageTransparency = 0.2
 				})
 			end
 		end)
 
 		Methods.MouseLeave:Connect(function()
-			Hovered = false
+			hovered = false
 
-			ToolTipContainer:Tween({
+			tooltipContainer:Tween({
 				BackgroundTransparency = 1,
 				TextTransparency = 1
 			})
 
-			ToolTipArrow:Tween({
+			tooltipArrow:Tween({
 				ImageTransparency = 1
 			})
 		end)
@@ -372,55 +372,55 @@ function library:Object(class, props)
 		return Methods
 	end
 
-	local CustomHandlers = {
-		Centered = function(val)
-			if val then
+	local customHandlers = {
+		Centered = function(value)
+			if value then
 				LocalObject.AnchorPoint = Vector2.new(0.5, 0.5)
 				LocalObject.Position = UDim2.fromScale(0.5, 0.5)
 			end
 		end,
-		Theme = function(val)
-			for p, o in next, val do
-				if type(o) == "table" then
-					local Theme, ColorAlter = o[1], o[2] or 0
-					local ThemeColor = library.CurrentTheme[Theme]
-					local ModifiedColor = ThemeColor
+		Theme = function(value)
+			for property, obj in next, value do
+				if type(obj) == "table" then
+					local theme, colorAlter = obj[1], obj[2] or 0
+					local themeColor = library.CurrentTheme[theme]
+					local modifiedColor = themeColor
 
-					if ColorAlter < 0 then
-						ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-					elseif ColorAlter > 0 then
-						ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
+					if colorAlter < 0 then
+						modifiedColor = library:Darken(themeColor, -1 * colorAlter)
+					elseif colorAlter > 0 then
+						modifiedColor = library:Lighten(themeColor, colorAlter)
 					end
 
-					LocalObject[p] = ModifiedColor
+					LocalObject[property] = modifiedColor
 
-					table.insert(self.ThemeObjects[Theme], {
+					table.insert(self.ThemeObjects[theme], {
 						Methods,
-						p,
-						Theme,
-						ColorAlter
+						property,
+						theme,
+						colorAlter
 					})
 				else
-					local ThemeColor = library.CurrentTheme[o]
+					local themeColor = library.CurrentTheme[obj]
 
-					LocalObject[p] = ThemeColor
+					LocalObject[property] = themeColor
 
-					table.insert(self.ThemeObjects[o], {
+					table.insert(self.ThemeObjects[obj], {
 						Methods,
-						p,
-						o,
+						property,
+						obj,
 						0
 					})
 				end
 			end
-		end
+		end,
 	}
 
-	for p, v in next, props do
-		if CustomHandlers[p] then
-			CustomHandlers[p](v)
+	for property, value in next, props do
+		if customHandlers[property] then
+			customHandlers[property](value)
 		else
-			LocalObject[p] = v
+			LocalObject[property] = value
 		end
 	end
 
@@ -428,9 +428,9 @@ function library:Object(class, props)
 		__index = function(_, property)
 			return LocalObject[property]
 		end,
-		__newindex = function(_, property, val)
-			LocalObject[property] = val
-		end
+		__newindex = function(_, property, value)
+			LocalObject[property] = value
+		end,
 	})
 end
 
