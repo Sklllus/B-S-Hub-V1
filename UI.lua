@@ -98,7 +98,9 @@ local UpdateSettings = function() end
 --UI Library Functions
 --]
 
+--[
 --Object
+--]
 
 function library:Object(class, props)
 	local LocalObject = Instance.new(class)
@@ -106,13 +108,13 @@ function library:Object(class, props)
 	local ForcedProps = {
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.SourceSans,
+		Font = Enum.Font.Code,
 		Text = ""
 	}
 
-	for property, value in next, ForcedProps do
+	for p, v in next, ForcedProps do
 		pcall(function()
-			LocalObject[property] = value
+			LocalObject[p] = v
 		end)
 	end
 
@@ -131,7 +133,7 @@ function library:Object(class, props)
 			Direction = Enum.EasingDirection.InOut
 		}, options)
 
-		callback = callback or function() return end
+		callback = callback or function () return end
 
 		local ti = TweenInfo.new(options.Length, options.Style, options.Direction)
 
@@ -200,8 +202,8 @@ function library:Object(class, props)
 	function Methods:Fade(state, colorOverride, length, instant)
 		length = length or 0.2
 
-		if not rawget(self, "fadeFrame") then
-			local frame = self:Object("Frame", {
+		if not rawget(self, "FadeFrame") then
+			local Frame = self:Object("Frame", {
 				BackgroundColor3 = colorOverride or self.BackgroundColor3,
 				BackgroundTransparency = (state and 1) or 0,
 				Size = UDim2.fromScale(1, 1),
@@ -209,36 +211,36 @@ function library:Object(class, props)
 				ZIndex = 999
 			}):Round(self.AbsoluteObject:FindFirstChildOfClass("UICorner") and self.AbsoluteObject:FindFirstChildOfClass("UICorner").CornerRadius.Offset or 0)
 
-			rawset(self, "fadeFrame", frame)
+			rawset(self, "FadeFrame", Frame)
 		else
-			self.fadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
+			self.FadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
 		end
 
 		if instant then
 			if state then
-				self.fadeFrame.BackgroundTransparency = 0
-				self.fadeFrame.Visible = true
+				self.FadeFrame.BackgroundTransparency = 0
+				self.FadeFrame.Visible = true
 			else
-				self.fadeFrame.BackgroundTransparency = 1
-				self.fadeFrame.Visible = false
+				self.FadeFrame.BackgroundTransparency = 1
+				self.FadeFrame.Visible = false
 			end
 		else
 			if state then
-				self.fadeFrame.BackgroundTransparency = 1
-				self.fadeFrame.Visible = true
+				self.FadeFrame.BackgroundTransparency = 1
+				self.FadeFrame.Visible = true
 
-				self.fadeFrame:Tween({
+				self.FadeFrame:Tween({
 					BackgroundTransparency = 0,
 					Length = length
 				})
 			else
-				self.fadeFrame.BackgroundTransparency = 0
+				self.FadeFrame.BackgroundTransparency = 0
 
-				self.fadeFrame:Tween({
+				self.FadeFrame:Tween({
 					BackgroundTransparency = 1,
 					Length = length
 				}, function()
-					self.fadeFrame.Visible = false
+					self.FadeFrame.Visible = false
 				end)
 			end
 		end
@@ -258,28 +260,30 @@ function library:Object(class, props)
 		})
 
 		if type(color) == "table" then
-			local theme, colorAlter = color[1], color[2] or 0
-			local themeColor = library.CurrentTheme[theme]
-			local modifiedColor = themeColor
+			local Theme, ColorAlter = color[1], color[2] or 0
 
-			if colorAlter < 0 then
-				modifiedColor = library:Darken(themeColor, -1 * colorAlter)
-			elseif colorAlter > 0 then
-				modifiedColor = library:Lighten(themeColor, colorAlter)
+			local ThemeColor = library.CurrentTheme[Theme]
+
+			local ModifiedColor = ThemeColor
+
+			if ColorAlter < 0 then
+				ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
+			elseif ColorAlter > 0 then
+				ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
 			end
 
-			Stroke.Color = modifiedColor
+			Stroke.Color = ModifiedColor
 
-			table.insert(library.ThemeObjects[theme], {
+			table.insert(library.ThemeObjects[Theme], {
 				Stroke,
 				"Color",
-				theme,
-				colorAlter
+				Theme,
+				ColorAlter
 			})
 		elseif type(color) == "string" then
-			local themeColor = library.CurrentTheme[color]
+			local ThemeColor = library.CurrentTheme[color]
 
-			Stroke.Color = themeColor
+			Stroke.Color = ThemeColor
 
 			table.insert(library.ThemeObjects[color], {
 				Stroke,
@@ -299,7 +303,7 @@ function library:Object(class, props)
 	--]
 
 	function Methods:ToolTip(text)
-		local tooltipContainer = Methods:Object("TextLabel", {
+		local ToolTipContainer = Methods:Object("TextLabel", {
 			Theme = {
 				BackgroundColor3 = {
 					"Main",
@@ -319,9 +323,9 @@ function library:Object(class, props)
 			TextTransparency = 1
 		}):Round(5)
 
-		tooltipContainer.Size = UDim2.fromOffset(tooltipContainer.TextBounds.X + 16, tooltipContainer.TextBounds.Y + 8)
+		ToolTipContainer.Size = UDim2.fromOffset(ToolTipContainer.TextBounds.X + 16, ToolTipContainer.TextBounds.Y + 8)
 
-		local tooltipArrow = tooltipContainer:Object("ImageLabel", {
+		local ToolTipArrow = ToolTipContainer:Object("ImageLabel", {
 			Image = "http://www.roblox.com/asset/?id=4292970642",
 			Theme = {
 				ImageColor3 = {
@@ -337,34 +341,34 @@ function library:Object(class, props)
 			ImageTransparency = 1
 		})
 
-		local hovered = false
+		local Hovered = false
 
 		Methods.MouseEnter:Connect(function()
-			hovered = true
+			Hovered = true
 
-			wait(0.2)
+			task.wait(0.2)
 
-			if hovered then
-				tooltipContainer:Tween({
+			if Hovered then
+				ToolTipContainer:Tween({
 					BackgroundTransparency = 0.2,
 					TextTransparency = 0.2
 				})
 
-				tooltipArrow:Tween({
+				ToolTipArrow:Tween({
 					ImageTransparency = 0.2
 				})
 			end
 		end)
 
 		Methods.MouseLeave:Connect(function()
-			hovered = false
+			Hovered = false
 
-			tooltipContainer:Tween({
+			ToolTipContainer:Tween({
 				BackgroundTransparency = 1,
 				TextTransparency = 1
 			})
 
-			tooltipArrow:Tween({
+			ToolTipArrow:Tween({
 				ImageTransparency = 1
 			})
 		end)
@@ -372,55 +376,57 @@ function library:Object(class, props)
 		return Methods
 	end
 
-	local customHandlers = {
-		Centered = function(value)
-			if value then
+	local CustomHandlers = {
+		Centered = function(val)
+			if val then
 				LocalObject.AnchorPoint = Vector2.new(0.5, 0.5)
 				LocalObject.Position = UDim2.fromScale(0.5, 0.5)
 			end
 		end,
-		Theme = function(value)
-			for property, obj in next, value do
-				if type(obj) == "table" then
-					local theme, colorAlter = obj[1], obj[2] or 0
-					local themeColor = library.CurrentTheme[theme]
-					local modifiedColor = themeColor
+		Theme = function(val)
+			for p, o in next, val do
+				if type(o) == "table" then
+					local Theme, ColorAlter = o[1], o[2] or 0
 
-					if colorAlter < 0 then
-						modifiedColor = library:Darken(themeColor, -1 * colorAlter)
-					elseif colorAlter > 0 then
-						modifiedColor = library:Lighten(themeColor, colorAlter)
+					local ThemeColor = library.CurrentTheme[Theme]
+
+					local ModifiedColor = ThemeColor
+
+					if ColorAlter < 0 then
+						ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
+					elseif ColorAlter > 0 then
+						ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
 					end
 
-					LocalObject[property] = modifiedColor
+					LocalObject[p] = ModifiedColor
 
-					table.insert(self.ThemeObjects[theme], {
+					table.insert(self.ThemeObjects[Theme], {
 						Methods,
-						property,
-						theme,
-						colorAlter
+						p,
+						Theme,
+						ColorAlter
 					})
 				else
-					local themeColor = library.CurrentTheme[obj]
+					local ThemeColor = library.CurrentTheme[o]
 
-					LocalObject[property] = themeColor
+					LocalObject[p] = ThemeColor
 
-					table.insert(self.ThemeObjects[obj], {
+					table.insert(self.ThemeObjects[o], {
 						Methods,
-						property,
-						obj,
+						p,
+						o,
 						0
 					})
 				end
 			end
-		end,
+		end
 	}
 
-	for property, value in next, props do
-		if customHandlers[property] then
-			customHandlers[property](value)
+	for p, v in next, props do
+		if CustomHandlers[p] then
+			CustomHandlers[p](v)
 		else
-			LocalObject[property] = value
+			LocalObject[p] = v
 		end
 	end
 
@@ -428,13 +434,49 @@ function library:Object(class, props)
 		__index = function(_, property)
 			return LocalObject[property]
 		end,
-		__newindex = function(_, property, value)
-			LocalObject[property] = value
-		end,
+		__newindex = function(_, property, val)
+			LocalObject[property] = val
+		end
 	})
 end
 
+--[
+--Show
+--]
+
+function library:Show(state)
+	self.Toggled = state
+
+	self.MainFrame.ClipsDescendants = true
+
+	if state then
+		self.MainFrame:Tween({
+			Size = self.MainFrame.OldSize,
+			Length = 0.25
+		}, function()
+			rawset(self.MainFrame, "OldSize", (state and self.MainFrame.OldSize) or self.MainFrame.Size)
+
+			self.MainFrame.ClipsDescendants = false
+		end)
+
+		task.wait(0.15)
+
+		self.MainFrame:Fade(not state, self.MainFrame.BackgroundColor3, 0.15)
+	else
+		self.MainFrame:Fade(not state, self.MainFrame.BackgroundColor3, 0.15)
+
+		task.wait(0.1)
+
+		self.MainFrame:Tween({
+			Size = UDim2.new(),
+			Length = 0.25
+		})
+	end
+end
+
+--[
 --Darken
+--]
 
 function library:Darken(color, f)
 	local H, S, V = Color3.toHSV(color)
@@ -444,7 +486,9 @@ function library:Darken(color, f)
 	return Color3.fromHSV(H, math.clamp(S / f, 0, 1), math.clamp(V * f, 0, 1))
 end
 
+--[
 --Lighten
+--]
 
 function library:Lighten(color, f)
 	local H, S, V = Color3.toHSV(color)
@@ -454,27 +498,73 @@ function library:Lighten(color, f)
 	return Color3.fromHSV(H, math.clamp(S * f, 0, 1), math.clamp(V / f, 0, 1))
 end
 
+--[
+--SetStatus
+--]
+
+function library:SetStatus(text)
+	self.StatusText.Text = text
+end
+
+--[
+--ChangeTheme
+--]
+
+function library:ChangeTheme(toTheme)
+	library.CurrentTheme = toTheme
+
+	local Light = self:Lighten(toTheme.Tertiary, 20)
+
+	library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'> <b>" .. Client.DisplayName .. "</b></font>"
+
+	for c, o in next, library.ThemeObjects do
+		local ThemeColor = library.CurrentTheme[c]
+
+		for _, o2 in next, o do
+			local Element, Property, Theme, ColorAlter = o2[1], o2[2], o2[3], o2[4] or 0
+
+			ThemeColor = library.CurrentTheme[Theme]
+
+			local ModifiedColor = ThemeColor
+
+			if ColorAlter < 0 then
+				ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
+			elseif ColorAlter > 0 then
+				ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
+			end
+
+			Element:Tween({
+				[Property] = ModifiedColor
+			})
+		end
+	end
+end
+
+--[
 --SetDefaults
+--]
 
 function library:SetDefaults(defaults, options)
 	defaults = defaults or {}
 	options = options or {}
 
 	for o, v in next, options do
-		defaults[options] = v
+		defaults[o] = v
 	end
 
 	return defaults
 end
 
+--[
 --CreateWindow
+--]
 
 function library:CreateWindow(options)
 	local Settings = {
 		Theme = "BreakSkill"
 	}
 
-	if readfile and writefile and isfile and makefolder and isfolder then
+	if readfile and isfile and makefolder and writefile and isfolder then
 		if not isfolder("./Break-Skill Hub - V1") then
 			makefolder("./Break-Skill Hub - V1")
 		end
@@ -498,7 +588,7 @@ function library:CreateWindow(options)
 		end
 	end
 
-	options = library:SetDefaults({
+	options = self:SetDefaults({
 		Name = "Break-Skill Hub - V1",
 		Size = UDim2.fromOffset(600, 500),
 		Theme = self.Themes[Settings.Theme],
@@ -673,7 +763,7 @@ function library:CreateWindow(options)
 	}):Round(5)
 
 	local SearchIcon = URLBar:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(0, 0.5),
+		AnchorPoint = Vector2.new(0, .5),
 		Position = UDim2.new(0, 5, 0.5, 0),
 		Theme = {
 			ImageColor3 = "Tertiary"
@@ -687,7 +777,7 @@ function library:CreateWindow(options)
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 26, 0.5, 0),
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -30, 0.6, 0),
+		Size = UDim2.new(1, -30, .6, 0),
 		Text = options.Link .. "/home",
 		Theme = {
 			TextColor3 = "WeakText"
@@ -713,7 +803,7 @@ function library:CreateWindow(options)
 		ZIndex = 0,
 		Image = "rbxassetid://6015897843",
 		ImageColor3 = Color3.fromRGB(0, 0, 0),
-		ImageTransparency = 0.6,
+		ImageTransparency = .6,
 		SliceCenter = Rect.new(47, 47, 450, 450),
 		ScaleType = Enum.ScaleType.Slice,
 		SliceScale = 1
@@ -758,7 +848,7 @@ function library:CreateWindow(options)
 		Theme = {
 			TextColor3 = "StrongText"
 		},
-		AnchorPoint = Vector2.new(0, 0.5),
+		AnchorPoint = Vector2.new(0, .5),
 		BackgroundTransparency = 1,
 		TextSize = 14,
 		Text = options.Name,
@@ -774,7 +864,7 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 5, 0.5, 0),
 		Size = UDim2.new(0, 15, 0, 15),
-		Image = "http://www.roblox.com/asset/?id=8569322835",
+		Image = "http://www.roblox.com/asset/?id=8569322735",
 		Theme = {
 			ImageColor3 = "StrongText"
 		}
@@ -786,11 +876,11 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1
 	})
 
-	local WindowFunctions = {}
+	local Tabs = {}
 
 	SelectedTab = HomeButton
 
-	WindowFunctions[#WindowFunctions + 1] = {
+	Tabs[#Tabs + 1] = {
 		HomePage,
 		HomeButton
 	}
@@ -823,6 +913,7 @@ function library:CreateWindow(options)
 			})
 		end)
 
+
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				Down = false
@@ -834,7 +925,7 @@ function library:CreateWindow(options)
 		end)
 
 		HomeButton.MouseButton1Click:Connect(function()
-			for _, ti in next, WindowFunctions do
+			for _, ti in next, Tabs do
 				local Page = ti[1]
 				local Button = ti[2]
 
@@ -851,7 +942,7 @@ function library:CreateWindow(options)
 
 			HomeButton.BackgroundTransparency = 0
 
-			library.URLLabel.Text = library.Link .. "/home"
+			library.URLLabel.Text = library.URL .. "/home"
 		end)
 	end
 
@@ -868,7 +959,7 @@ function library:CreateWindow(options)
 	})
 
 	local Profile = HomePage:Object("Frame", {
-		AnchorPoint = Vector2.new(0, 0.5),
+		AnchorPoint = Vector2.new(0, .5),
 		Theme = {
 			BackgroundColor3 = "Secondary"
 		},
@@ -987,7 +1078,7 @@ function library:CreateWindow(options)
 	})
 
 	QuickAccess:Object("UIGridLayout", {
-		CellPadding = UDim.new(10, 10),
+		CellPadding = UDim2.fromOffset(10, 10),
 		CellSize = UDim2.fromOffset(55, 55),
 		HorizontalAlignment = Enum.HorizontalAlignment.Center,
 		VerticalAlignment = Enum.VerticalAlignment.Center
@@ -1007,7 +1098,7 @@ function library:CreateWindow(options)
 		Container = Content,
 		Navigation = TabButtons,
 		Theme = options.Theme,
-		Tabs = WindowFunctions,
+		Tabs = Tabs,
 		QuickAccess = QuickAccess,
 		HomeButton = HomeButton,
 		HomePage = HomePage,
@@ -1017,7 +1108,7 @@ function library:CreateWindow(options)
 	return mt
 end
 
---XD
+--Meta
 
 return setmetatable(library, {
 	__index = function(_, i)
