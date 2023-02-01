@@ -125,7 +125,7 @@ function library:Object(class, props)
 	--]
 
 	function Methods:Tween(options, callback)
-		options = library:SetDefaults({
+		local options = library:SetDefaults({
 			Length = 0.2,
 			Style = Enum.EasingStyle.Linear,
 			Direction = Enum.EasingDirection.InOut
