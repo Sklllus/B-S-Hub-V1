@@ -116,15 +116,15 @@ function library:Object(class, props)
 		end)
 	end
 
-	local ObjectFunctions = {}
+	local Methods = {}
 
-	ObjectFunctions.AbsoluteObject = LocalObject
+	Methods.AbsoluteObject = LocalObject
 
 	--[
 	--Tween
 	--]
 
-	function ObjectFunctions:Tween(options, callback)
+	function Methods:Tween(options, callback)
 		options = library:SetDefaults({
 			Length = 0.2,
 			Style = Enum.EasingStyle.Linear,
@@ -133,13 +133,13 @@ function library:Object(class, props)
 
 		callback = callback or function () return end
 
-		local TI = TweenInfo.new(options.Length, options.Style, options.Direction)
+		local Info = TweenInfo.new(options.Length, options.Style, options.Direction)
 
 		options.Length = nil
 		options.Style = nil
 		options.Direction = nil
 
-		local Tween = TweenService:Create(LocalObject, TI, options)
+		local Tween = TweenService:Create(LocalObject, Info, options)
 
 		Tween:Play()
 
@@ -154,7 +154,7 @@ function library:Object(class, props)
 	--Round
 	--]
 
-	function ObjectFunctions:Round(radius)
+	function Methods:Round(radius)
 		radius = radius or 6
 
 		library:Object("UICorner", {
@@ -162,14 +162,14 @@ function library:Object(class, props)
 			CornerRadius = UDim.new(0, radius)
 		})
 
-		return ObjectFunctions
+		return Methods
 	end
 
 	--[
 	--Object
 	--]
 
-	function ObjectFunctions:Object(class2, props2)
+	function Methods:Object(class2, props2)
 		props2 = props2 or {}
 
 		props2.Parent = LocalObject
@@ -181,7 +181,7 @@ function library:Object(class, props)
 	--CrossFade
 	--]
 
-	function ObjectFunctions:CrossFade(p2, length)
+	function Methods:CrossFade(p2, length)
 		length = length or 0.2
 
 		self:Tween({
@@ -197,7 +197,7 @@ function library:Object(class, props)
 	--Fade
 	--]
 
-	function ObjectFunctions:Fade(state, colorOverride, length, instant)
+	function Methods:Fade(state, colorOverride, length, instant)
 		length = length or 0.2
 
 		if not rawget(self, "FadeFrame") then
@@ -229,7 +229,7 @@ function library:Object(class, props)
 
 				self.FadeFrame:Tween({
 					BackgroundTransparency = 0,
-					length
+					Length = length
 				})
 			else
 				self.FadeFrame.BackgroundTransparency = 0
@@ -248,7 +248,7 @@ function library:Object(class, props)
 	--Stroke
 	--]
 
-	function ObjectFunctions:Stroke(color, thickness, strokeMode)
+	function Methods:Stroke(color, thickness, strokeMode)
 		thickness = thickness or 1
 		strokeMode = strokeMode or Enum.ApplyStrokeMode.Border
 
@@ -291,15 +291,15 @@ function library:Object(class, props)
 			Stroke.Color = color
 		end
 
-		return ObjectFunctions
+		return Methods
 	end
 
 	--[
 	--ToolTip
 	--]
 
-	function ObjectFunctions:ToolTip(text)
-		local ToolTipContainer = ObjectFunctions:Object("TextLabel", {
+	function Methods:ToolTip(text)
+		local ToolTipContainer = Methods:Object("TextLabel", {
 			Theme = {
 				BackgroundColor3 = {
 					"Main",
@@ -339,7 +339,7 @@ function library:Object(class, props)
 
 		local Hovered = false
 
-		ObjectFunctions.MouseEnter:Connect(function()
+		Methods.MouseEnter:Connect(function()
 			Hovered = true
 
 			task.wait(0.2)
@@ -356,7 +356,7 @@ function library:Object(class, props)
 			end
 		end)
 
-		ObjectFunctions.MouseLeave:Connect(function()
+		Methods.MouseLeave:Connect(function()
 			Hovered = false
 
 			ToolTipContainer:Tween({
@@ -369,7 +369,7 @@ function library:Object(class, props)
 			})
 		end)
 
-		return ObjectFunctions
+		return Methods
 	end
 
 	local CustomHandlers = {
@@ -395,7 +395,7 @@ function library:Object(class, props)
 					LocalObject[p] = ModifiedColor
 
 					table.insert(self.ThemeObjects[Theme], {
-						ObjectFunctions,
+						Methods,
 						p,
 						Theme,
 						ColorAlter
@@ -406,7 +406,7 @@ function library:Object(class, props)
 					LocalObject[p] = ThemeColor
 
 					table.insert(self.ThemeObjects[o], {
-						ObjectFunctions,
+						Methods,
 						p,
 						o,
 						0
@@ -424,7 +424,7 @@ function library:Object(class, props)
 		end
 	end
 
-	return setmetatable(ObjectFunctions, {
+	return setmetatable(Methods, {
 		__index = function(_, property)
 			return LocalObject[property]
 		end,
