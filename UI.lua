@@ -1369,6 +1369,237 @@ function library:CreateNotification(options)
 end
 
 --[
+--CreatePrompt
+--]
+
+function library:CreatePrompt(options)
+	options = self:SetDefaults({
+		FollowUp = false,
+		Title = "Prompt",
+		Text = "Test Prompt",
+		Buttons = {
+			Yes = function()
+				print("Yes")
+			end,
+			No = function()
+				print("No")
+			end
+		}
+	}, options)
+
+	if library._promptExists and not options.FollowUp then
+		return
+	end
+
+	library._promptExists = true
+
+	local Count = 0
+
+	for a, _ in next, options.Buttons do
+		Count += 1
+	end
+
+	local Darkener = self.Core:Object("Frame", {
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1)
+	}):Round(10)
+
+	local PromptContainer = Darkener:Object("Frame", {
+		Theme = {
+			BackgroundColor3 = "Main"
+		},
+		BackgroundTransparency = 1,
+		Centered = true,
+		Size = UDim2.fromOffset(200, 120)
+	}):Round(6)
+
+	local _PromptContainerStroke = PromptContainer:Object("UIStroke", {
+		Theme = {
+			Color = "Tertiary"
+		},
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Transparency = 1
+	})
+
+	local _Padding = PromptContainer:Object("UIPadding", {
+		PaddingTop = UDim.new(0, 5),
+		PaddingLeft = UDim.new(0, 5),
+		PaddingBottom = UDim.new(0, 5),
+		PaddingRight = UDim.new(0, 5)
+	})
+
+	local PromptTitle = PromptContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 20),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Font = Enum.Font.Code,
+		Text = options.Title,
+		Theme = {
+			TextColor3 = {
+				"Tertiary",
+				15
+			}
+		},
+		TextSize = 16,
+		TextTransparency = 1
+	})
+
+	local PromptText = PromptContainer:Object("TextLabel", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 0, 26),
+		Size = UDim2.new(1, -20, 1, -60),
+		TextSize = 14,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		Text = options.Text,
+		TextTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextWrapped = true,
+		TextTruncate = Enum.TextTruncate.AtEnd
+	})
+
+	local ButtonHolder = PromptContainer:Object("Frame", {
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 0, 1, -5),
+		Size = UDim2.new(1, 0, 0, 20)
+	})
+
+	local _GridButtonHolder = ButtonHolder:Object("UIGridLayout", {
+		CellPadding = UDim2.new(0, 10, 0, 5),
+		CellSize = UDim2.new(1 / Count, -10, 1, 0),
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center
+	})
+
+	Darkener:Tween({
+		BackgroundTransparency = 0.4,
+		Length = 0.1
+	})
+
+	PromptContainer:Tween({
+		BackgroundTransparency = 0,
+		Length = 0.1
+	})
+
+	PromptTitle:Tween({
+		TextTransparency = 0,
+		Length = 0.1
+	})
+
+	_PromptContainerStroke:Tween({
+		Transparency = 0,
+		Length = 0.1
+	})
+
+	PromptText:Tween({
+		TextTransparency = 0,
+		Length = 0.1
+	})
+
+	local _TemporaryPromptButtons = {}
+
+	for t, c in next, options.Buttons do
+		local Button = ButtonHolder:Object("TextButton", {
+			AnchorPoint = Vector2.new(1, 1),
+			Theme = {
+				BackgroundColor3 = "Tertiary"
+			},
+			Text = tostring(t):upper(),
+			TextSize = 13,
+			Font = Enum.Font.Code,
+			BackgroundTransparency = 1,
+			TextTransparency = 1
+		}):Round(4)
+
+		table.insert(_TemporaryPromptButtons, Button)
+
+		do
+			Button:Tween({
+				TextTransparency = 0,
+				BackgroundTransparency = 0
+			})
+
+			local Hovered = false
+			local Down = false
+
+			Button.MouseEnter:Connect(function()
+				Hovered = true
+
+				Button:Tween({
+					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
+				})
+			end)
+
+			Button.MouseLeave:Connect(function()
+				Hovered = false
+
+				if not Down then
+					Button:Tween({
+						BackgroundColor3 = library.CurrentTheme.Tertiary
+					})
+				end
+			end)
+
+			Button.MouseButton1Down:Connect(function()
+				Button:Tween({
+					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
+				})
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					Button:Tween({
+						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
+					})
+				end
+			end)
+
+			Button.MouseButton1Click:Connect(function()
+				PromptContainer:Tween({
+					BackgroundTransparency = 1,
+					Length = 0.1
+				})
+
+				PromptTitle:Tween({
+					TextTransparency = 1,
+					Length = 0.1
+				})
+
+				_PromptContainerStroke:Tween({
+					Transparency = 1,
+					Length = 0.1
+				})
+
+				PromptText:Tween({
+					TextTransparency = 1,
+					Length = 0.1
+				})
+
+				for i, b in next, _TemporaryPromptButtons do
+					b:Tween({
+						TextTransparency = 1,
+						Length = 0.1
+					}, function()
+						Darkener.AbsoluteObject:Destroy()
+
+						task.delay(0.25, function()
+							library._promptExists = false
+						end)
+
+						c()
+					end)
+				end
+			end)
+		end
+	end
+end
+
+--[
 --AddThemeSelector
 --]
 
