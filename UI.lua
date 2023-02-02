@@ -2110,7 +2110,7 @@ end
 function library:AddLabel(options)
 	options = self:SetDefaults({
 		Text = "New Label",
-		Description = "Test Label",
+		Description = "New Label Description",
 		Color = Color3.fromRGB(255, 255, 255)
 	}, options)
 	
@@ -2147,7 +2147,7 @@ function library:AddLabel(options)
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 	
-	self.ResizeTab()
+	self:ResizeTab()
 	
 	local LabelFunctions = {}
 	
@@ -2168,6 +2168,135 @@ function library:AddLabel(options)
 	end
 	
 	return LabelFunctions
+end
+
+--[
+--AddButton
+--]
+
+function library:AddButton(options)
+	options = self:SetDefaults({
+		Name = "New Button",
+		Description = "New Button Description",
+		Callback = function()
+			print("New Button")
+		end
+	}, options)
+	
+	local ButtonFunctions = {}
+	
+	local ButtonContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local Text = ButtonContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = ButtonContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+		
+		--[
+		--SetDescription
+		--]
+		
+		function ButtonFunctions:SetDescription(txt)
+			Description.Text = txt
+		end
+	end
+	
+	local Icon = ButtonContainer:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -11, 0.5, 0),
+		Size = UDim2.fromOffset(26, 26),
+		Image = "rbxassetid://8498776661",
+		Theme = {
+			ImageColor3 = "Tertiary"
+		}
+	})
+	
+	do
+		local Hovered = false
+		local Down = false
+		
+		ButtonContainer.MouseEnter:Connect(function()
+			Hovered = true
+			
+			ButtonContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		ButtonContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				ButtonContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ButtonContainer.MouseButton1Down:Connect(function()
+			ButtonContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
+			})
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				ButtonContainer:Tween({
+					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ButtonContainer.MouseButton1Click:Connect(function()
+			options.Callback()
+		end)
+	end
+	
+	self:ResizeTab()
+	
+	--[
+	--Fire
+	--]
+	
+	function ButtonFunctions:Fire()
+		options.Callback()
+	end
+	
+	--[
+	--SetName
+	--]
+	
+	function ButtonFunctions:SetName(txt)
+		Text.Text = txt
+	end
+	
+	return ButtonFunctions
 end
 
 --[
