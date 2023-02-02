@@ -1111,6 +1111,8 @@ function library:CreateWindow(options)
 		Icon = "rbxassetid://8559790237"
 	})
 
+	SettingsTab:AddThemeSelector()
+
 	local CreditsTab = library.CreateTab(mt, {
 		Name = "Credits",
 		Internal = CreditsTabIcon,
