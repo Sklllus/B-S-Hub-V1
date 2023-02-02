@@ -1211,7 +1211,7 @@ function library:CreateTab(options)
 		end)
 
 		TabButton.MouseButton1Down:Connect(function()
-			Down = true
+			Hovered = false
 
 			TabButton:Tween({
 				BackgroundTransparency = 0
@@ -1223,7 +1223,7 @@ function library:CreateTab(options)
 				Down = false
 
 				TabButton:Tween({
-					BackgroundTransparency = ((SelectedTab == TabButton) and 0.15) or (Hovered and 0.3) or 1
+					BackgroundTransparency = ((SelectedTab and TabButton) and 0.15) or (Hovered and 0.3) or 1
 				})
 			end
 		end)
@@ -1351,13 +1351,13 @@ function library:CreateTab(options)
 
 		local Visible = {}
 
-		for _, tab in next, self.Tabs do
-			if not tab[2] == SelectedTab then
-				tab[1].Visible = false
+		for _, t in next, self.Tabs do
+			if not t[2] == SelectedTab then
+				t[1].Visible = false
 			end
 
-			if tab[2].Visible then
-				Visible[#Visible + 1] = tab
+			if t[2].Visible then
+				Visible[#Visible + 1] = t
 			end
 		end
 
@@ -1372,7 +1372,7 @@ function library:CreateTab(options)
 
 			self.HomePage.Visible = true
 
-			self.HomePage:Tween({
+			self.HomeButton:Tween({
 				BackgroundTransparency = 0.15
 			})
 
