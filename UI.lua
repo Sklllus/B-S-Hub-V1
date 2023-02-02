@@ -108,7 +108,7 @@ function library:Object(class, props)
 	local ForcedProps = {
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSans,
 		Text = ""
 	}
 
@@ -826,7 +826,7 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 5, 1, -6),
 		Size = UDim2.new(0.2, 0, 0, 10),
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSans,
 		Text = "Status | Idle",
 		Theme = {
 			TextColor3 = "Tertiary"
@@ -855,7 +855,7 @@ function library:CreateWindow(options)
 		Position = UDim2.new(0, 25, 0.5, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.new(1, -45, 0.5, 0),
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSans,
 		TextTruncate = Enum.TextTruncate.AtEnd
 	})
 
@@ -1258,7 +1258,7 @@ function library:CreateNotification(options)
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(23, 0),
 		Size = UDim2.new(1, -60, 0, 20),
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSansBold,
 		Text = options.Title,
 		Theme = {
 			TextColor3 = "Tertiary"
@@ -1553,7 +1553,7 @@ function library:CreateTab(options)
 		Position = UDim2.new(0, 25, 0.5, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Size = UDim2.new(1, -45, 0.5, 0),
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSans,
 		TextTruncate = Enum.TextTruncate.AtEnd
 	})
 
@@ -1578,6 +1578,18 @@ function library:CreateTab(options)
 			ImageColor3 = "StrongText"
 		}
 	})
+	
+	TabButtonClose.MouseEnter:Connect(function()
+		TabButtonClose:Tween({
+			ImageColor3 = Color3.fromRGB(255, 125, 140)
+		})
+	end)
+	
+	TabButtonClose.MouseLeave:Connect(function()
+		TabButtonClose:Tween({
+			ImageColor3 = library.CurrentTheme.StrongText
+		})
+	end)
 
 	TabButtonClose.MouseButton1Click:Connect(function()
 		TabButton:Fade(true, library.CurrentTheme.Main, 0.1)
@@ -1925,7 +1937,7 @@ function library:CreatePrompt(options)
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 20),
 		TextXAlignment = Enum.TextXAlignment.Center,
-		Font = Enum.Font.Code,
+		Font = Enum.Font.SourceSansBold,
 		Text = options.Title,
 		Theme = {
 			TextColor3 = {
@@ -2003,7 +2015,7 @@ function library:CreatePrompt(options)
 			},
 			Text = tostring(t):upper(),
 			TextSize = 13,
-			Font = Enum.Font.Code,
+			Font = Enum.Font.SourceSansBold,
 			BackgroundTransparency = 1,
 			TextTransparency = 1
 		}):Round(4)
@@ -2116,7 +2128,9 @@ function library:AddLabel(options)
 		Size = UDim2.new(0.5, -10, 0, 22),
 		Text = options.Text,
 		TextSize = 22,
-		TextColor3 = options.Color,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 	
@@ -2151,14 +2165,6 @@ function library:AddLabel(options)
 	
 	function LabelFunctions:SetDescription(txt)
 		Description.Text = txt
-	end
-	
-	--[
-	--SetColor
-	--]
-	
-	function LabelFunctions:SetColor(color)
-		Text.TextColor3 = color
 	end
 	
 	return LabelFunctions
