@@ -1369,363 +1369,6 @@ function library:CreateNotification(options)
 end
 
 --[
---CreatePrompt
---]
-
-function library:CreatePrompt(options)
-	options = self:SetDefaults({
-		FollowUp = false,
-		Title = "Prompt",
-		Text = "Test Prompt",
-		Buttons = {
-			Yes = function()
-				print("Yes")
-			end,
-			No = function()
-				print("No")
-			end
-		}
-	}, options)
-
-	if library._promptExists and not options.FollowUp then
-		return
-	end
-
-	library._promptExists = true
-
-	local Count = 0
-
-	for a, _ in next, options.Buttons do
-		Count += 1
-	end
-
-	local Darkener = self.Core:Object("Frame", {
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1)
-	}):Round(10)
-
-	local PromptContainer = Darkener:Object("Frame", {
-		Theme = {
-			BackgroundColor3 = "Main"
-		},
-		BackgroundTransparency = 1,
-		Centered = true,
-		Size = UDim2.fromOffset(200, 120)
-	}):Round(6)
-
-	local _PromptContainerStroke = PromptContainer:Object("UIStroke", {
-		Theme = {
-			Color = "Tertiary"
-		},
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		Transparency = 1
-	})
-
-	local _Padding = PromptContainer:Object("UIPadding", {
-		PaddingTop = UDim.new(0, 5),
-		PaddingLeft = UDim.new(0, 5),
-		PaddingBottom = UDim.new(0, 5),
-		PaddingRight = UDim.new(0, 5)
-	})
-
-	local PromptTitle = PromptContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 20),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Font = Enum.Font.Code,
-		Text = options.Title,
-		Theme = {
-			TextColor3 = {
-				"Tertiary",
-				15
-			}
-		},
-		TextSize = 16,
-		TextTransparency = 1
-	})
-
-	local PromptText = PromptContainer:Object("TextLabel", {
-		AnchorPoint = Vector2.new(0.5, 0),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0.5, 0, 0, 26),
-		Size = UDim2.new(1, -20, 1, -60),
-		TextSize = 14,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		Text = options.Text,
-		TextTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextWrapped = true,
-		TextTruncate = Enum.TextTruncate.AtEnd
-	})
-
-	local ButtonHolder = PromptContainer:Object("Frame", {
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 0, 1, -5),
-		Size = UDim2.new(1, 0, 0, 20)
-	})
-
-	local _GridButtonHolder = ButtonHolder:Object("UIGridLayout", {
-		CellPadding = UDim2.new(0, 10, 0, 5),
-		CellSize = UDim2.new(1 / Count, -10, 1, 0),
-		FillDirection = Enum.FillDirection.Horizontal,
-		HorizontalAlignment = Enum.HorizontalAlignment.Center
-	})
-
-	Darkener:Tween({
-		BackgroundTransparency = 0.4,
-		Length = 0.1
-	})
-
-	PromptContainer:Tween({
-		BackgroundTransparency = 0,
-		Length = 0.1
-	})
-
-	PromptTitle:Tween({
-		TextTransparency = 0,
-		Length = 0.1
-	})
-
-	_PromptContainerStroke:Tween({
-		Transparency = 0,
-		Length = 0.1
-	})
-
-	PromptText:Tween({
-		TextTransparency = 0,
-		Length = 0.1
-	})
-
-	local _TemporaryPromptButtons = {}
-
-	for t, c in next, options.Buttons do
-		local Button = ButtonHolder:Object("TextButton", {
-			AnchorPoint = Vector2.new(1, 1),
-			Theme = {
-				BackgroundColor3 = "Tertiary"
-			},
-			Text = tostring(t):upper(),
-			TextSize = 13,
-			Font = Enum.Font.Code,
-			BackgroundTransparency = 1,
-			TextTransparency = 1
-		}):Round(4)
-
-		table.insert(_TemporaryPromptButtons, Button)
-
-		do
-			Button:Tween({
-				TextTransparency = 0,
-				BackgroundTransparency = 0
-			})
-
-			local Hovered = false
-			local Down = false
-
-			Button.MouseEnter:Connect(function()
-				Hovered = true
-
-				Button:Tween({
-					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
-				})
-			end)
-
-			Button.MouseLeave:Connect(function()
-				Hovered = false
-
-				if not Down then
-					Button:Tween({
-						BackgroundColor3 = library.CurrentTheme.Tertiary
-					})
-				end
-			end)
-
-			Button.MouseButton1Down:Connect(function()
-				Button:Tween({
-					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
-				})
-			end)
-
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					Button:Tween({
-						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
-					})
-				end
-			end)
-
-			Button.MouseButton1Click:Connect(function()
-				PromptContainer:Tween({
-					BackgroundTransparency = 1,
-					Length = 0.1
-				})
-
-				PromptTitle:Tween({
-					TextTransparency = 1,
-					Length = 0.1
-				})
-
-				_PromptContainerStroke:Tween({
-					Transparency = 1,
-					Length = 0.1
-				})
-
-				PromptText:Tween({
-					TextTransparency = 1,
-					Length = 0.1
-				})
-
-				for i, b in next, _TemporaryPromptButtons do
-					b:Tween({
-						TextTransparency = 1,
-						Length = 0.1
-					}, function()
-						Darkener.AbsoluteObject:Destroy()
-
-						task.delay(0.25, function()
-							library._promptExists = false
-						end)
-
-						c()
-					end)
-				end
-			end)
-		end
-	end
-end
-
---[
---AddThemeSelector
---]
-
-function library:AddThemeSelector()
-	local ThemesCount = 0
-
-	for _ in next, library.Themes do
-		ThemesCount += 1
-	end
-
-	local ThemeContainer = self.Container:Object("Frame", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 127)
-	}):Round(7)
-
-	local Text = ThemeContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 5),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		Text = "Theme",
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-
-	local ColorThemesContainer = ThemeContainer:Object("Frame", {
-		Size = UDim2.new(1, 0, 1, -32),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0.5, 0, 1, -5),
-		AnchorPoint = Vector2.new(0.5, 1)
-	})
-
-	local Grid = ColorThemesContainer:Object("UIGridLayout", {
-		CellPadding = UDim2.fromOffset(10, 10),
-		CellSize = UDim2.fromOffset(102, 83),
-		VerticalAlignment = Enum.VerticalAlignment.Center
-	})
-
-	ColorThemesContainer:Object("UIPadding", {
-		PaddingLeft = UDim.new(0, 10),
-		PaddingTop = UDim.new(0, 5)
-	})
-
-	for tn, tc in next, library.Themes do
-		local Count = 0
-
-		for _, c in next, tc do
-			if not (type(c) == "boolean") then
-				Count += 1
-			end
-		end
-
-		if Count >= 5 then
-			local Theme = ColorThemesContainer:Object("TextButton", {
-				BackgroundTransparency = 1
-			})
-
-			local ThemeColorsContainer = Theme:Object("Frame", {
-				Size = UDim2.new(1, 0, 1, -20),
-				BackgroundTransparency = 1
-			}):Round(5):Stroke("WeakText", 1)
-
-			local ThemeNameLabel = Theme:Object("TextLabel", {
-				BackgroundTransparency = 1,
-				Text = tn,
-				TextSize = 16,
-				Theme = {
-					TextColor3 = "StrongText"
-				},
-				Size = UDim2.new(1, 0, 0, 20),
-				Position = UDim2.fromScale(0, 1),
-				AnchorPoint = Vector2.new(0, 1)
-			})
-
-			local ColorMain = ThemeColorsContainer:Object("Frame", {
-				Centered = true,
-				Size = UDim2.fromScale(1, 1),
-				BackgroundColor3 = tc.Main
-			}):Round(4)
-
-			local ColorSecondary = ColorMain:Object("Frame", {
-				Centered = true,
-				Size = UDim2.new(1, -16, 1, -16),
-				BackgroundColor3 = tc.Secondary
-			}):Round(4)
-
-			ColorSecondary:Object("UIListLayout", {
-				Padding = UDim.new(0, 5)
-			})
-
-			ColorSecondary:Object("UIPadding", {
-				PaddingTop = UDim.new(0, 5),
-				PaddingLeft = UDim.new(0, 5)
-			})
-
-			local ColorTertiary = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -20, 0, 9),
-				BackgroundColor3 = tc.Tertiary
-			}):Round(100)
-
-			local ColorStrong = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -30, 0, 9),
-				BackgroundColor3 = tc.StrongText
-			}):Round(100)
-
-			local ColorTertiary2 = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -40, 0, 9),
-				BackgroundColor3 = tc.WeakText
-			}):Round(100)
-
-			Theme.MouseButton1Click:Connect(function()
-				library:ChangeTheme(library.Themes[tn])
-
-				UpdateSettings("Theme", tn)
-			end)
-		end
-	end
-
-	self:ResizeTab()
-end
-
---[
 --CreateTab
 --]
 
@@ -2021,6 +1664,434 @@ function library:CreateTab(options)
 end
 
 --[
+--CreateSection
+--]
+
+function library:CreateSection(options)
+	options = self:SetDefaults({
+		Name = "New Section"
+	}, options)
+
+	local SectionContainer = self.Container:Object("TextButton", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, -24, 0, 52)
+	}):Round(7):Stroke("Secondary", 2)
+
+	local Text = SectionContainer:Object("TextLabel", {
+		Position = UDim2.new(0.5),
+		Text = options.Name,
+		TextSize = 18,
+		Theme = {
+			TextColor3 = "StrongText",
+			BackgroundColor3 = {
+				"Secondary",
+				-10
+			}
+		},
+		TextXAlignment = Enum.TextXAlignment.Center,
+		AnchorPoint = Vector2.new(0.5, 0.5)
+	})
+
+	Text.Size = UDim2.fromOffset(Text.TextBounds.X + 4, Text.TextBounds.Y)
+
+	local FunctionContainer = SectionContainer:Object("Frame", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1
+	})
+
+	local Layout = FunctionContainer:Object("UIListLayout", {
+		Padding = UDim.new(0, 10),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center
+	})
+
+	FunctionContainer:Object("UIPadding", {
+		PaddingTop = UDim.new(0, 10)
+	})
+
+	return setmetatable({
+		StatusText = self.StatusText,
+		Container = FunctionContainer,
+		SectionContainer = SectionContainer,
+		ParentContainer = self.Container,
+		Theme = self.Theme,
+		Core = self.Core,
+		ParentLayout = self.Layout,
+		Layout = Layout
+	}, library)
+end
+
+--[
+--ResizeTab
+--]
+
+function library:ResizeTab()
+	if self.Container.ClassName == "ScrollingFrame" then
+		self.Container.CanvasSize = UDim2.fromOffset(0, self.Layout.AbsoluteContentSize.Y + 20)
+	else
+		self.SectionContainer.Size = UDim2.new(1, -24, 0, self.Layout.AbsoluteContentSize.Y + 20)
+
+		self.ParentContainer.CanvasSize = UDim2.fromOffset(0, self.ParentLayout.AbsoluteContentSize.Y + 20)
+	end
+end
+
+--[
+--AddThemeSelector
+--]
+
+function library:AddThemeSelector()
+	local ThemesCount = 0
+
+	for _ in next, library.Themes do
+		ThemesCount += 1
+	end
+
+	local ThemeContainer = self.Container:Object("Frame", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 127)
+	}):Round(7)
+
+	local Text = ThemeContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, 5),
+		Size = UDim2.new(0.5, -10, 0, 22),
+		Text = "Theme",
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+
+	local ColorThemesContainer = ThemeContainer:Object("Frame", {
+		Size = UDim2.new(1, 0, 1, -32),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 1, -5),
+		AnchorPoint = Vector2.new(0.5, 1)
+	})
+
+	local Grid = ColorThemesContainer:Object("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(10, 10),
+		CellSize = UDim2.fromOffset(102, 83),
+		VerticalAlignment = Enum.VerticalAlignment.Center
+	})
+
+	ColorThemesContainer:Object("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingTop = UDim.new(0, 5)
+	})
+
+	for tn, tc in next, library.Themes do
+		local Count = 0
+
+		for _, c in next, tc do
+			if not (type(c) == "boolean") then
+				Count += 1
+			end
+		end
+
+		if Count >= 5 then
+			local Theme = ColorThemesContainer:Object("TextButton", {
+				BackgroundTransparency = 1
+			})
+
+			local ThemeColorsContainer = Theme:Object("Frame", {
+				Size = UDim2.new(1, 0, 1, -20),
+				BackgroundTransparency = 1
+			}):Round(5):Stroke("WeakText", 1)
+
+			local ThemeNameLabel = Theme:Object("TextLabel", {
+				BackgroundTransparency = 1,
+				Text = tn,
+				TextSize = 16,
+				Theme = {
+					TextColor3 = "StrongText"
+				},
+				Size = UDim2.new(1, 0, 0, 20),
+				Position = UDim2.fromScale(0, 1),
+				AnchorPoint = Vector2.new(0, 1)
+			})
+
+			local ColorMain = ThemeColorsContainer:Object("Frame", {
+				Centered = true,
+				Size = UDim2.fromScale(1, 1),
+				BackgroundColor3 = tc.Main
+			}):Round(4)
+
+			local ColorSecondary = ColorMain:Object("Frame", {
+				Centered = true,
+				Size = UDim2.new(1, -16, 1, -16),
+				BackgroundColor3 = tc.Secondary
+			}):Round(4)
+
+			ColorSecondary:Object("UIListLayout", {
+				Padding = UDim.new(0, 5)
+			})
+
+			ColorSecondary:Object("UIPadding", {
+				PaddingTop = UDim.new(0, 5),
+				PaddingLeft = UDim.new(0, 5)
+			})
+
+			local ColorTertiary = ColorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -20, 0, 9),
+				BackgroundColor3 = tc.Tertiary
+			}):Round(100)
+
+			local ColorStrong = ColorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -30, 0, 9),
+				BackgroundColor3 = tc.StrongText
+			}):Round(100)
+
+			local ColorTertiary2 = ColorSecondary:Object("Frame", {
+				Size = UDim2.new(1, -40, 0, 9),
+				BackgroundColor3 = tc.WeakText
+			}):Round(100)
+
+			Theme.MouseButton1Click:Connect(function()
+				library:ChangeTheme(library.Themes[tn])
+
+				UpdateSettings("Theme", tn)
+			end)
+		end
+	end
+
+	self:ResizeTab()
+end
+
+--[
+--CreatePrompt
+--]
+
+function library:CreatePrompt(options)
+	options = self:SetDefaults({
+		FollowUp = false,
+		Title = "Prompt",
+		Text = "Test Prompt",
+		Buttons = {
+			Yes = function()
+				print("Yes")
+			end,
+			No = function()
+				print("No")
+			end
+		}
+	}, options)
+
+	if library._promptExists and not options.FollowUp then
+		return
+	end
+
+	library._promptExists = true
+
+	local Count = 0
+
+	for a, _ in next, options.Buttons do
+		Count += 1
+	end
+
+	local Darkener = self.Core:Object("Frame", {
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1)
+	}):Round(10)
+
+	local PromptContainer = Darkener:Object("Frame", {
+		Theme = {
+			BackgroundColor3 = "Main"
+		},
+		BackgroundTransparency = 1,
+		Centered = true,
+		Size = UDim2.fromOffset(200, 120)
+	}):Round(6)
+
+	local _PromptContainerStroke = PromptContainer:Object("UIStroke", {
+		Theme = {
+			Color = "Tertiary"
+		},
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Transparency = 1
+	})
+
+	local _Padding = PromptContainer:Object("UIPadding", {
+		PaddingTop = UDim.new(0, 5),
+		PaddingLeft = UDim.new(0, 5),
+		PaddingBottom = UDim.new(0, 5),
+		PaddingRight = UDim.new(0, 5)
+	})
+
+	local PromptTitle = PromptContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 20),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Font = Enum.Font.Code,
+		Text = options.Title,
+		Theme = {
+			TextColor3 = {
+				"Tertiary",
+				15
+			}
+		},
+		TextSize = 16,
+		TextTransparency = 1
+	})
+
+	local PromptText = PromptContainer:Object("TextLabel", {
+		AnchorPoint = Vector2.new(0.5, 0),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0.5, 0, 0, 26),
+		Size = UDim2.new(1, -20, 1, -60),
+		TextSize = 14,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		Text = options.Text,
+		TextTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextYAlignment = Enum.TextYAlignment.Top,
+		TextWrapped = true,
+		TextTruncate = Enum.TextTruncate.AtEnd
+	})
+
+	local ButtonHolder = PromptContainer:Object("Frame", {
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 0, 1, -5),
+		Size = UDim2.new(1, 0, 0, 20)
+	})
+
+	local _GridButtonHolder = ButtonHolder:Object("UIGridLayout", {
+		CellPadding = UDim2.new(0, 10, 0, 5),
+		CellSize = UDim2.new(1 / Count, -10, 1, 0),
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center
+	})
+
+	Darkener:Tween({
+		BackgroundTransparency = 0.4,
+		Length = 0.1
+	})
+
+	PromptContainer:Tween({
+		BackgroundTransparency = 0,
+		Length = 0.1
+	})
+
+	PromptTitle:Tween({
+		TextTransparency = 0,
+		Length = 0.1
+	})
+
+	_PromptContainerStroke:Tween({
+		Transparency = 0,
+		Length = 0.1
+	})
+
+	PromptText:Tween({
+		TextTransparency = 0,
+		Length = 0.1
+	})
+
+	local _TemporaryPromptButtons = {}
+
+	for t, c in next, options.Buttons do
+		local Button = ButtonHolder:Object("TextButton", {
+			AnchorPoint = Vector2.new(1, 1),
+			Theme = {
+				BackgroundColor3 = "Tertiary"
+			},
+			Text = tostring(t):upper(),
+			TextSize = 13,
+			Font = Enum.Font.Code,
+			BackgroundTransparency = 1,
+			TextTransparency = 1
+		}):Round(4)
+
+		table.insert(_TemporaryPromptButtons, Button)
+
+		do
+			Button:Tween({
+				TextTransparency = 0,
+				BackgroundTransparency = 0
+			})
+
+			local Hovered = false
+			local Down = false
+
+			Button.MouseEnter:Connect(function()
+				Hovered = true
+
+				Button:Tween({
+					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
+				})
+			end)
+
+			Button.MouseLeave:Connect(function()
+				Hovered = false
+
+				if not Down then
+					Button:Tween({
+						BackgroundColor3 = library.CurrentTheme.Tertiary
+					})
+				end
+			end)
+
+			Button.MouseButton1Down:Connect(function()
+				Button:Tween({
+					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
+				})
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					Button:Tween({
+						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
+					})
+				end
+			end)
+
+			Button.MouseButton1Click:Connect(function()
+				PromptContainer:Tween({
+					BackgroundTransparency = 1,
+					Length = 0.1
+				})
+
+				PromptTitle:Tween({
+					TextTransparency = 1,
+					Length = 0.1
+				})
+
+				_PromptContainerStroke:Tween({
+					Transparency = 1,
+					Length = 0.1
+				})
+
+				PromptText:Tween({
+					TextTransparency = 1,
+					Length = 0.1
+				})
+
+				for i, b in next, _TemporaryPromptButtons do
+					b:Tween({
+						TextTransparency = 1,
+						Length = 0.1
+					}, function()
+						Darkener.AbsoluteObject:Destroy()
+
+						task.delay(0.25, function()
+							library._promptExists = false
+						end)
+
+						c()
+					end)
+				end
+			end)
+		end
+	end
+end
+
+--[
 --AddCredit
 --]
 
@@ -2180,20 +2251,6 @@ function library:AddCredit(options)
 		Container = self.CreditsContainer or self.Container,
 		Layout = (self.CreditsContainer and self.CreditsContainer.AbsoluteObject.UIListLayout) or self.Layout
 	})
-end
-
---[
---ResizeTab
---]
-
-function library:ResizeTab()
-	if self.Container.ClassName == "ScrollingFrame" then
-		self.Container.CanvasSize = UDim2.fromOffset(0, self.Layout.AbsoluteContentSize.Y + 20)
-	else
-		self.SectionContainer.Size = UDim2.new(1, -24, 0, self.Layout.AbsoluteContentSize.Y + 20)
-
-		self.ParentContainer.CanvasSize = UDim2.fromOffset(0, self.ParentLayout.AbsoluteContentSize.Y + 20)
-	end
 end
 
 --Meta
