@@ -2122,8 +2122,8 @@ function library:AddLabel(options)
 	
 	local Description = LabelContainer:Object("TextLabel", {
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 5),
-		Size = UDim2.new(0.5, -10, 0, 22),
+		Position = UDim2.new(0, 10, 1, -5),
+		Size = UDim2.new(0.5, -10, 1, -22),
 		Text = options.Description,
 		TextSize = 18,
 		AnchorPoint = Vector2.new(0, 1),
