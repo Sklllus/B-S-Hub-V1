@@ -1145,6 +1145,230 @@ function library:CreateWindow(options)
 end
 
 --[
+--CreateNotification
+--]
+
+function library:CreateNotification(options)
+	options = self:SetDefaults({
+		Title = "New Notification",
+		Text = "Test Notification.",
+		Duration = 5,
+		Callback = function()
+			print("Test Notification")
+		end
+	}, options)
+
+	local FadeOut
+
+	local Notification = self.Notifications:Object("Frame", {
+		BackgroundTransparency = 1,
+		Theme = {
+			BackgroundColor3 = "Main"
+		},
+		Size = UDim2.new(0, 300, 0, 0)
+	}):Round(10)
+
+	local _NotificationPadding = Notification:Object("UIPadding", {
+		PaddingBottom = UDim.new(0, 11),
+		PaddingTop = UDim.new(0, 11),
+		PaddingLeft = UDim.new(0, 11),
+		PaddingRight = UDim.new(0, 11)
+	})
+
+	local DropShadow = Notification:Object("Frame", {
+		ZIndex = 0,
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1)
+	})
+
+	local _Shadow = DropShadow:Object("ImageLabel", {
+		Centered = true,
+		Position = UDim2.fromScale(.5, .5),
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 70, 1, 70),
+		ZIndex = 0,
+		Image = "rbxassetid://6014261993",
+		ImageColor3 = Color3.fromRGB(0, 0, 0),
+		ImageTransparency = 1,
+		ScaleType = Enum.ScaleType.Slice,
+		SliceCenter = Rect.new(49, 49, 450, 450)
+	})
+
+	local DurationHolder = Notification:Object("Frame", {
+		BackgroundTransparency = 1,
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.fromScale(0, 1),
+		Size = UDim2.new(1, 0, 0, 4)
+	}):Round(100)
+
+	local Length = DurationHolder:Object("Frame", {
+		BackgroundTransparency = 1,
+		Theme = {
+			BackgroundColor3 = "Tertiary"
+		},
+		Size = UDim2.fromScale(1, 1)
+	}):Round(100)
+
+	local Icon = Notification:Object("ImageLabel", {
+		BackgroundTransparency = 1,
+		ImageTransparency = 1,
+		Position = UDim2.fromOffset(1, 1),
+		Size = UDim2.fromOffset(18, 18),
+		Image = "rbxassetid://8628681683",
+		Theme = {
+			ImageColor3 = "Tertiary"
+		}
+	})
+
+	local Exit = Notification:Object("ImageButton", {
+		Image = "http://www.roblox.com/asset/?id=8497487650",
+		AnchorPoint = Vector2.new(1, 0),
+		ImageColor3 = Color3.fromRGB(255, 255, 255),
+		Position = UDim2.new(1, -3, 0, 3),
+		Size = UDim2.fromOffset(14, 14),
+		BackgroundTransparency = 1,
+		ImageTransparency = 1
+	})
+
+	Exit.MouseButton1Click:Connect(function()
+		FadeOut()
+	end)
+
+	local Text = Notification:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Text = options.Text,
+		Position = UDim2.new(0, 0, 0, 23),
+		Size = UDim2.new(1, 0, 100, 0),
+		TextSize = 16,
+		TextTransparency = 1,
+		TextWrapped = true,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextYAlignment = Enum.TextYAlignment.Top,
+	})
+
+	Text:Tween({
+		Size = UDim2.new(1, 0, 0, Text.TextBounds.Y)
+	})
+
+	local Title = Notification:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(23, 0),
+		Size = UDim2.new(1, -60, 0, 20),
+		Font = Enum.Font.Code,
+		Text = options.Title,
+		Theme = {
+			TextColor3 = "Tertiary"
+		},
+		TextSize = 17,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = true,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		TextTransparency = 1
+	})
+
+	FadeOut = function()
+		task.delay(0.3, function()
+			Notification.AbsoluteObject:Destroy()
+
+			options.Callback()
+		end)
+
+		Icon:Tween({
+			ImageTransparency = 1,
+			Length = 0.2
+		})
+
+		Exit:Tween({
+			ImageTransparency = 1,
+			Length = 0.2
+		})
+
+		DurationHolder:Tween({
+			BackgroundTransparency = 1,
+			Length = 0.2
+		})
+
+		Length:Tween({
+			BackgroundTransparency = 1,
+			Length = 0.2
+		})
+
+		Text:Tween({
+			TextTransparency = 1,
+			Length = 0.2
+		})
+
+		Title:Tween({
+			TextTransparency = 1,
+			Length = 0.2
+		}, function()
+			_Shadow:Tween({
+				ImageTransparency = 1,
+				Length = 0.2
+			})
+
+			Notification:Tween({
+				BackgroundTransparency = 1,
+				Length = 0.2,
+				Size = UDim2.fromOffset(300, 0)
+			})
+		end)
+	end
+
+	_Shadow:Tween({
+		ImageTransparency = .6,
+		Length = 0.2
+	})
+
+	Notification:Tween({
+		BackgroundTransparency = 0,
+		Length = 0.2,
+		Size = UDim2.fromOffset(300, Text.TextBounds.Y + 63)
+	}, function()
+		Icon:Tween({
+			ImageTransparency = 0,
+			Length = 0.2
+		})
+
+		Exit:Tween({
+			ImageTransparency = 0,
+			Length = 0.2
+		})
+
+		DurationHolder:Tween({
+			BackgroundTransparency = 0,
+			Length = 0.2
+		})
+
+		Length:Tween({
+			BackgroundTransparency = 0,
+			Length = 0.2
+		})
+
+		Text:Tween({
+			TextTransparency = 0,
+			Length = 0.2
+		})
+
+		Title:Tween({
+			TextTransparency = 0,
+			Length = 0.2
+		})
+	end)
+
+	Length:Tween({
+		Size = UDim2.fromScale(0, 1),
+		Length = options.Duration
+	}, function()
+		FadeOut()
+	end)
+end
+
+--[
 --AddThemeSelector
 --]
 
