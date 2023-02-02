@@ -2092,6 +2092,79 @@ function library:CreatePrompt(options)
 end
 
 --[
+--AddLabel
+--]
+
+function library:AddLabel(options)
+	options = self:SetDefaults({
+		Text = "New Label",
+		Description = "Test Label",
+		Color = Color3.fromRGB(255, 255, 255)
+	}, options)
+	
+	local LabelContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52),
+		BackgroundTransparency = 1
+	}):Round(7):Stroke("Secondary", 2)
+	
+	local Text = LabelContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, 5),
+		Size = UDim2.new(0.5, -10, 0, 22),
+		Text = options.Text,
+		TextSize = 22,
+		TextColor3 = options.Color,
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	local Description = LabelContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, 5),
+		Size = UDim2.new(0.5, -10, 0, 22),
+		Text = options.Description,
+		TextSize = 18,
+		AnchorPoint = Vector2.new(0, 1),
+		Theme = {
+			TextColor3 = "WeakText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	self.ResizeTab()
+	
+	local LabelFunctions = {}
+	
+	--[
+	--SetText
+	--]
+	
+	function LabelFunctions:SetText(txt)
+		Text.Text = txt
+	end
+	
+	--[
+	--SetDescription
+	--]
+	
+	function LabelFunctions:SetDescription(txt)
+		Description.Text = txt
+	end
+	
+	--[
+	--SetColor
+	--]
+	
+	function LabelFunctions:SetColor(color)
+		Text.TextColor3 = color
+	end
+	
+	return LabelFunctions
+end
+
+--[
 --AddCredit
 --]
 
