@@ -1105,13 +1105,13 @@ function library:CreateWindow(options)
 		NilFolder = Core:Object("Folder")
 	}, library)
 
-	local SettingsTab = library:CreateTab(mt, {
+	local SettingsTab = library.CreateTab(mt, {
 		Name = "Settings",
 		Internal = SettingsTabIcon,
 		Icon = "rbxassetid://8559790237"
 	})
 
-	local CreditsTab = library:CreateTab(mt, {
+	local CreditsTab = library.CreateTab(mt, {
 		Name = "Credits",
 		Internal = CreditsTabIcon,
 		Icon = "http://www.roblox.com/asset/?id=8577523456"
