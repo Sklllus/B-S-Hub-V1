@@ -1121,6 +1121,26 @@ function library:CreateWindow(options)
 
 	rawset(mt, "CreditsContainer", CreditsTab.Container)
 
+	CreditsTab:AddCredit({
+		Name = "Abstract",
+		Description = "Original UI Library Developer.",
+		Discord = "Abstract#8007",
+		V3rmillion = "AbstractPoo"
+	})
+
+	CreditsTab:AddCredit({
+		Name = "Deity",
+		Description = "Original UI Library Developer.",
+		Discord = "Deity#0228",
+		V3rmillion = "0xDEITY"
+	})
+
+	CreditsTab:AddCredit({
+		Name = "Skillus (xX_XSI)",
+		Description = "Rework UI Library Developer and Script Developer.",
+		Discord = "discord.gg/ev8bxrAa9p"
+	})
+
 	return mt
 end
 
@@ -1543,6 +1563,168 @@ function library:CreateTab(options)
 		Core = self.Core,
 		Layout = Layout
 	}, library)
+end
+
+--[
+--AddCredit
+--]
+
+function library:AddCredit(options)
+	options = self:SetDefaults({
+		Name = "Credit",
+		Description = nil
+	}, options)
+
+	options.V3rmillion = options.V3rmillion or options.V3rm
+
+	local CreditContainer = (self.CreditsContainer or self.Container):Object("Frame", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+
+	local Name = CreditContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+
+	if options.Description then
+		local Description = CreditContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+
+	if setclipboard then
+		if options.Github then
+			local GithubContainer = CreditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -8, 1, -8),
+				Theme = {
+					BackgroundColor3 = {
+						"Main",
+						10
+					}
+				}
+			}):Round(5):ToolTip("Copy github")
+
+			local Github = GithubContainer:Object("ImageLabel", {
+				Image = "http://www.roblox.com/asset/?id=11965755499",
+				Size = UDim2.new(1, -4, 1, -4),
+				Centered = true,
+				BackgroundTransparency = 1
+			}):Round(100)
+
+			GithubContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.Github)
+			end)
+		end
+
+		if options.Discord then
+			local DiscordContainer = CreditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -8, 1, -8),
+				BackgroundColor3 = Color3.fromRGB(90, 100, 240)
+			}):Round(5):ToolTip("Copy discord")
+
+			local Discord = DiscordContainer:Object("Frame", {
+				Size = UDim2.new(1, -6, 1, -6),
+				Centered = true,
+				BackgroundTransparency = 1
+			})
+
+			local tr = Discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 0),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(1, 0, 0, -0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594150191",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local tl = Discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0, 0),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(0, 0, 0, -0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594187532",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local bl = Discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0, 1),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(0, 0, 1, 0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594194954",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			local br = Discord:Object("ImageLabel", {
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.new(0.5, 0, 0.5, 0),
+				Position = UDim2.new(1, 0, 1, 0),
+				ImageColor3 = Color3.fromRGB(255, 255, 255),
+				Image = "http://www.roblox.com/asset/?id=8594206483",
+				ScaleType = Enum.ScaleType.Crop
+			})
+
+			DiscordContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.Discord)
+			end)
+		end
+
+		if options.V3rmillion then
+			local V3rmillionContainer = CreditContainer:Object("TextButton", {
+				AnchorPoint = Vector2.new(1, 1),
+				Size = UDim2.fromOffset(24, 24),
+				Position = UDim2.new(1, -40, 1, -8),
+				Theme = {
+					BackgroundColor3 = {
+						"Main",
+						10
+					}
+				}
+			}):Round(5):ToolTip("Copy v3rm")
+
+			local V3rmillion = V3rmillionContainer:Object("ImageLabel", {
+				Image = "http://www.roblox.com/asset/?id=8594086769",
+				Size = UDim2.new(1, -4, 1, -4),
+				Centered = true,
+				BackgroundTransparency = 1
+			})
+
+			V3rmillionContainer.MouseButton1Click:Connect(function()
+				setclipboard(options.V3rmillion)
+			end)
+		end
+	end
+
+	self.ResizeTab({
+		Container = self.CreditsContainer or self.Container,
+		Layout = (self.CreditsContainer and self.CreditsContainer.AbsoluteObject.UIListLayout) or self.Layout
+	})
 end
 
 --[
