@@ -2481,43 +2481,13 @@ end
 function library:AddSlider(options)
 	options = self:SetDefaults({
 		Name = "New Slider",
-		Description = "New Slider Description",
 		Min = 0,
 		Default = 50,
 		Max = 100,
-		Decimal = 1,
 		Callback = function(val)
 			print(val)
 		end
 	}, options)
-	
-	local Decimal = options.Decimal
-	
-	if not Decimal and options.Max - options.Min <= 1 then
-		Decimal = 1
-	end
-	
-	if Decimal then
-		Decimal = math.clamp(Decimal, 0, 99)
-		
-		if Decimal <= 0 then
-			Decimal = 0
-		end
-		
-		Decimal = tostring(Decimal)
-	end
-	
-	local function ResolveDisplay(val)
-		local str = nil
-		
-		if Decimal then
-			str = string.format("%0." .. Decimal .. "f", val)
-		end
-		
-		str = str or tostring(val)
-		
-		return str
-	end
 	
 	local SliderContainer = self.Container:Object("TextButton", {
 		Theme = {
@@ -2544,6 +2514,7 @@ function library:AddSlider(options)
 			Position = UDim2.fromOffset(10, 27),
 			Size = UDim2.new(0.5, -10, 0, 20),
 			Text = options.Description,
+			TextSize = 18,
 			Theme = {
 				TextColor3 = "WeakText"
 			},
@@ -2564,8 +2535,8 @@ function library:AddSlider(options)
 		},
 		Position = UDim2.new(1, -10, 0, 10),
 		Size = UDim2.new(0, 50, 0, 20),
-		TextSize = 22,
-		Text = ResolveDisplay(options.Default)
+		TextSize = 12,
+		Text = options.Default
 	}):Round(5):Stroke("Tertiary")
 	
 	ValueText.Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
@@ -2583,7 +2554,7 @@ function library:AddSlider(options)
 	}):Round(100)
 	
 	local SliderLine = SliderBar:Object("Frame", {
-		Size = UDim2.fromScale(((options.Default or options.Min) - options.Min) / (options.Max - options.Min), 1),
+		Size = UDim2.fromScale(((options.Default - options.Min) / (options.Max - options.Min)), 1),
 		Theme = {
 			BackgroundColor3 = "Tertiary"
 		}
@@ -2647,15 +2618,11 @@ function library:AddSlider(options)
 			while RunService.RenderStepped:Wait() and Down do
 				local Percentage = math.clamp((Mouse.X - SliderBar.AbsolutePosition.X) / (SliderBar.AbsoluteSize.X), 0, 1)
 				
-				local SliderValue = nil
+				local Value = ((options.Max - options.Min) * Percentage) + options.Min
 				
-				if Decimal then
-					SliderValue = tonumber(string.format("%X." .. Decimal .. "f", ((Percentage.X.Scale * options.Max) / options.Max) * (options.Max - options.Min) + options.Min))
-				end
+				Value = math.floor(Value)
 				
-				SliderValue = SliderValue or tonumber(string.format("%0.2f", (math.floor(((Percentage.X.Scale * options.Max) / options.Max) * (options.Max - options.Min) + options.Min))))
-				
-				ValueText.Text = ResolveDisplay(SliderValue)
+				ValueText.Text = Value
 				
 				if Tween.PlaybackState == Enum.PlaybackState.Completed then
 					Tween = ValueText:Tween({
@@ -2668,9 +2635,7 @@ function library:AddSlider(options)
 					Length = 0.06
 				})
 				
-				if options.Callback then
-					task.spawn(options.Callback, SliderValue)
-				end
+				options.Callback(Value)
 			end
 		end)
 	end
