@@ -28,14 +28,14 @@ local library = {
 	Themes = {
 		BreakSkillLight = {
 			Main = Color3.fromRGB(100, 100, 100),
-			Secondary = Color3.fromRGB(160, 160, 160),
+			Secondary = Color3.fromRGB(140, 140, 140),
 			Tertiary = Color3.fromRGB(255, 65, 65),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
 		BreakSkillDark = {
 			Main = Color3.fromRGB(20, 20, 20),
-			Secondary = Color3.fromRGB(55, 55, 55),
+			Secondary = Color3.fromRGB(45, 45, 45),
 			Tertiary = Color3.fromRGB(255, 30, 30),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
@@ -58,13 +58,6 @@ local library = {
 			Main = Color3.fromRGB(35, 35, 35),
 			Secondary = Color3.fromRGB(65, 65, 65),
 			Tertiary = Color3.fromRGB(235, 95, 40),
-			StrongText = Color3.fromHSV(0, 0, 1),
-			WeakText = Color3.fromHSV(0, 0, 170 / 255)
-		},
-		Aqua = {
-			Main = Color3.fromRGB(20, 20, 20),
-			Secondary = Color3.fromRGB(65, 65, 65),
-			Tertiary = Color3.fromRGB(50, 155, 135),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		}
