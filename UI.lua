@@ -2806,6 +2806,482 @@ function library:AddTextBox(options)
 end
 
 --[
+--AddDropdown
+--]
+
+function library:AddDropdown(options)
+	options = self:SetDefaults({
+		Name = "New Dropdown",
+		StartingText = "Select option...",
+		Items = {
+			"Drop 1",
+			"Drop 2",
+			"Drop 3"
+		},
+		Callback = function(val)
+			print("New Dropdown Value: " .. val)
+		end
+	}, options)
+	
+	local NewSize = 0
+	local Open = false
+	
+	local DropdownContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local Text = DropdownContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 15),
+		Size = UDim2.new(0.5, -10, 0, 22),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = DropdownContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+	
+	local Icon = DropdownContainer:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(1, 0),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -11, 0, 12),
+		Size = UDim2.fromOffset(26, 26),
+		Image = "rbxassetid://8498840035",
+		Theme = {
+			ImageColor3 = "Tertiary"
+		}
+	})
+	
+	local SelectedText = DropdownContainer:Object("TextLabel", {
+		AnchorPoint = Vector2.new(1, 0),
+		Theme = {
+			BackgroundColor3 = {
+				"Secondary",
+				-20
+			},
+			TextColor3 = "WeakText"
+		},
+		Position = UDim2.new(1, -50, 0, 16),
+		Size = UDim2.fromOffset(200, 20),
+		TextSize = 14,
+		Text = options.StartingText
+	}):Round(5):Stroke("Tertiary")
+	
+	local ItemContainer = DropdownContainer:Object("Frame", {
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 5, 0, 55),
+		Size = UDim2.new(1, -10, 0, 0),
+		ClipsDescendants = true
+	})
+	
+	SelectedText.Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20)
+	
+	local _GridItemContainer = ItemContainer:Object("UIGridLayout", {
+		CellPadding = UDim2.fromOffset(0, 5),
+		CellSize = UDim2.new(1, 0, 0, 20),
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Left,
+		VerticalAlignment = Enum.VerticalAlignment.Top
+	})
+	
+	local Layout = self.Layout
+	local Container = self.Container
+	
+	local Items = setmetatable({}, {
+		__newindex = function(self, i, v)
+			rawset(self, i, v)
+			
+			if v ~= nil then
+				NewSize = (25 * #self) + 5
+				
+				ItemContainer.Size = UDim2.new(1, -10, 0, NewSize)
+			end
+		end
+	})
+	
+	for i, v in next, options.Items do
+		if typeof(v) == "table" then
+			Items[i] = v
+		else
+			Items[i] = {
+				tostring(v), v
+			}
+		end
+	end
+	
+	local Toggle
+	
+	for i, i2 in next, Items do
+		local Label = i2[1]
+		local Value = i2[2]
+		
+		local NewItem = ItemContainer:Object("TextButton", {
+			Theme = {
+				BackgroundColor3 = {
+					"Secondary",
+					25
+				},
+				TextColor3 = {
+					"StrongText",
+					25
+				}
+			},
+			Text = Label,
+			TextSize = 14
+		}):Round(5)
+		
+		Items[i] = {
+			{
+				Label,
+				Value
+			},
+			NewItem
+		}
+		
+		do
+			local Hovered = false
+			local Down = false
+			
+			NewItem.MouseEnter:Connect(function()
+				Hovered = true
+				
+				NewItem:Tween({
+					BackgroundColor3 = library.CurrentTheme.Tertiary
+				})
+			end)
+			
+			NewItem.MouseLeave:Connect(function()
+				Hovered = false
+				
+				if not Down then
+					NewItem:Tween({
+						BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 25)
+					})
+				end
+			end)
+			
+			NewItem.MouseButton1Down:Connect(function()
+				NewItem:Tween({
+					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
+				})
+			end)
+			
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 then
+					NewItem:Tween({
+						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary, 5)) or self:Lighten(library.CurrentTheme.Secondary, 25)
+					})
+				end
+			end)
+			
+			NewItem.MouseButton1Click:Connect(function()
+				Toggle()
+				
+				SelectedText.Text = NewItem.Text
+				
+				SelectedText:Tween({
+					Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
+					Length = 0.05
+				})
+				
+				options.Callback(Value)
+			end)
+		end
+	end
+	
+	do
+		local Hovered = false
+		local Down = false
+		
+		NewSize = (25 * #Items) + 5
+		
+		ItemContainer.Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
+		
+		Toggle = function()
+			NewSize = (25 * #Items) + 5
+			
+			Open = not Open
+			
+			if Open then
+				ItemContainer:Tween({
+					Size = UDim2.new(1, -10, 0, NewSize)
+				})
+				
+				DropdownContainer:Tween({
+					Size = UDim2.new(1, -20, 0, 52 + NewSize)
+				}, function()
+					self:ResizeTab()
+				end)
+				
+				Icon:Tween({
+					Position = UDim2.new(1, -11, 0, 15),
+					Rotation = 180
+				})
+			else
+				ItemContainer:Tween({
+					Size = UDim2.new(1, -10, 0, 0)
+				})
+				
+				DropdownContainer:Tween({
+					Size = UDim2.new(1, -20, 0, 52)
+				}, function()
+					self:ResizeTab()
+				end)
+				
+				Icon:Tween({
+					Position = UDim2.new(1, -11, 0, 12),
+					Rotation = 0
+				})
+			end
+		end
+		
+		DropdownContainer.MouseEnter:Connect(function()
+			Hovered = true
+			
+			DropdownContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		DropdownContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				DropdownContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		DropdownContainer.MouseButton1Down:Connect(function()
+			DropdownContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
+			})
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				DropdownContainer:Tween({
+					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		DropdownContainer.MouseButton1Click:Connect(function()
+			Toggle()
+		end)
+	end
+	
+	self:ResizeTab()
+	
+	local DropdownFunctions = {}
+	
+	--[
+	--Set
+	--]
+	
+	function DropdownFunctions:Set(text)
+		SelectedText.Text = text
+		
+		SelectedText:Tween({
+			Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
+			Length = 0.05
+		})
+	end
+	
+	--[
+	--RemoveItems
+	--]
+	
+	function DropdownFunctions:RemoveItems(items)
+		for _, v in next, items do
+			for _2, v2 in next, Items do
+				local Label = v2[1][1]
+				
+				if Label:lower() == tostring(v):lower() then
+					v2[2].AbsoluteObject:Destroy()
+					
+					Items[_2] = nil
+					
+					table.remove(Items, _2)
+					
+					NewSize = (25 * #Items) + 5
+					
+					ItemContainer:Tween({
+						Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
+					})
+					
+					DropdownContainer:Tween({
+						Size = (not Open and UDim2.new(1, -20, 0, 52)) or UDim2.new(1, -20, 0, 52 + NewSize)
+					})
+				end
+			end
+		end
+	end
+	
+	--[
+	--Clear
+	--]
+	
+	function DropdownFunctions:Clear()
+		table.clear(Items)
+		
+		ItemContainer:Tween({
+			Size = UDim2.new(1, -10, 0, 0)
+		})
+		
+		DropdownContainer:Tween({
+			Size = UDim2.new(1, -20, 0, 52)
+		}, function()
+			for i, v in next, ItemContainer.AbsoluteObject:GetChildren() do
+				if v.ClassName == "TextButton" then
+					v:Destroy()
+				end
+			end
+		end)
+		
+		if Open then
+			Toggle()
+		end
+	end
+	
+	--[
+	--AddItems
+	--]
+	
+	function DropdownFunctions:AddItems(items)
+		for i, v in next, items do
+			if typeof(v) == "table" then
+				Items[#Items + 1] = v
+			else
+				Items[#Items + 1] = {
+					tostring(v),
+					v
+				}
+			end
+		end
+		
+		
+		NewSize = (25 * #Items) + 5
+		
+		ItemContainer:Tween({
+			Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
+		})
+		
+		DropdownContainer:Tween({
+			Size = (not Open and UDim2.new(1, -20, 0, 52)) or UDim2.new(1, -20, 0, 52 + NewSize)
+		})
+		
+		for i, i2 in next, Items do
+			local Label = i2[1]
+			local Value = i2[2]
+			
+			if type(Label) == "table" then
+				continue
+			end
+			
+			local NewItem = ItemContainer:Object("TextButton", {
+				Theme = {
+					BackgroundColor3 = {
+						"Secondary",
+						25
+					},
+					TextColor3 = {
+						"StrongText",
+						25
+					}
+				},
+				Text = Label,
+				TextSize = 14
+			}):Round(5)
+			
+			Items[i] = {
+				{
+					Label,
+					Value
+				},
+				NewItem
+			}
+			
+			do
+				local Hovered = false
+				local Down = false
+				
+				NewItem.MouseEnter:Connect(function()
+					Hovered = true
+					
+					NewItem:Tween({
+						BackgroundColor3 = library.CurrentTheme.Tertiary
+					})
+				end)
+				
+				NewItem.MouseLeave:Connect(function()
+					Hovered = false
+					
+					if not Down then
+						NewItem:Tween({
+							BackgroundColor3 = library:Lighten(library.CurrentTheme.Secondary, 25)
+						})
+					end
+				end)
+				
+				NewItem.MouseButton1Down:Connect(function()
+					NewItem:Tween({
+						BackgroundColor3 = library:Lighten(library.CurrentTheme.Tertiary, 10)
+					})
+				end)
+				
+				UserInputService.InputEnded:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
+						NewItem:Tween({
+							BackgroundColor3 = (Hovered and library:Lighten(library.CurrentTheme.Tertiary, 5)) or library:Lighten(library.CurrentTheme.Secondary, 25)
+						})
+					end
+				end)
+				
+				NewItem.MouseButton1Click:Connect(function()
+					Toggle()
+					
+					SelectedText.Text = NewItem.Text
+					
+					SelectedText:Tween({
+						Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
+						Length = 0.05
+					})
+					
+					options.Callback(Value)
+				end)
+			end
+		end
+		
+		library.ResizeTab({
+			Container = Container,
+			Layout = Layout
+		})
+	end
+	
+	return DropdownFunctions
+end
+
+--[
 --AddCredit
 --]
 
