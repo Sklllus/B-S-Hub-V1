@@ -2300,6 +2300,180 @@ function library:AddButton(options)
 end
 
 --[
+--AddToggle
+--]
+
+function library:AddToggle(options)
+	options = self:SetDefaults({
+		Name = "New Toggle",
+		Description = "New Toggle Description",
+		Value = false,
+		Callback = function(val)
+			print("Value: " .. val)
+		end
+	}, options)
+	
+	local ToggleFunctions = {}
+	
+	local ToggleContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local ValueOn = "http://www.roblox.com/asset/?id=8498709213"
+	local ValueOff = "http://www.roblox.com/asset/?id=8498691125"
+	
+	local Toggled = options.Value
+	
+	local OnIcon = ToggleContainer:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(1, .5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -11, 0.5, 0),
+		Size = UDim2.new(0, 26, 0, 26),
+		Image = ValueOn,
+		Theme = {
+			ImageColor3 = "Tertiary"
+		},
+		ImageTransparency = (Toggled and 0) or 1
+	})
+	
+	local OffIcon = ToggleContainer:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(1, .5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -11, 0.5, 0),
+		Size = UDim2.new(0, 26, 0, 26),
+		Image = ValueOff,
+		Theme = {
+			ImageColor3 = "WeakText"
+		},
+		ImageTransparency = (Toggled and 1) or 0
+	})
+	
+	local Text = ToggleContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = ToggleContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromScale(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+		
+		--[
+		--SetDescription
+		--]
+		
+		function ToggleFunctions:SetDescription(txt)
+			Description.Text = txt
+		end
+	end
+	
+	local function Toggle()
+		Toggled = not Toggled
+		
+		if Toggled then
+			OffIcon:CrossFade(OnIcon, 0.1)
+		else
+			OnIcon:CrossFade(OffIcon, 0.1)
+		end
+		
+		options.Callback(Toggled)
+	end
+	
+	do
+		local Hovered = false
+		local Down = false
+		
+		ToggleContainer.MouseEnter:Connect(function()
+			Hovered = true
+			
+			ToggleContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		ToggleContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				ToggleContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ToggleContainer.MouseButton1Down:Connect(function()
+			ToggleContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
+			})
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				ToggleContainer:Tween({
+					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ToggleContainer.MouseButton1Click:Connect(function()
+			Toggle()
+		end)
+	end
+	
+	self:ResizeTab()
+	
+	--[
+	--Toggle
+	--]
+	
+	function ToggleFunctions:Toggle()
+		Toggle()
+	end
+	
+	--[
+	--SetState
+	--]
+	
+	function ToggleFunctions:SetState(val)
+		Toggled = val
+		
+		if Toggled then
+			OffIcon:CrossFade(OnIcon, 0.1)
+		else
+			OnIcon:CrossFade(OffIcon, 0.1)
+		end
+		
+		task.spawn(function()
+			options.Callback(Toggled)
+		end)
+	end
+	
+	if options.Value then
+		ToggleFunctions:SetState(true)
+	end
+	
+	return ToggleFunctions
+end
+
+--[
 --AddCredit
 --]
 
