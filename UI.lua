@@ -26,14 +26,14 @@ local Mouse = Client:GetMouse()
 
 local library = {
 	Themes = {
-		BreakSkillLight = {
+		["Break-Skill Light"] = {
 			Main = Color3.fromRGB(100, 100, 100),
 			Secondary = Color3.fromRGB(140, 140, 140),
 			Tertiary = Color3.fromRGB(255, 65, 65),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
-		BreakSkillDark = {
+		["Break-Skill Dark"] = {
 			Main = Color3.fromRGB(20, 20, 20),
 			Secondary = Color3.fromRGB(45, 45, 45),
 			Tertiary = Color3.fromRGB(255, 30, 30),
@@ -561,7 +561,7 @@ end
 
 function library:CreateWindow(options)
 	local Settings = {
-		Theme = "BreakSkill"
+		Theme = "Break-Skill Dark"
 	}
 
 	if readfile and isfile and makefolder and writefile and isfolder then
@@ -1832,12 +1832,6 @@ function library:AddThemeSelector()
 				Size = UDim2.new(1, 0, 1, -20),
 				BackgroundTransparency = 1
 			}):Round(5):Stroke("WeakText", 1)
-			
-			if tn == "BreakSkillLight" then
-				tn = "Break-Skill Light"
-			elseif tn == "BreakSkillDark" then
-				tn = "Break-Skill Dark"
-			end
 
 			local ThemeNameLabel = Theme:Object("TextLabel", {
 				BackgroundTransparency = 1,
