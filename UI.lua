@@ -1832,6 +1832,12 @@ function library:AddThemeSelector()
 				Size = UDim2.new(1, 0, 1, -20),
 				BackgroundTransparency = 1
 			}):Round(5):Stroke("WeakText", 1)
+			
+			if tn == "BreakSkillLight" then
+				tn = "Break-Skill Light"
+			elseif tn == "BreakSkillDark" then
+				tn = "Break-Skill Dark"
+			end
 
 			local ThemeNameLabel = Theme:Object("TextLabel", {
 				BackgroundTransparency = 1,
@@ -2677,8 +2683,133 @@ function library:AddSlider(options)
 end
 
 --[
---
+--AddTextBox
 --]
+
+function library:AddTextBox(options)
+	options = self:SetDefaults({
+		Name = "New Text Box",
+		Placeholder = "New Text Box Placeholder.",
+		Description = "New Text Box Description.",
+		Callback = function(val)
+			print(val)
+		end
+	}, options)
+	
+	local TextBoxContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local Text = TextBoxContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = TextBoxContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+	
+	local TextBox = TextBoxContainer:Object("TextBox", {
+		AnchorPoint = Vector2.new(1, 0),
+		Theme = {
+			BackgroundColor3 = {
+				"Secondary",
+				-20
+			},
+			TextColor3 = "WeakText"
+		},
+		Position = UDim2.new(1, -50, 0, 16),
+		Size = UDim2.new(0, 50, 0, 20),
+		TextSize = 12,
+		PlaceholderText = options.Placeholder,
+		ClipsDescendants = true
+	}):Round(5):Stroke("Tertiary")
+	
+	local WriteIcon = TextBoxContainer:Object("ImageLabel", {
+		Image = "http://www.roblox.com/asset/?id=8569329416",
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -13, 0.5, 0),
+		Size = UDim2.new(0, 16, 0, 16),
+		Theme = {
+			ImageColor3 = "StrongText"
+		}
+	})
+	
+	TextBox.Size = UDim2.fromOffset(TextBox.TextBounds.X + 20, 20)
+	
+	do
+		local Hovered = false
+		local Down = false
+		local Focused = false
+		
+		TextBoxContainer.MouseEnter:Connect(function()
+			TextBoxContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		TextBoxContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				TextBoxContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		TextBox.Focused:Connect(function()
+			Focused = true
+			
+			while Focused and RunService.RenderStepped:Wait() do
+				TextBox.AbsoluteObject:TweenSize(UDim2.fromOffset(math.clamp(TextBox.TextBounds.X + 20, 0, 0.5 * TextBoxContainer.AbsoluteSize.X), 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0.1, true)
+			end
+		end)
+		
+		TextBox.FocusLost:Connect(function()
+			Focused = false
+			
+			TextBox.AbsoluteObject:TweenSize(UDim2.fromOffset(math.clamp(TextBox.TextBounds.X + 20, 0, 0.5 * TextBoxContainer.AbsoluteSize.X), 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0.1, true)
+			
+			options.Callback(TextBox.Text)
+		end)
+	end
+	
+	self:ResizeTab()
+	
+	local TextBoxFunctions = {}
+	
+	--[
+	--Set
+	--]
+	
+	function TextBoxFunctions:Set(text)
+		TextBox.Text = text
+	end
+	
+	return TextBoxFunctions
+end
 
 --[
 --AddCredit
