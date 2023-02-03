@@ -26,17 +26,17 @@ local Mouse = Client:GetMouse()
 
 local library = {
 	Themes = {
-		BreakSkill = {
-			Main = Color3.fromRGB(35, 35, 35),
-			Secondary = Color3.fromRGB(65, 65, 65),
-			Tertiary = Color3.fromRGB(225, 55, 55),
+		BreakSkillLight = {
+			Main = Color3.fromRGB(100, 100, 100),
+			Secondary = Color3.fromRGB(160, 160, 160),
+			Tertiary = Color3.fromRGB(255, 65, 65),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
-		Serika = {
-			Main = Color3.fromRGB(50, 50, 55),
-			Secondary = Color3.fromRGB(80, 80, 85),
-			Tertiary = Color3.fromRGB(225, 185, 20),
+		BreakSkillDark = {
+			Main = Color3.fromRGB(20, 20, 20),
+			Secondary = Color3.fromRGB(55, 55, 55),
+			Tertiary = Color3.fromRGB(255, 30, 30),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
@@ -2675,6 +2675,10 @@ function library:AddSlider(options)
 
 	return SliderFunctions
 end
+
+--[
+--
+--]
 
 --[
 --AddCredit
