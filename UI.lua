@@ -2183,8 +2183,6 @@ function library:AddButton(options)
 		end
 	}, options)
 	
-	local ButtonFunctions = {}
-	
 	local ButtonContainer = self.Container:Object("TextButton", {
 		Theme = {
 			BackgroundColor3 = "Secondary"
@@ -2216,14 +2214,6 @@ function library:AddButton(options)
 			},
 			TextXAlignment = Enum.TextXAlignment.Left
 		})
-		
-		--[
-		--SetDescription
-		--]
-		
-		function ButtonFunctions:SetDescription(txt)
-			Description.Text = txt
-		end
 	end
 	
 	local Icon = ButtonContainer:Object("ImageLabel", {
@@ -2280,6 +2270,8 @@ function library:AddButton(options)
 	
 	self:ResizeTab()
 	
+	local ButtonFunctions = {}
+	
 	--[
 	--Fire
 	--]
@@ -2312,8 +2304,6 @@ function library:AddToggle(options)
 			print("Value: " .. val)
 		end
 	}, options)
-	
-	local ToggleFunctions = {}
 	
 	local ToggleContainer = self.Container:Object("TextButton", {
 		Theme = {
@@ -2366,7 +2356,7 @@ function library:AddToggle(options)
 	if options.Description then
 		local Description = ToggleContainer:Object("TextLabel", {
 			BackgroundTransparency = 1,
-			Position = UDim2.fromScale(10, 27),
+			Position = UDim2.fromOffset(10, 27),
 			Size = UDim2.new(0.5, -10, 0, 20),
 			Text = options.Description,
 			TextSize = 18,
@@ -2375,14 +2365,6 @@ function library:AddToggle(options)
 			},
 			TextXAlignment = Enum.TextXAlignment.Left
 		})
-		
-		--[
-		--SetDescription
-		--]
-		
-		function ToggleFunctions:SetDescription(txt)
-			Description.Text = txt
-		end
 	end
 	
 	local function Toggle()
@@ -2440,6 +2422,16 @@ function library:AddToggle(options)
 	
 	self:ResizeTab()
 	
+	local ToggleFunctions = {}
+	
+	--[
+	--SetText
+	--]
+	
+	function ToggleFunctions:SetText(txt)
+		Text.Text = txt
+	end
+	
 	--[
 	--Toggle
 	--]
@@ -2449,10 +2441,10 @@ function library:AddToggle(options)
 	end
 	
 	--[
-	--SetState
+	--SetValue
 	--]
 	
-	function ToggleFunctions:SetState(val)
+	function ToggleFunctions:SetValue(val)
 		Toggled = val
 		
 		if Toggled then
@@ -2467,7 +2459,7 @@ function library:AddToggle(options)
 	end
 	
 	if options.Value then
-		ToggleFunctions:SetState(true)
+		ToggleFunctions:SetValue(true)
 	end
 	
 	return ToggleFunctions
