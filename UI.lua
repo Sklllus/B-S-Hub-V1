@@ -568,7 +568,7 @@ end
 
 function library:CreateWindow(options)
 	local Settings = {
-		Theme = "BreakSkill"
+		Theme = "BreakSkillDark"
 	}
 
 	if readfile and isfile and makefolder and writefile and isfolder then
