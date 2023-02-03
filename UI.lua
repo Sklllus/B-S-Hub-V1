@@ -1110,18 +1110,29 @@ function library:CreateWindow(options)
 		Internal = SettingsTabIcon,
 		Icon = "rbxassetid://8559790237"
 	})
+
+	SettingsTab:AddThemeSelector()
 	
 	SettingsTab:AddToggle({
 		Name = "Lock Dragging",
 		Description = "Makes sure you can't drag UI outside window.",
-		Value = false,
+		Value = true,
 		Callback = function(val)
-			print(val)
+			library.LockDragging = val
 		end
 	})
-
-	SettingsTab:AddThemeSelector()
-
+	
+	SettingsTab:AddSlider({
+		Name = "Drag Speed",
+		Description = "How smooth dragging looks.",
+		Min = 0,
+		Default = 10,
+		Max = 50,
+		Callback = function(val)
+			library.DragSpeed = (20 - val) / 100
+		end
+	})
+	
 	local CreditsTab = library.CreateTab(mt, {
 		Name = "Credits",
 		Internal = CreditsTabIcon,
