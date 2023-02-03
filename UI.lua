@@ -26,24 +26,17 @@ local Mouse = Client:GetMouse()
 
 local library = {
 	Themes = {
-		BreakSkillLight = {
-			Main = Color3.fromRGB(125, 125, 125),
-			Secondary = Color3.fromRGB(185, 185, 185),
-			Tertiary = Color3.fromRGB(255, 60, 60),
+		BreakSkill = {
+			Main = Color3.fromRGB(35, 35, 35),
+			Secondary = Color3.fromRGB(65, 65, 65),
+			Tertiary = Color3.fromRGB(225, 55, 55),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
-		BreakSkillDark = {
-			Main = Color3.fromRGB(20, 20, 20),
-			Secondary = Color3.fromRGB(50, 50, 50),
-			Tertiary = Color3.fromRGB(255, 30, 30),
-			StrongText = Color3.fromHSV(0, 0, 1),
-			WeakText = Color3.fromHSV(0, 0, 170 / 255)
-		},
-		Jester = {
-			Main = Color3.fromRGB(220, 70, 100),
-			Secondary = Color3.fromRGB(220, 190, 190),
-			Tertiary = Color3.fromRGB(255, 125, 125),
+		Serika = {
+			Main = Color3.fromRGB(50, 50, 55),
+			Secondary = Color3.fromRGB(80, 80, 85),
+			Tertiary = Color3.fromRGB(225, 185, 20),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
@@ -568,7 +561,7 @@ end
 
 function library:CreateWindow(options)
 	local Settings = {
-		Theme = "BreakSkillDark"
+		Theme = "BreakSkill"
 	}
 
 	if readfile and isfile and makefolder and writefile and isfolder then
@@ -1128,7 +1121,7 @@ function library:CreateWindow(options)
 			library.LockDragging = val
 		end
 	})
-	
+
 	SettingsTab:AddSlider({
 		Name = "Drag Speed",
 		Description = "How smooth dragging looks.",
@@ -1139,7 +1132,7 @@ function library:CreateWindow(options)
 			library.DragSpeed = (20 - val) / 100
 		end
 	})
-	
+
 	local CreditsTab = library.CreateTab(mt, {
 		Name = "Credits",
 		Internal = CreditsTabIcon,
@@ -1605,13 +1598,13 @@ function library:CreateTab(options)
 			ImageColor3 = "StrongText"
 		}
 	})
-
+	
 	TabButtonClose.MouseEnter:Connect(function()
 		TabButtonClose:Tween({
 			ImageColor3 = Color3.fromRGB(255, 125, 140)
 		})
 	end)
-
+	
 	TabButtonClose.MouseLeave:Connect(function()
 		TabButtonClose:Tween({
 			ImageColor3 = library.CurrentTheme.StrongText
@@ -2140,7 +2133,7 @@ function library:AddLabel(options)
 		Description = "New Label Description",
 		Color = Color3.fromRGB(255, 255, 255)
 	}, options)
-
+	
 	local LabelContainer = self.Container:Object("TextButton", {
 		Theme = {
 			BackgroundColor3 = "Secondary"
@@ -2148,7 +2141,7 @@ function library:AddLabel(options)
 		Size = UDim2.new(1, -20, 0, 52),
 		BackgroundTransparency = 1
 	}):Round(7):Stroke("Secondary", 2)
-
+	
 	local Text = LabelContainer:Object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(10, 5),
@@ -2160,7 +2153,7 @@ function library:AddLabel(options)
 		},
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
-
+	
 	local Description = LabelContainer:Object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 10, 1, -5),
@@ -2173,27 +2166,27 @@ function library:AddLabel(options)
 		},
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
-
+	
 	self:ResizeTab()
-
+	
 	local LabelFunctions = {}
-
+	
 	--[
 	--SetText
 	--]
-
+	
 	function LabelFunctions:SetText(txt)
 		Text.Text = txt
 	end
-
+	
 	--[
 	--SetDescription
 	--]
-
+	
 	function LabelFunctions:SetDescription(txt)
 		Description.Text = txt
 	end
-
+	
 	return LabelFunctions
 end
 
@@ -2209,14 +2202,16 @@ function library:AddButton(options)
 			print("New Button")
 		end
 	}, options)
-
+	
+	local ButtonFunctions = {}
+	
 	local ButtonContainer = self.Container:Object("TextButton", {
 		Theme = {
 			BackgroundColor3 = "Secondary"
 		},
 		Size = UDim2.new(1, -20, 0, 52)
 	}):Round(7)
-
+	
 	local Text = ButtonContainer:Object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
@@ -2228,7 +2223,7 @@ function library:AddButton(options)
 		},
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
-
+	
 	if options.Description then
 		local Description = ButtonContainer:Object("TextLabel", {
 			BackgroundTransparency = 1,
@@ -2241,8 +2236,16 @@ function library:AddButton(options)
 			},
 			TextXAlignment = Enum.TextXAlignment.Left
 		})
+		
+		--[
+		--SetDescription
+		--]
+		
+		function ButtonFunctions:SetDescription(txt)
+			Description.Text = txt
+		end
 	end
-
+	
 	local Icon = ButtonContainer:Object("ImageLabel", {
 		AnchorPoint = Vector2.new(1, 0.5),
 		BackgroundTransparency = 1,
@@ -2253,35 +2256,35 @@ function library:AddButton(options)
 			ImageColor3 = "Tertiary"
 		}
 	})
-
+	
 	do
 		local Hovered = false
 		local Down = false
-
+		
 		ButtonContainer.MouseEnter:Connect(function()
 			Hovered = true
-
+			
 			ButtonContainer:Tween({
 				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
 			})
 		end)
-
+		
 		ButtonContainer.MouseLeave:Connect(function()
 			Hovered = false
-
+			
 			if not Down then
 				ButtonContainer:Tween({
 					BackgroundColor3 = library.CurrentTheme.Secondary
 				})
 			end
 		end)
-
+		
 		ButtonContainer.MouseButton1Down:Connect(function()
 			ButtonContainer:Tween({
 				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
 			})
 		end)
-
+		
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				ButtonContainer:Tween({
@@ -2289,32 +2292,30 @@ function library:AddButton(options)
 				})
 			end
 		end)
-
+		
 		ButtonContainer.MouseButton1Click:Connect(function()
 			options.Callback()
 		end)
 	end
-
+	
 	self:ResizeTab()
-
-	local ButtonFunctions = {}
-
+	
 	--[
 	--Fire
 	--]
-
+	
 	function ButtonFunctions:Fire()
 		options.Callback()
 	end
-
+	
 	--[
 	--SetName
 	--]
-
+	
 	function ButtonFunctions:SetName(txt)
 		Text.Text = txt
 	end
-
+	
 	return ButtonFunctions
 end
 
@@ -2493,7 +2494,7 @@ function library:AddToggle(options)
 end
 
 --[
---AddToggle
+--AddSlider
 --]
 
 function library:AddSlider(options)
@@ -2506,14 +2507,14 @@ function library:AddSlider(options)
 			print(val)
 		end
 	}, options)
-	
+
 	local SliderContainer = self.Container:Object("TextButton", {
 		Theme = {
 			BackgroundColor3 = "Secondary"
 		},
 		Size = UDim2.new(1, -20, 0, 56)
 	}):Round(7)
-	
+
 	local Text = SliderContainer:Object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(10, 5),
@@ -2525,7 +2526,7 @@ function library:AddSlider(options)
 		},
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
-	
+
 	if options.Description then
 		local Description = SliderContainer:Object("TextLabel", {
 			BackgroundTransparency = 1,
@@ -2538,10 +2539,10 @@ function library:AddSlider(options)
 			},
 			TextXAlignment = Enum.TextXAlignment.Left
 		})
-		
+
 		SliderContainer.Size = UDim2.new(1, -20, 0, 76)
 	end
-	
+
 	local ValueText = SliderContainer:Object("TextLabel", {
 		AnchorPoint = Vector2.new(1, 0),
 		Theme = {
@@ -2556,9 +2557,9 @@ function library:AddSlider(options)
 		TextSize = 12,
 		Text = options.Default
 	}):Round(5):Stroke("Tertiary")
-	
+
 	ValueText.Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
-	
+
 	local SliderBar = SliderContainer:Object("Frame", {
 		Theme = {
 			BackgroundColor3 = {
@@ -2570,14 +2571,14 @@ function library:AddSlider(options)
 		Size = UDim2.new(1, -20, 0, 5),
 		Position = UDim2.new(0.5, 0, 1, -12)
 	}):Round(100)
-	
+
 	local SliderLine = SliderBar:Object("Frame", {
 		Size = UDim2.fromScale(((options.Default - options.Min) / (options.Max - options.Min)), 1),
 		Theme = {
 			BackgroundColor3 = "Tertiary"
 		}
 	}):Round(100)
-	
+
 	local SliderBall = SliderLine:Object("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(1, 0.5),
@@ -2589,89 +2590,89 @@ function library:AddSlider(options)
 			}
 		}
 	}):Round(100)
-	
+
 	do
 		local Hovered = false
 		local Down = false
-		
+
 		SliderContainer.MouseEnter:Connect(function()
 			Hovered = true
-			
+
 			SliderContainer:Tween({
 				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
 			})
 		end)
-		
+
 		SliderContainer.MouseLeave:Connect(function()
 			Hovered = false
-			
+
 			if not Down then
 				SliderContainer:Tween({
 					BackgroundColor3 = library.CurrentTheme.Secondary
 				})
 			end
 		end)
-		
+
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				Down = false
-				
+
 				SliderContainer:Tween({
 					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
 				})
 			end
 		end)
-		
+
 		SliderContainer.MouseButton1Down:Connect(function()
 			SliderContainer:Tween({
 				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
 			})
-			
+
 			Down = true
-			
+
 			local Tween = ValueText:Tween({
 				Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
 			})
-			
+
 			while RunService.RenderStepped:Wait() and Down do
 				local Percentage = math.clamp((Mouse.X - SliderBar.AbsolutePosition.X) / (SliderBar.AbsoluteSize.X), 0, 1)
-				
+
 				local Value = ((options.Max - options.Min) * Percentage) + options.Min
-				
+
 				Value = math.floor(Value)
-				
+
 				ValueText.Text = Value
-				
+
 				if Tween.PlaybackState == Enum.PlaybackState.Completed then
 					Tween = ValueText:Tween({
 						Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
 					})
 				end
-				
+
 				SliderLine:Tween({
 					Size = UDim2.fromScale(Percentage, 1),
 					Length = 0.06
 				})
-				
+
 				options.Callback(Value)
 			end
 		end)
 	end
-	
+
 	self:ResizeTab()
-	
+
 	local SliderFunctions = {}
-	
+
 	--[
 	--Set
 	--]
-	
+
 	function SliderFunctions:Set(val)
 		SliderLine:Tween({
 			Size = UDim2.fromScale(((val - options.Min) / (options.Max - options.Min)), 1)
 		})
 	end
-	
+
 	return SliderFunctions
 end
 
