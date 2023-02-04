@@ -1113,6 +1113,17 @@ function library:CreateWindow(options)
 
 	SettingsTab:AddThemeSelector()
 	
+	SettingsTab:AddKeybind({
+		Name = "Toggle key",
+		Description = "Key to show/hide UI.",
+		Keybind = Enum.KeyCode.RightShift,
+		Callback = function(val)
+			self.Toggled = not self.Toggled
+			
+			library:Show(self.Toggled)
+		end
+	})
+	
 	SettingsTab:AddToggle({
 		Name = "Lock Dragging",
 		Description = "Makes sure you can't drag UI outside window.",
