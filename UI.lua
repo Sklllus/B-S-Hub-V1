@@ -3455,7 +3455,7 @@ function library:AddColorPicker(options)
 	options = self:SetDefaults({
 		Name = "New Color Picker",
 		Description = "New Color Picker Description",
-		Style = library.ColorPickerStyles.Legacy,
+		Style = library.ColorPickerStyles.Modern,
 		FollowUp = false,
 		Callback = function(val)
 			print(val)
@@ -3464,9 +3464,11 @@ function library:AddColorPicker(options)
 	
 	local ButtonContainer = self.Container:Object("TextButton", {
 		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
+			BackgroundColor3 = {
+				"Secondary"
+			},
+			Size = UDim2.new(1, -20, 0, 52)
+		}
 	}):Round(7)
 	
 	local Text = ButtonContainer:Object("TextLabel", {
@@ -3551,7 +3553,7 @@ function library:AddColorPicker(options)
 			local UpdatePicker, UpdateHUE
 			local FadeOut
 			
-			local SelectedColor = Color3.fromRGB(255, 0, 0)
+			local SelectedColor = Color3.fromRGB(255, 255, 255)
 			
 			local Darkener = self.Core:Object("Frame", {
 				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
@@ -3573,7 +3575,7 @@ function library:AddColorPicker(options)
 						Rotation = 180
 					})
 					
-					local Text = Darkener:Object("ImageLabel", {
+					local TextPicker = Darkener:Object("ImageLabel", {
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0, 364, 0, 158),
 						Rotation = -4,
@@ -3611,7 +3613,7 @@ function library:AddColorPicker(options)
 						SliceScale = 1
 					})
 					
-					local ButtonHolder = CPHolder:Object("Frame", {
+					local BtnHolder = CPHolder:Object("Frame", {
 						AnchorPoint = Vector2.new(1, 1),
 						BackgroundColor3 = Color3.fromRGB(0, 0, 0),
 						BackgroundTransparency = 1,
@@ -3620,14 +3622,14 @@ function library:AddColorPicker(options)
 						ZIndex = 12
 					})
 					
-					local Button = ButtonHolder:Object("TextButton", {
+					local Button = BtnHolder:Object("TextButton", {
 						Centered = true,
 						BackgroundTransparency = 1,
 						TextTransparency = 1,
 						Size = UDim2.fromOffset(80, 20),
 						ZIndex = 12,
-						TextSize = 13,
 						Text = "Select",
+						TextSize = 13,
 						Theme = {
 							TextColor3 = {
 								"Tertiary",
@@ -3739,7 +3741,6 @@ function library:AddColorPicker(options)
 						AnchorPoint = Vector2.new(1, 0),
 						BackgroundTransparency = 1,
 						Position = UDim2.fromScale(1, 0),
-						Size = UDim2.new(1, -5, 1, -50),
 						ZIndex = 12,
 						ClipsDescendants = true
 					})
@@ -3785,8 +3786,8 @@ function library:AddColorPicker(options)
 							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
 						}),
 						Transparency = NumberSequence.new({
-							NumberSequence.new(0, 0),
-							NumberSequence.new(1, 1)
+							NumberSequenceKeypoint.new(0, 0),
+							NumberSequenceKeypoint.new(1, 1)
 						}),
 						Rotation = -90
 					})
@@ -3833,8 +3834,8 @@ function library:AddColorPicker(options)
 							})
 							
 							HUEDraggable:Tween({
-								Position = UDim2.new(-2, 3, 0, math.clamp(NewYPos - 10, -10, HUEBar.AbsoluteSize.Y + 10)),
 								ImageColor3 = Color3.fromHSV(1, 0, -TempVal),
+								Position = UDim2.new(-2, 3, 0, math.clamp(NewYPos - 10, -10, HUEBar.AbsoluteSize.Y + 10)),
 								Length = 0.05
 							})
 						end
@@ -3865,6 +3866,7 @@ function library:AddColorPicker(options)
 							end
 						end)
 					end
+					
 					
 					do
 						local Down = false
@@ -3931,7 +3933,7 @@ function library:AddColorPicker(options)
 						Length = 0.1
 					})
 					
-					ButtonHolder:Tween({
+					BtnHolder:Tween({
 						BackgroundTransparency = 0,
 						Length = 0.1
 					})
@@ -3976,57 +3978,57 @@ function library:AddColorPicker(options)
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Arrow:Tween({
 							ImageTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Text:Tween({
 							ImageTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						_CPShadow:Tween({
 							ImageTransparency = 1,
 							Length = 0.1
 						})
-
-						ButtonHolder:Tween({
+						
+						BtnHolder:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Button:Tween({
 							TextTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						HUEBar:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						HUEDraggable:Tween({
 							ImageTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Color:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Brightness:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						Black:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
 						})
-
+						
 						_ColorPickerDraggableStroke:Tween({
 							Transparency = 1,
 							Length = 0.1
@@ -4165,7 +4167,7 @@ function library:AddColorPicker(options)
 							ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
 							ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
 							ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 255))
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 0))
 						})
 					})
 					
@@ -4214,9 +4216,9 @@ function library:AddColorPicker(options)
 						SortOrder = Enum.SortOrder.Name
 					})
 					
-					local Red = Infos:Object("TextLabel", {
+					local R = Infos:Object("TextLabel", {
 						AnchorPoint = Vector2.new(0.5, 0),
-						Name = "1",
+						Name = "R",
 						Text = tostring(SelectedColor.R * 255),
 						Theme = {
 							BackgroundColor3 = {
@@ -4231,9 +4233,9 @@ function library:AddColorPicker(options)
 						TextTransparency = 1
 					}):Round(4)
 					
-					local Green = Infos:Object("TextLabel", {
+					local G = Infos:Object("TextLabel", {
 						AnchorPoint = Vector2.new(0.5, 0),
-						Name = "2",
+						Name = "G",
 						Text = tostring(SelectedColor.G * 255),
 						Theme = {
 							BackgroundColor3 = {
@@ -4248,10 +4250,10 @@ function library:AddColorPicker(options)
 						TextTransparency = 1
 					}):Round(4)
 					
-					local Blue = Infos:Object("TextLabel", {
+					local B = Infos:Object("TextLabel", {
 						AnchorPoint = Vector2.new(0.5, 0),
 						Text = tostring(SelectedColor.B * 255),
-						Name = "3",
+						Name = "B",
 						Theme = {
 							BackgroundColor3 = {
 								"Secondary",
@@ -4265,7 +4267,7 @@ function library:AddColorPicker(options)
 						TextTransparency = 1
 					}):Round(4)
 					
-					local PickButton = Holder:Object("ImageButton", {
+					local PickBtn = Holder:Object("ImageButton", {
 						AnchorPoint = Vector2.new(1, 1),
 						Theme = {
 							BackgroundColor3 = "Tertiary"
@@ -4314,14 +4316,14 @@ function library:AddColorPicker(options)
 					
 					for _, v in next, Darkener.AbsoluteObject:GetDescendants() do
 						pcall(function()
-							v.ZIndex += 3
+							v.ZIndex +=3
 						end)
 					end
 					
 					local function GlobalUpdate()
-						Red.Text = tostring(math.floor(SelectedColor.R * 255))
-						Green.Text = tostring(math.floor(SelectedColor.G * 255))
-						Blue.Text = tostring(math.floor(SelectedColor.B * 255))
+						R.Text = tostring(math.floor(SelectedColor.R * 255))
+						G.Text = tostring(math.floor(SelectedColor.G * 255))
+						B.Text = tostring(math.floor(SelectedColor.B * 255))
 						
 						PreviewDark:Tween({
 							BackgroundColor3 = SelectedColor
@@ -4387,8 +4389,8 @@ function library:AddColorPicker(options)
 							SAT = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X), 0, 1)
 							VAL = 1 - math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
 							
-							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsolutePosition.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
-							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsolutePosition.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
+							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
+							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
 							
 							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
 							
@@ -4421,39 +4423,39 @@ function library:AddColorPicker(options)
 						local Down = false
 						local Hovered = false
 						
-						PickButton.MouseEnter:Connect(function()
+						PickBtn.MouseEnter:Connect(function()
 							Hovered = true
 							
-							PickButton:Tween({
+							PickBtn:Tween({
 								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
 							})
 						end)
 						
-						PickButton.MouseLeave:Connect(function()
+						PickBtn.MouseLeave:Connect(function()
 							Hovered = false
 							
 							if not Down then
-								PickButton:Tween({
+								PickBtn:Tween({
 									BackgroundColor3 = library.CurrentTheme.Tertiary
 								})
 							end
 						end)
 						
-						PickButton.MouseButton1Down:Connect(function()
-							PickButton:Tween({
+						PickBtn.MouseButton1Down:Connect(function()
+							PickBtn:Tween({
 								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
 							})
 						end)
 						
 						UserInputService.InputEnded:Connect(function(input)
 							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								PickButton:Tween({
+								PickBtn:Tween({
 									BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
 								})
 							end
 						end)
 						
-						PickButton.MouseButton1Click:Connect(function()
+						PickBtn.MouseButton1Click:Connect(function()
 							FadeOut()
 							
 							Icon:Tween({
@@ -4528,25 +4530,25 @@ function library:AddColorPicker(options)
 						Length = 0.1
 					})
 					
-					Red:Tween({
+					R:Tween({
 						BackgroundTransparency = 0,
 						TextTransparency = 0,
 						Length = 0.1
 					})
 					
-					Green:Tween({
+					G:Tween({
 						BackgroundTransparency = 0,
 						TextTransparency = 0,
 						Length = 0.1
 					})
 					
-					Blue:Tween({
+					B:Tween({
 						BackgroundTransparency = 0,
 						TextTransparency = 0,
 						Length = 0.1
 					})
 					
-					PickButton:Tween({
+					PickBtn:Tween({
 						BackgroundTransparency = 0,
 						ImageTransparency = 0,
 						Length = 0.1
@@ -4638,25 +4640,25 @@ function library:AddColorPicker(options)
 							Length = 0.1
 						})
 
-						Red:Tween({
+						R:Tween({
 							BackgroundTransparency = 1,
 							TextTransparency = 0,
 							Length = 0.1
 						})
 
-						Green:Tween({
+						G:Tween({
 							BackgroundTransparency = 1,
 							TextTransparency = 0,
 							Length = 0.1
 						})
 
-						Blue:Tween({
+						B:Tween({
 							BackgroundTransparency = 1,
 							TextTransparency = 0,
 							Length = 0.1
 						})
 
-						PickButton:Tween({
+						PickBtn:Tween({
 							BackgroundTransparency = 1,
 							ImageTransparency = 0,
 							Length = 0.1
@@ -4681,7 +4683,7 @@ function library:AddColorPicker(options)
 							ImageTransparency = 1,
 							Length = 0.1
 						})
-						
+
 						Darkener:Tween({
 							BackgroundTransparency = 1,
 							Length = 0.1
