@@ -3282,6 +3282,161 @@ function library:AddDropdown(options)
 end
 
 --[
+--AddKeybind
+--]
+
+function library:AddKeybind(options)
+	options = self:SetDefaults({
+		Name = "New Keybind",
+		Description = "New Keybind Description",
+		Keybind = nil,
+		Callback = function(val)
+			print(val)
+		end
+	}, options)
+	
+	local KeybindContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local Text = KeybindContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = KeybindContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+	
+	local KeybindDisplay = KeybindContainer:Object("TextLabel", {
+		AnchorPoint = Vector2.new(1, 0),
+		Theme = {
+			BackgroundColor3 = {
+				"Secondary",
+				-20
+			},
+			TextColor3 = "WeakText"
+		},
+		Position = UDim2.new(1, -20, 0, 16),
+		Size = UDim2.new(0, 50, 0, 20),
+		TextSize = 12,
+		Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
+	}):Round(5):Stroke("Tertiary")
+	
+	KeybindDisplay.Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20)
+	
+	do
+		local Hovered = false
+		local Down = false
+		local Listening = false
+		
+		KeybindContainer.MouseEnter:Connect(function()
+			Hovered = true
+			
+			KeybindContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		KeybindContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				KeybindContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		KeybindContainer.MouseButton1Down:Connect(function()
+			KeybindContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
+			})
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				KeybindContainer:Tween({
+					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		UserInputService.InputBegan:Connect(function(input)
+			if Listening and not UserInputService:GetFocusedTextBox() then
+				if input.UserInputType == Enum.UserInputType.Keyboard then
+					if input.KeyCode ~= Enum.KeyCode.Escape then
+						options.Keybind = input.KeyCode
+					end
+					
+					KeybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
+					
+					KeybindDisplay:Tween({
+						Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20),
+						Length = 0.05
+					})
+					
+					Listening = false
+				end
+			else
+				if input.KeyCode == options.Keybind then
+					options.Callback()
+				end
+			end
+		end)
+		
+		KeybindContainer.MouseButton1Click:Connect(function()
+			if not Listening then
+				Listening = true
+				
+				KeybindDisplay.Text = "[...]"
+			end
+		end)
+	end
+	
+	self:ResizeTab()
+	
+	local KeybindFunctions = {}
+	
+	--[
+	--Set
+	--]
+	
+	function KeybindFunctions:Set(keycode)
+		options.Keybind = keycode
+		
+		KeybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
+		
+		KeybindDisplay:Tween({
+			Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20),
+			Length = 0.05
+		})
+	end
+	
+	return KeybindFunctions
+end
+
+--[
 --AddCredit
 --]
 
