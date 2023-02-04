@@ -3466,9 +3466,9 @@ function library:AddColorPicker(options)
 		Theme = {
 			BackgroundColor3 = {
 				"Secondary"
-			},
-			Size = UDim2.new(1, -20, 0, 52)
-		}
+			}
+		},
+		Size = UDim2.new(1, -20, 0, 52)
 	}):Round(7)
 	
 	local Text = ButtonContainer:Object("TextLabel", {
