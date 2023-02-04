@@ -3448,6 +3448,1258 @@ function library:AddKeybind(options)
 end
 
 --[
+--AddColorPicker
+--]
+
+function library:AddColorPicker(options)
+	options = self:SetDefaults({
+		Name = "New Color Picker",
+		Description = "New Color Picker Description",
+		Style = library.ColorPickerStyles.Legacy,
+		FollowUp = false,
+		Callback = function(val)
+			print(val)
+		end
+	}, options)
+	
+	local ButtonContainer = self.Container:Object("TextButton", {
+		Theme = {
+			BackgroundColor3 = "Secondary"
+		},
+		Size = UDim2.new(1, -20, 0, 52)
+	}):Round(7)
+	
+	local Text = ButtonContainer:Object("TextLabel", {
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
+		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
+		Text = options.Name,
+		TextSize = 22,
+		Theme = {
+			TextColor3 = "StrongText"
+		},
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
+	
+	if options.Description then
+		local Description = ButtonContainer:Object("TextLabel", {
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(10, 27),
+			Size = UDim2.new(0.5, -10, 0, 20),
+			Text = options.Description,
+			TextSize = 18,
+			Theme = {
+				TextColor3 = "WeakText"
+			},
+			TextXAlignment = Enum.TextXAlignment.Left
+		})
+	end
+	
+	local Icon = ButtonContainer:Object("ImageLabel", {
+		AnchorPoint = Vector2.new(1, 0.5),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -11, 0.5, 0),
+		Size = UDim2.fromOffset(26, 26),
+		Image = "rbxassetid://8604555937",
+		ImageColor3 = library.CurrentTheme.Tertiary
+	})
+	
+	do
+		local Hovered = false
+		local Down = false
+		
+		ButtonContainer.MouseEnter:Connect(function()
+			Hovered = true
+			
+			ButtonContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
+			})
+		end)
+		
+		ButtonContainer.MouseLeave:Connect(function()
+			Hovered = false
+			
+			if not Down then
+				ButtonContainer:Tween({
+					BackgroundColor3 = library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ButtonContainer.MouseButton1Down:Connect(function()
+			ButtonContainer:Tween({
+				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
+			})
+		end)
+		
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				ButtonContainer:Tween({
+					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
+				})
+			end
+		end)
+		
+		ButtonContainer.MouseButton1Click:Connect(function()
+			if library._colorPickerExists then
+				return
+			end
+			
+			library._colorPickerExists = true
+			
+			local HUE, SAT, VAL
+			local UpdatePicker, UpdateHUE
+			local FadeOut
+			
+			local SelectedColor = Color3.fromRGB(255, 0, 0)
+			
+			local Darkener = self.Core:Object("Frame", {
+				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+				BackgroundTransparency = 1,
+				Size = UDim2.fromScale(1, 1),
+				ZIndex = 2
+			}):Round(10)
+			
+			if options.Style == 1 then
+				do
+					local Arrow = Darkener:Object("ImageLabel", {
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 365, 0, 102),
+						Size = UDim2.new(0, 56, 0, 48),
+						ZIndex = 10,
+						Image = "rbxassetid://8579148508",
+						ImageColor3 = SelectedColor,
+						ImageTransparency = 1,
+						Rotation = 180
+					})
+					
+					local Text = Darkener:Object("ImageLabel", {
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 364, 0, 158),
+						Rotation = -4,
+						Size = UDim2.new(0, 141, 0, 37),
+						ZIndex = 10,
+						Image = "rbxassetid://8579166120",
+						ImageColor3 = SelectedColor,
+						ImageTransparency = 0
+					})
+					
+					local CPHolder = Darkener:Object("Frame", {
+						AnchorPoint = Vector2.new(.5, .5),
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0.5, -50, 0.5, 0),
+						Size = UDim2.fromOffset(160, 240),
+						ZIndex = 12
+					})
+					
+					local _CPShadowHolder = CPHolder:Object("Frame", {
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 11
+					})
+					
+					local _CPShadow = _CPShadowHolder:Object("ImageLabel", {
+						Centered = true,
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 47, 1, 47),
+						ZIndex = 11,
+						Image = "rbxassetid://6015897843",
+						ImageColor3 = Color3.fromRGB(0, 0, 0),
+						ImageTransparency = 1,
+						SliceCenter = Rect.new(49, 49, 450, 450),
+						ScaleType = Enum.ScaleType.Slice,
+						SliceScale = 1
+					})
+					
+					local ButtonHolder = CPHolder:Object("Frame", {
+						AnchorPoint = Vector2.new(1, 1),
+						BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+						BackgroundTransparency = 1,
+						Position = UDim2.fromScale(1, 1),
+						Size = UDim2.new(1, -5, 0, 50),
+						ZIndex = 12
+					})
+					
+					local Button = ButtonHolder:Object("TextButton", {
+						Centered = true,
+						BackgroundTransparency = 1,
+						TextTransparency = 1,
+						Size = UDim2.fromOffset(80, 20),
+						ZIndex = 12,
+						TextSize = 13,
+						Text = "Select",
+						Theme = {
+							TextColor3 = {
+								"Tertiary",
+								-10
+							},
+							BackgroundColor3 = {
+								"Tertiary",
+								-10
+							}
+						}
+					}):Round(8):Stroke({
+						"Tertiary",
+						-10
+					})
+					
+					do
+						local Hovered = false
+						local Down = false
+						
+						Button.MouseEnter:Connect(function()
+							Hovered = true
+							
+							Button:Tween({
+								BackgroundTransparency = 0,
+								TextColor3 = self:Lighten(library.CurrentTheme.StrongText, 15)
+							})
+						end)
+						
+						Button.MouseLeave:Connect(function()
+							Hovered = false
+							
+							if not Down then
+								Button:Tween({
+									BackgroundTransparency = 1,
+									TextColor3 = self:Darken(library.CurrentTheme.Tertiary, 10)
+								})
+							end
+						end)
+						
+						Button.MouseButton1Down:Connect(function()
+							Button:Tween({
+								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
+							})
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								Button:Tween({
+									BackgroundTransparency = (Hovered and 0) or 1
+								})
+								
+								if Hovered then
+									Button:Tween({
+										BackgroundColor3 = library.CurrentTheme.Tertiary
+									})
+								end
+							end
+						end)
+						
+						Button.MouseButton1Click:Connect(function()
+							FadeOut()
+							
+							Icon:Tween({
+								ImageColor3 = SelectedColor
+							})
+							
+							options.Callback(SelectedColor)
+							
+							task.delay(0.35, function()
+								library._colorPickerExists = false
+							end)
+						end)
+					end
+					
+					local HUEBar = CPHolder:Object("TextButton", {
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BorderSizePixel = 0,
+						Text = "",
+						Size = UDim2.new(0, 5, 1, 0),
+						ZIndex = 12,
+						ClipsDescendants = true,
+						BackgroundTransparency = 1
+					})
+					
+					local _HUEBarGradient = HUEBar:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 0)),
+							ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
+							ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
+							ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
+							ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
+							ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 0))
+						}),
+						Rotation = 90
+					})
+					
+					local HUEDraggable = HUEBar:Object("ImageButton", {
+						BackgroundTransparency = 1,
+						ImageTransparency = 1,
+						Position = UDim2.new(-2, 3, 0, -10),
+						Size = UDim2.fromOffset(20, 20),
+						ZIndex = 12,
+						Image = "rbxassetid://8579244616"
+					})
+					
+					local PickerArea = CPHolder:Object("TextButton", {
+						Text = "",
+						AnchorPoint = Vector2.new(1, 0),
+						BackgroundTransparency = 1,
+						Position = UDim2.fromScale(1, 0),
+						Size = UDim2.new(1, -5, 1, -50),
+						ZIndex = 12,
+						ClipsDescendants = true
+					})
+					
+					local Color = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 13,
+						BackgroundColor3 = SelectedColor,
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0
+					})
+					
+					local Brightness = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 14,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0
+					})
+					
+					local _Brightness = Brightness:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))
+						}),
+						Transparency = NumberSequence.new({
+							NumberSequenceKeypoint.new(0, 0),
+							NumberSequenceKeypoint.new(1, 1)
+						})
+					})
+					
+					local Black = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 16,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BorderSizePixel = 0,
+						BackgroundTransparency = 1
+					})
+					
+					local _Black = Black:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
+						}),
+						Transparency = NumberSequence.new({
+							NumberSequence.new(0, 0),
+							NumberSequence.new(1, 1)
+						}),
+						Rotation = -90
+					})
+					
+					local ColorPickerDraggable = PickerArea:Object("TextButton", {
+						Text = "",
+						AnchorPoint = Vector2.new(.5, .5),
+						BackgroundTransparency = 1,
+						Size = UDim2.fromOffset(6, 6),
+						Position = UDim2.new(0, 152, 0, 3),
+						ZIndex = 20
+					}):Round(100)
+					
+					local _ColorPickerDraggableStroke = ColorPickerDraggable:Object("UIStroke", {
+						Color = Color3.fromRGB(255, 255, 255),
+						Thickness = 1.6,
+						ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+						Transparency = 1
+					})
+					
+					do
+						UpdateHUE = function()
+							HUE = math.clamp((Mouse.Y - HUEBar.AbsolutePosition.Y) / (HUEBar.AbsoluteSize.Y), 0, 1)
+							
+							local TempVal = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
+							
+							local NewYPos = math.clamp((Mouse.Y - HUEBar.AbsolutePosition.Y) / (HUEBar.AbsoluteSize.Y) * HUEBar.AbsoluteSize.Y, 0, HUEBar.AbsoluteSize.Y)
+							
+							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
+							
+							Color:Tween({
+								BackgroundColor3 = Color3.fromHSV(HUE, 1, 1),
+								Length = 0.05
+							})
+							
+							Text:Tween({
+								ImageColor3 = SelectedColor,
+								Length = 0.05
+							})
+							
+							Arrow:Tween({
+								ImageColor3 = SelectedColor,
+								Length = 0.05
+							})
+							
+							HUEDraggable:Tween({
+								Position = UDim2.new(-2, 3, 0, math.clamp(NewYPos - 10, -10, HUEBar.AbsoluteSize.Y + 10)),
+								ImageColor3 = Color3.fromHSV(1, 0, -TempVal),
+								Length = 0.05
+							})
+						end
+						
+						local Down = false
+						
+						HUEBar.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdateHUE()
+							end
+						end)
+						
+						HUEDraggable.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdateHUE()
+							end
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								if Down then
+									Down = false
+								end
+							end
+						end)
+					end
+					
+					do
+						local Down = false
+						
+						UpdatePicker = function()
+							SAT = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X), 0, 1)
+							VAL = 1 - math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
+							
+							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
+							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
+							
+							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
+							
+							ColorPickerDraggable:Tween({
+								Position = UDim2.fromOffset(NewXPos, NewYPos),
+								Length = 0.05
+							})
+							
+							Text:Tween({
+								ImageColor3 = SelectedColor,
+								Length = 0.05
+							})
+							
+							Arrow:Tween({
+								ImageColor3 = SelectedColor,
+								Length = 0.05
+							})
+						end
+						
+						PickerArea.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdatePicker()
+							end
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								if Down then
+									Down = false
+								end
+							end
+						end)
+					end
+					
+					Darkener:Tween({
+						BackgroundTransparency = .4,
+						Length = 0.1
+					})
+					
+					Arrow:Tween({
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					Text:Tween({
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					_CPShadow:Tween({
+						ImageTransparency = .6,
+						Length = 0.1
+					})
+					
+					ButtonHolder:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					Button:Tween({
+						TextTransparency = 0,
+						Length = 0.1
+					})
+					
+					HUEBar:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					HUEDraggable:Tween({
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					Color:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					Brightness:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					Black:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_ColorPickerDraggableStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					FadeOut = function()
+						Darkener:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Arrow:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+
+						Text:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+
+						_CPShadow:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+
+						ButtonHolder:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Button:Tween({
+							TextTransparency = 1,
+							Length = 0.1
+						})
+
+						HUEBar:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						HUEDraggable:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+
+						Color:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Brightness:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Black:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_ColorPickerDraggableStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						}, function()
+							task.delay(0.25, function()
+								Darkener.AbsoluteObject:Destroy()
+							end)
+						end)
+					end
+				end
+			else
+				do
+					local Holder = Darkener:Object("Frame", {
+						Centered = true,
+						Theme = {
+							BackgroundColor3 = "Secondary"
+						},
+						BackgroundTransparency = 1,
+						Size = UDim2.fromOffset(255, 170)
+					}):Round(6)
+					
+					local _HolderStroke = Holder:Object("UIStroke", {
+						Transparency = 1,
+						Theme = {
+							Color = "Tertiary"
+						},
+						Thickness = 1.6
+					})
+					
+					local _Padding = Holder:Object("UIPadding", {
+						PaddingLeft = UDim.new(0, 5),
+						PaddingRight = UDim.new(0, 5),
+						PaddingTop = UDim.new(0, 5),
+						PaddingBottom = UDim.new(0, 5)
+					})
+					
+					local PickerArea = Holder:Object("TextButton", {
+						Text = "",
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0.5, -5, 1, -25)
+					}):Round(6)
+					
+					local _PickerAreaStroke = PickerArea:Object("UIStroke", {
+						Transparency = 1,
+						Theme = {
+							Color = "Tertiary"
+						},
+						Thickness = 1.6
+					})
+					
+					local Color = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						BackgroundColor3 = SelectedColor,
+						BackgroundTransparency = 1,
+						ZIndex = 10
+					}):Round(6)
+					
+					local Brightness = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 11,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BackgroundTransparency = 1,
+						BorderSizePixel = 0
+					}):Round(6)
+					
+					local _Brightness = Brightness:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))
+						}),
+						Transparency = NumberSequence.new({
+							NumberSequenceKeypoint.new(0, 0),
+							NumberSequenceKeypoint.new(1, 1)
+						})
+					})
+					
+					local Black = PickerArea:Object("Frame", {
+						Size = UDim2.fromScale(1, 1),
+						ZIndex = 12,
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BorderSizePixel = 0,
+						BackgroundTransparency = 1
+					}):Round(6)
+					
+					local _Black = Black:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
+						}),
+						Transparency = NumberSequence.new({
+							NumberSequenceKeypoint.new(0, 0),
+							NumberSequenceKeypoint.new(1, 1)
+						}),
+						Rotation = -90
+					})
+					
+					local ColorPickerDraggable = PickerArea:Object("TextButton", {
+						Centered = true,
+						Text = "",
+						AnchorPoint = Vector2.new(.5, .5),
+						BackgroundTransparency = 1,
+						Size = UDim2.fromOffset(6, 6),
+						ZIndex = 20
+					}):Round(100)
+					
+					local _ColorPickerDraggableStroke = ColorPickerDraggable:Object("UIStroke", {
+						Transparency = 1,
+						Color = Color3.fromRGB(255, 255, 255),
+						Thickness = 1.6,
+						ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+					})
+					
+					local HUEArea = Holder:Object("TextButton", {
+						Text = "",
+						AnchorPoint = Vector2.new(0, 1),
+						Position = UDim2.fromScale(0, 1),
+						Size = UDim2.new(0.5, -5, 0, 20),
+						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+						BackgroundTransparency = 1,
+						ZIndex = 11
+					}):Round(6)
+					
+					local _HUEAreaStroke = HUEArea:Object("UIStroke", {
+						Transparency = 1,
+						Theme = {
+							Color = "Tertiary"
+						},
+						Thickness = 1.6
+					})
+					
+					local _HUEAreaGradient = HUEArea:Object("UIGradient", {
+						Color = ColorSequence.new({
+							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 0)),
+							ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
+							ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
+							ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
+							ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
+							ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
+							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 255))
+						})
+					})
+					
+					local HUEDraggable = HUEArea:Object("TextButton", {
+						Centered = true,
+						Text = "",
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0, 3, 1, 0),
+						ZIndex = 20
+					})
+					
+					local _HUEDraggableStroke = HUEDraggable:Object("UIStroke", {
+						Transparency = 1,
+						Color = Color3.fromRGB(255, 255, 255),
+						Thickness = 1.6,
+						ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+					})
+					
+					local Label = Holder:Object("TextLabel", {
+						Text = "Color Picker",
+						Font = Enum.Font.SourceSansBold,
+						AnchorPoint = Vector2.new(1, 0),
+						BackgroundTransparency = 1,
+						Position = UDim2.fromScale(1, 0),
+						Size = UDim2.new(0.5, 0, 0, 20),
+						Theme = {
+							TextColor3 = {
+								"Tertiary",
+								15
+							}
+						},
+						TextSize = 15,
+						TextTransparency = 1
+					})
+					
+					local Infos = Holder:Object("Frame", {
+						AnchorPoint = Vector2.new(1, 0),
+						BackgroundTransparency = 1,
+						Position = UDim2.new(1, 0, 0, 25),
+						Size = UDim2.new(0.5, 0, 0, 60)
+					})
+					
+					local _InfosList = Infos:Object("UIListLayout", {
+						Padding = UDim.new(0, 4),
+						HorizontalAlignment = Enum.HorizontalAlignment.Center,
+						SortOrder = Enum.SortOrder.Name
+					})
+					
+					local Red = Infos:Object("TextLabel", {
+						AnchorPoint = Vector2.new(0.5, 0),
+						Name = "1",
+						Text = tostring(SelectedColor.R * 255),
+						Theme = {
+							BackgroundColor3 = {
+								"Secondary",
+								12
+							}
+						},
+						Size = UDim2.new(1, -10, 0, 18),
+						TextColor3 = Color3.fromHSV(0, 0.8, 1),
+						TextSize = 14,
+						BackgroundTransparency = 1,
+						TextTransparency = 1
+					}):Round(4)
+					
+					local Green = Infos:Object("TextLabel", {
+						AnchorPoint = Vector2.new(0.5, 0),
+						Name = "2",
+						Text = tostring(SelectedColor.G * 255),
+						Theme = {
+							BackgroundColor3 = {
+								"Secondary",
+								12
+							}
+						},
+						Size = UDim2.new(1, -10, 0, 18),
+						TextColor3 = Color3.fromHSV(120 / 360, 0.8, 1),
+						TextSize = 14,
+						BackgroundTransparency = 1,
+						TextTransparency = 1
+					}):Round(4)
+					
+					local Blue = Infos:Object("TextLabel", {
+						AnchorPoint = Vector2.new(0.5, 0),
+						Text = tostring(SelectedColor.B * 255),
+						Name = "3",
+						Theme = {
+							BackgroundColor3 = {
+								"Secondary",
+								12
+							}
+						},
+						Size = UDim2.new(1, -10, 0, 18),
+						TextColor3 = Color3.fromHSV(240 / 360, 0.8, 1),
+						TextSize = 14,
+						BackgroundTransparency = 1,
+						TextTransparency = 1
+					}):Round(4)
+					
+					local PickButton = Holder:Object("ImageButton", {
+						AnchorPoint = Vector2.new(1, 1),
+						Theme = {
+							BackgroundColor3 = "Tertiary"
+						},
+						Position = UDim2.fromScale(1, 1),
+						Size = UDim2.new(0.5, 0, 0, 20),
+						Image = "rbxassetid://8593962406",
+						ScaleType = Enum.ScaleType.Fit,
+						BackgroundTransparency = 1,
+						ImageTransparency = 1
+					}):Round(6)
+					
+					local PreviewLight = Holder:Object("Frame", {
+						AnchorPoint = Vector2.new(1, 1),
+						BackgroundColor3 = SelectedColor,
+						Position = UDim2.new(1, -65, 1, -25),
+						Size = UDim2.fromOffset(40, 40),
+						BackgroundTransparency = 1
+					}):Round(5)
+					
+					local _PreviewLightIcon = PreviewLight:Object("ImageLabel", {
+						Centered = true,
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(.6, .6),
+						Image = "rbxassetid://8593995344",
+						ImageColor3 = Color3.fromRGB(255, 255, 255),
+						ImageTransparency = 1
+					})
+					
+					local PreviewDark = Holder:Object("Frame", {
+						AnchorPoint = Vector2.new(1, 1),
+						BackgroundColor3 = SelectedColor,
+						Position = UDim2.new(1, -15, 1, -25),
+						Size = UDim2.fromOffset(40, 40),
+						BackgroundTransparency = 1
+					}):Round(5)
+					
+					local _PreviewDarkIcon = PreviewDark:Object("ImageLabel", {
+						Centered = true,
+						BackgroundTransparency = 1,
+						Size = UDim2.fromScale(.6, .6),
+						Image = "rbxassetid://8593995344",
+						ImageColor3 = Color3.fromRGB(0, 0, 0),
+						ImageTransparency = 1
+					})
+					
+					for _, v in next, Darkener.AbsoluteObject:GetDescendants() do
+						pcall(function()
+							v.ZIndex += 3
+						end)
+					end
+					
+					local function GlobalUpdate()
+						Red.Text = tostring(math.floor(SelectedColor.R * 255))
+						Green.Text = tostring(math.floor(SelectedColor.G * 255))
+						Blue.Text = tostring(math.floor(SelectedColor.B * 255))
+						
+						PreviewDark:Tween({
+							BackgroundColor3 = SelectedColor
+						})
+						
+						PreviewLight:Tween({
+							BackgroundColor3 = SelectedColor
+						})
+					end
+					
+					do
+						UpdateHUE = function()
+							HUE = math.clamp((Mouse.X - HUEArea.AbsolutePosition.X) / (HUEArea.AbsoluteSize.X), 0, 1)
+							
+							local NewXPos = math.clamp((Mouse.X - HUEArea.AbsolutePosition.X) / (HUEArea.AbsoluteSize.X) * HUEArea.AbsoluteSize.X, 0, HUEArea.AbsoluteSize.X)
+							
+							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
+							
+							Color:Tween({
+								BackgroundColor3 = Color3.fromHSV(HUE, 1, 1),
+								Length = 0.05
+							})
+							
+							HUEDraggable:Tween({
+								Position = UDim2.new(0, math.clamp(NewXPos, 0, HUEArea.AbsoluteSize.X), .5, 0),
+								Length = 0.05
+							})
+							
+							GlobalUpdate()
+						end
+						
+						local Down = false
+						
+						HUEArea.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdateHUE()
+							end
+						end)
+						
+						HUEDraggable.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdateHUE()
+							end
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								if Down then
+									Down = false
+								end
+							end
+						end)
+					end
+					
+					do
+						local Down = false
+						
+						UpdatePicker = function()
+							SAT = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X), 0, 1)
+							VAL = 1 - math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
+							
+							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsolutePosition.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
+							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsolutePosition.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
+							
+							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
+							
+							GlobalUpdate()
+							
+							ColorPickerDraggable:Tween({
+								Position = UDim2.fromOffset(NewXPos, NewYPos),
+								Length = 0.05
+							})
+						end
+						
+						PickerArea.MouseButton1Down:Connect(function()
+							Down = true
+							
+							while RunService.RenderStepped:Wait() and Down do
+								UpdatePicker()
+							end
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								if Down then
+									Down = false
+								end
+							end
+						end)
+					end
+					
+					do
+						local Down = false
+						local Hovered = false
+						
+						PickButton.MouseEnter:Connect(function()
+							Hovered = true
+							
+							PickButton:Tween({
+								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
+							})
+						end)
+						
+						PickButton.MouseLeave:Connect(function()
+							Hovered = false
+							
+							if not Down then
+								PickButton:Tween({
+									BackgroundColor3 = library.CurrentTheme.Tertiary
+								})
+							end
+						end)
+						
+						PickButton.MouseButton1Down:Connect(function()
+							PickButton:Tween({
+								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
+							})
+						end)
+						
+						UserInputService.InputEnded:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 then
+								PickButton:Tween({
+									BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
+								})
+							end
+						end)
+						
+						PickButton.MouseButton1Click:Connect(function()
+							FadeOut()
+							
+							Icon:Tween({
+								ImageColor3 = SelectedColor
+							})
+							
+							options.Callback(SelectedColor)
+							
+							task.delay(0.35, function()
+								library._colorPickerExists = false
+							end)
+						end)
+					end
+					
+					Holder:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_HolderStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					PickerArea:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_PickerAreaStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					Color:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					Brightness:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					Black:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_ColorPickerDraggableStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					HUEArea:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_HUEAreaStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					_HUEDraggableStroke:Tween({
+						Transparency = 0,
+						Length = 0.1
+					})
+					
+					Label:Tween({
+						TextTransparency = 0,
+						Length = 0.1
+					})
+					
+					Red:Tween({
+						BackgroundTransparency = 0,
+						TextTransparency = 0,
+						Length = 0.1
+					})
+					
+					Green:Tween({
+						BackgroundTransparency = 0,
+						TextTransparency = 0,
+						Length = 0.1
+					})
+					
+					Blue:Tween({
+						BackgroundTransparency = 0,
+						TextTransparency = 0,
+						Length = 0.1
+					})
+					
+					PickButton:Tween({
+						BackgroundTransparency = 0,
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					PreviewLight:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_PreviewLightIcon:Tween({
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					PreviewDark:Tween({
+						BackgroundTransparency = 0,
+						Length = 0.1
+					})
+					
+					_PreviewDarkIcon:Tween({
+						ImageTransparency = 0,
+						Length = 0.1
+					})
+					
+					Darkener:Tween({
+						BackgroundTransparency = 0.5,
+						Length = 0.1
+					})
+					
+					FadeOut = function()
+						Holder:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_HolderStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						})
+
+						PickerArea:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_PickerAreaStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						})
+
+						Color:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Brightness:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						Black:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_ColorPickerDraggableStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						})
+
+						HUEArea:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_HUEAreaStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						})
+
+						_HUEDraggableStroke:Tween({
+							Transparency = 1,
+							Length = 0.1
+						})
+
+						Label:Tween({
+							TextTransparency = 1,
+							Length = 0.1
+						})
+
+						Red:Tween({
+							BackgroundTransparency = 1,
+							TextTransparency = 0,
+							Length = 0.1
+						})
+
+						Green:Tween({
+							BackgroundTransparency = 1,
+							TextTransparency = 0,
+							Length = 0.1
+						})
+
+						Blue:Tween({
+							BackgroundTransparency = 1,
+							TextTransparency = 0,
+							Length = 0.1
+						})
+
+						PickButton:Tween({
+							BackgroundTransparency = 1,
+							ImageTransparency = 0,
+							Length = 0.1
+						})
+
+						PreviewLight:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_PreviewLightIcon:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+
+						PreviewDark:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						})
+
+						_PreviewDarkIcon:Tween({
+							ImageTransparency = 1,
+							Length = 0.1
+						})
+						
+						Darkener:Tween({
+							BackgroundTransparency = 1,
+							Length = 0.1
+						}, function()
+							task.delay(0.25, function()
+								Darkener.AbsoluteObject:Destroy()
+							end)
+						end)
+					end
+				end
+			end
+		end)
+	end
+	
+	self:ResizeTab()
+end
+
+--[
 --AddCredit
 --]
 
