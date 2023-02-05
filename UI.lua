@@ -26,17 +26,24 @@ local Mouse = Client:GetMouse()
 
 local library = {
 	Themes = {
-		["Break-Skill Light"] = {
-			Main = Color3.fromRGB(100, 100, 100),
-			Secondary = Color3.fromRGB(140, 140, 140),
-			Tertiary = Color3.fromRGB(255, 65, 65),
+		BreakSkill = {
+			Main = Color3.fromRGB(25, 25, 25),
+			Secondary = Color3.fromRGB(50, 50, 50),
+			Tertiary = Color3.fromRGB(150, 20, 20),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
-		["Break-Skill Dark"] = {
-			Main = Color3.fromRGB(20, 20, 20),
-			Secondary = Color3.fromRGB(45, 45, 45),
-			Tertiary = Color3.fromRGB(255, 30, 30),
+		Dark = {
+			Main = Color3.fromRGB(30, 30, 35),
+			Secondary = Color3.fromRGB(50, 50, 55),
+			Tertiary = Color3.fromRGB(180, 70, 70),
+			StrongText = Color3.fromHSV(0, 0, 1),
+			WeakText = Color3.fromHSV(0, 0, 170 / 255)
+		},
+		Legacy = {
+			Main = Color3.fromHSV(260 / 360, 60 / 255, 35 / 255),
+			Secondary = Color3.fromHSV(240 / 360, 40 / 255, 65 / 255),
+			Tertiary = Color3.fromHSV(260 / 360, 60 / 255, 150 / 255),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
@@ -44,13 +51,6 @@ local library = {
 			Main = Color3.fromRGB(50, 50, 55),
 			Secondary = Color3.fromRGB(80, 80, 85),
 			Tertiary = Color3.fromRGB(225, 185, 20),
-			StrongText = Color3.fromHSV(0, 0, 1),
-			WeakText = Color3.fromHSV(0, 0, 170 / 255)
-		},
-		Dark = {
-			Main = Color3.fromRGB(30, 30, 35),
-			Secondary = Color3.fromRGB(50, 50, 55),
-			Tertiary = Color3.fromRGB(70, 130, 180),
 			StrongText = Color3.fromHSV(0, 0, 1),
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		},
@@ -62,6 +62,10 @@ local library = {
 			WeakText = Color3.fromHSV(0, 0, 170 / 255)
 		}
 	},
+	ColorPickerStyles = {
+		Modern = 0,
+		Legacy = 1
+	},
 	ThemeObjects = {
 		Main = {},
 		Secondary = {},
@@ -69,34 +73,78 @@ local library = {
 		StrongText = {},
 		WeakText = {}
 	},
-	ColorPickerStyles = {
-		Legacy = 0,
-		Modern = 1
-	},
 	Toggled = true,
 	LockDragging = false,
+	DragSpeed = 0.06,
+	CurrentTheme = nil,
 	WelcomeText = nil,
 	DisplayName = nil,
 	URLLabel = nil,
 	URL = nil,
-	DragSpeed = 0.05,
 	ToggleKey = Enum.KeyCode.RightShift
 }
 
 library.__index = library
 
-local SelectedTab
-
 library._promptExists = false
 library._colorPickerExists = false
 
-local GlobalTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+local SelectedTab
 
 local UpdateSettings = function() end
 
 --[
 --UI Library Functions
 --]
+
+--[
+--SetDefaults
+--]
+
+function library:SetDefaults(defaults, options)
+	defaults = defaults or {}
+	options = options or {}
+
+	for o, v in next, options do
+		defaults[o] = v
+	end
+
+	return defaults
+end
+
+--[
+--ChangeTheme
+--]
+
+function library:ChangeTheme(toTheme)
+	library.CurrentTheme = toTheme
+
+	local Lighten = self:Lighten(toTheme.Tertiary, 20)
+
+	library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Lighten.R * 255) .. ", " .. math.floor(Lighten.G * 255) .. ", " .. math.floor(Lighten.B * 255) .. ")'><b> " .. Client.DisplayName .. "</b></font>"
+
+	for c, o in next, library.ThemeObjects do
+		local ThemeColor = library.CurrentTheme[c]
+
+		for _, o2 in next, o do
+			local Element, Property, Theme, ColorAlter = o2[1], o2[2], o2[3], o2[4] or 0
+
+			ThemeColor = library.CurrentTheme[Theme]
+
+			local ModifiedColor = ThemeColor
+
+			if ColorAlter < 0 then
+				ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
+			elseif ColorAlter > 0 then
+				ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
+			end
+
+			Element:Tween({
+				[Property] = ModifiedColor
+			})
+		end
+	end
+end
 
 --[
 --Object
@@ -118,30 +166,30 @@ function library:Object(class, props)
 		end)
 	end
 
-	local Methods = {}
+	local ObjectFunctions = {}
 
-	Methods.AbsoluteObject = LocalObject
+	ObjectFunctions.AbsoluteObject = LocalObject
 
 	--[
 	--Tween
 	--]
 
-	function Methods:Tween(options, callback)
+	function ObjectFunctions:Tween(options, callback)
 		options = library:SetDefaults({
-			Length = 0.2,
 			Style = Enum.EasingStyle.Linear,
-			Direction = Enum.EasingDirection.InOut
+			Direction = Enum.EasingDirection.InOut,
+			Length = 0.2
 		}, options)
 
 		callback = callback or function () return end
 
-		local ti = TweenInfo.new(options.Length, options.Style, options.Direction)
+		local TI = TweenInfo.new(options.Length, options.Style, options.Direction)
 
 		options.Length = nil
 		options.Style = nil
 		options.Direction = nil
 
-		local Tween = TweenService:Create(LocalObject, ti, options)
+		local Tween = TweenService:Create(LocalObject, TI, options)
 
 		Tween:Play()
 
@@ -156,7 +204,7 @@ function library:Object(class, props)
 	--Round
 	--]
 
-	function Methods:Round(radius)
+	function ObjectFunctions:Round(radius)
 		radius = radius or 6
 
 		library:Object("UICorner", {
@@ -164,14 +212,14 @@ function library:Object(class, props)
 			CornerRadius = UDim.new(0, radius)
 		})
 
-		return Methods
+		return ObjectFunctions
 	end
 
 	--[
 	--Object
 	--]
 
-	function Methods:Object(class2, props2)
+	function ObjectFunctions:Object(class2, props2)
 		props2 = props2 or {}
 
 		props2.Parent = LocalObject
@@ -183,7 +231,7 @@ function library:Object(class, props)
 	--CrossFade
 	--]
 
-	function Methods:CrossFade(p2, length)
+	function ObjectFunctions:CrossFade(p2, length)
 		length = length or .2
 
 		self:Tween({
@@ -199,7 +247,7 @@ function library:Object(class, props)
 	--Fade
 	--]
 
-	function Methods:Fade(state, colorOverride, length, instant)
+	function ObjectFunctions:Fade(state, colorOverride, length, instant)
 		length = length or 0.2
 
 		if not rawget(self, "FadeFrame") then
@@ -250,7 +298,7 @@ function library:Object(class, props)
 	--Stroke
 	--]
 
-	function Methods:Stroke(color, thickness, strokeMode)
+	function ObjectFunctions:Stroke(color, thickness, strokeMode)
 		thickness = thickness or 1
 		strokeMode = strokeMode or Enum.ApplyStrokeMode.Border
 
@@ -295,15 +343,15 @@ function library:Object(class, props)
 			Stroke.Color = color
 		end
 
-		return Methods
+		return ObjectFunctions
 	end
 
 	--[
 	--ToolTip
 	--]
 
-	function Methods:ToolTip(text)
-		local ToolTipContainer = Methods:Object("TextLabel", {
+	function ObjectFunctions:ToolTip(text)
+		local ToolTipContainer = ObjectFunctions:Object("TextLabel", {
 			Theme = {
 				BackgroundColor3 = {
 					"Main",
@@ -343,7 +391,7 @@ function library:Object(class, props)
 
 		local Hovered = false
 
-		Methods.MouseEnter:Connect(function()
+		ObjectFunctions.MouseEnter:Connect(function()
 			Hovered = true
 
 			task.wait(0.2)
@@ -360,7 +408,7 @@ function library:Object(class, props)
 			end
 		end)
 
-		Methods.MouseLeave:Connect(function()
+		ObjectFunctions.MouseLeave:Connect(function()
 			Hovered = false
 
 			ToolTipContainer:Tween({
@@ -373,7 +421,7 @@ function library:Object(class, props)
 			})
 		end)
 
-		return Methods
+		return ObjectFunctions
 	end
 
 	local CustomHandlers = {
@@ -401,7 +449,7 @@ function library:Object(class, props)
 					LocalObject[p] = ModifiedColor
 
 					table.insert(self.ThemeObjects[Theme], {
-						Methods,
+						ObjectFunctions,
 						p,
 						Theme,
 						ColorAlter
@@ -412,7 +460,7 @@ function library:Object(class, props)
 					LocalObject[p] = ThemeColor
 
 					table.insert(self.ThemeObjects[o], {
-						Methods,
+						ObjectFunctions,
 						p,
 						o,
 						0
@@ -430,7 +478,7 @@ function library:Object(class, props)
 		end
 	end
 
-	return setmetatable(Methods, {
+	return setmetatable(ObjectFunctions, {
 		__index = function(_, property)
 			return LocalObject[property]
 		end,
@@ -507,52 +555,17 @@ function library:SetStatus(text)
 end
 
 --[
---ChangeTheme
+--ResizeTab
 --]
 
-function library:ChangeTheme(toTheme)
-	library.CurrentTheme = toTheme
+function library:ResizeTab()
+	if self.Container.ClassName == "ScrollingFrame" then
+		self.Container.CanvasSize = UDim2.fromOffset(0, self.Layout.AbsoluteContentSize.Y + 20)
+	else
+		self.SectionContainer.Size = UDim2.new(1, -24, 0, self.Layout.AbsoluteContentSize.Y + 20)
 
-	local Light = self:Lighten(toTheme.Tertiary, 20)
-
-	library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'><b>" .. Client.DisplayName .. "</b></font>"
-
-	for c, o in next, library.ThemeObjects do
-		local ThemeColor = library.CurrentTheme[c]
-
-		for _, o2 in next, o do
-			local Element, Property, Theme, ColorAlter = o2[1], o2[2], o2[3], o2[4] or 0
-
-			ThemeColor = library.CurrentTheme[Theme]
-
-			local ModifiedColor = ThemeColor
-
-			if ColorAlter < 0 then
-				ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-			elseif ColorAlter > 0 then
-				ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
-			end
-
-			Element:Tween({
-				[Property] = ModifiedColor
-			})
-		end
+		self.ParentContainer.CanvasSize = UDim2.fromOffset(0, self.ParentLayout.AbsoluteContentSize.Y + 20)
 	end
-end
-
---[
---SetDefaults
---]
-
-function library:SetDefaults(defaults, options)
-	defaults = defaults or {}
-	options = options or {}
-
-	for o, v in next, options do
-		defaults[o] = v
-	end
-
-	return defaults
 end
 
 --[
@@ -561,10 +574,10 @@ end
 
 function library:CreateWindow(options)
 	local Settings = {
-		Theme = "Break-Skill Dark"
+		Theme = "BreakSkill"
 	}
 
-	if readfile and isfile and makefolder and writefile and isfolder then
+	if getgenv()["Break-Skill_Hub_V1_Loaded"].Executor then
 		if not isfolder("./Break-Skill Hub - V1") then
 			makefolder("./Break-Skill Hub - V1")
 		end
@@ -590,16 +603,10 @@ function library:CreateWindow(options)
 
 	options = self:SetDefaults({
 		Name = "Break-Skill Hub - V1",
-		Size = UDim2.fromOffset(600, 500),
-		Theme = self.Themes[Settings.Theme],
-		Link = "https://github.com/Skillus/Break-Skill-Hub-V1"
+		Link = "https://github.com/Sklllus/Break-Skill-Hub-V1",
+		Size = UDim2.fromOffset(600, 550),
+		Theme = self.Themes[Settings.Theme]
 	}, options)
-
-	if getgenv and getgenv()["BreakSkillUI"] then
-		getgenv():BreakSkillUI()
-
-		getgenv()["BreakSkillUI"] = nil
-	end
 
 	if options.Link:sub(-1, -1) == "/" then
 		options.Link = options.Link:sub(1, -2)
@@ -612,9 +619,20 @@ function library:CreateWindow(options)
 	self.CurrentTheme = options.Theme
 
 	local Window = self:Object("ScreenGui", {
-		Parent = (RunService:IsStudio() and Client.PlayerGui) or CoreGui,
 		ZIndexBehavior = Enum.ZIndexBehavior.Global
 	})
+
+	if RunService:IsStudio() then
+		Window.Parent = Client.PlayerGui
+	elseif gethui then
+		Window.Parent = gethui()
+	elseif syn.protect_gui then
+		Window.Parent = CoreGui
+
+		syn.protect_gui(Window)
+	else
+		Window.Parent = CoreGui
+	end
 
 	local NotificationHolder = Window:Object("Frame", {
 		AnchorPoint = Vector2.new(1, 1),
@@ -656,8 +674,8 @@ function library:CreateWindow(options)
 			Core.Active = true
 
 			Event:Connect(function()
-				local Input = Core.InputBegan:Connect(function(key)
-					if key.UserInputType == Enum.UserInputType.MouseButton1 then
+				local Input = Core.InputBegan:Connect(function(input)
+					if input.UserInputType == Enum.UserInputType.MouseButton1 then
 						local ObjectPosition = Vector2.new(Mouse.X - Core.AbsolutePosition.X, Mouse.Y - Core.AbsolutePosition.Y)
 
 						while RunService.RenderStepped:Wait() and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
@@ -720,18 +738,6 @@ function library:CreateWindow(options)
 		AnchorPoint = Vector2.new(1)
 	})
 
-	CloseButton.MouseEnter:Connect(function()
-		CloseButton:Tween({
-			ImageColor3 = Color3.fromRGB(255, 125, 140)
-		})
-	end)
-
-	CloseButton.MouseLeave:Connect(function()
-		CloseButton:Tween({
-			ImageColor3 = library.CurrentTheme.StrongText
-		})
-	end)
-
 	local function CloseUI()
 		Core.ClipsDescendants = true
 
@@ -746,9 +752,17 @@ function library:CreateWindow(options)
 		end)
 	end
 
-	if getgenv then
-		getgenv()["BreakSkillUI"] = CloseUI
-	end
+	CloseButton.MouseEnter:Connect(function()
+		CloseButton:Tween({
+			ImageColor3 = Color3.fromRGB(255, 125, 140)
+		})
+	end)
+
+	CloseButton.MouseLeave:Connect(function()
+		CloseButton:Tween({
+			ImageColor3 = library.CurrentTheme.StrongText
+		})
+	end)
 
 	CloseButton.MouseButton1Click:Connect(function()
 		CloseUI()
@@ -773,12 +787,12 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1
 	})
 
-	local Link = URLBar:Object("TextLabel", {
+	local Link = URLBar:Object("TextBox", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 26, 0.5, 0),
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, -30, .6, 0),
-		Text = options.Link .. "/home",
+		PlaceholderText = options.Link .. "/home",
 		Theme = {
 			TextColor3 = "WeakText"
 		},
@@ -864,7 +878,7 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 5, 0.5, 0),
 		Size = UDim2.new(0, 15, 0, 15),
-		Image = "http://www.roblox.com/asset/?id=8569322735",
+		Image = "http://www.roblox.com/asset/?id=8569322835",
 		Theme = {
 			ImageColor3 = "StrongText"
 		}
@@ -875,6 +889,90 @@ function library:CreateWindow(options)
 		Centered = true,
 		BackgroundTransparency = 1
 	})
+
+	local Text = Instance.new("TextBox")
+
+	Link.Focused:Connect(function()
+		local Search = tostring(Link.Text)
+
+		for i, v in pairs(SelectedTab:GetChildren()) do
+			if v:IsA("ScrollingFrame") then
+				if Search ~= "" then
+					if v.Name == "Label" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "Credit" then
+						local Item = tostring(v.Name.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "Button" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "Toggle" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "Slider" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "TextBox" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "Dropdown" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					elseif v.Name == "ColorPicker" then
+						local Item = tostring(v.Text.Text)
+
+						if string.find(Item, Search) then
+							v.Visible = true
+						else
+							v.Visible = false
+						end
+					end
+				else
+					v.Visible = true
+				end
+			end
+		end
+	end)
+
+	Link.FocusLost:Connect(function()
+		Link.Text = ""
+	end)
 
 	local Tabs = {}
 
@@ -913,7 +1011,6 @@ function library:CreateWindow(options)
 			})
 		end)
 
-
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				Down = false
@@ -940,7 +1037,9 @@ function library:CreateWindow(options)
 
 			HomePage.Visible = true
 
-			HomeButton.BackgroundTransparency = 0
+			HomeButton:Tween({
+				BackgroundTransparency = 0
+			})
 
 			library.URLLabel.Text = library.URL .. "/home"
 		end)
@@ -984,11 +1083,11 @@ function library:CreateWindow(options)
 	do
 		local H, S, V = Color3.toHSV(options.Theme.Tertiary)
 
-		local Light = self:Lighten(options.Theme.Tertiary, 20)
+		local Lighten = self:Lighten(options.Theme.Tertiary, 20)
 
 		DisplayName = Profile:Object("TextLabel", {
 			RichText = true,
-			Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. "," .. math.floor(Light.G * 255) .. "," .. math.floor(Light.B * 255) .. ")'><b>" .. Client.DisplayName .. "</b></font>",
+			Text = "Welcome, <font color='rgb(" .. math.floor(Lighten.R * 255) .. ", " .. math.floor(Lighten.G * 255) .. ", " .. math.floor(Lighten.B * 255) .. ")'><b> " .. Client.DisplayName .. "</b></font>",
 			TextScaled = true,
 			Position = UDim2.new(0, 105, 0, 10),
 			Theme = {
@@ -1053,7 +1152,7 @@ function library:CreateWindow(options)
 	local SettingsTabIcon = Profile:Object("ImageButton", {
 		BackgroundTransparency = 1,
 		Theme = {
-			ImageColor3 = "WeakText"
+			TextColor3 = "WeakText"
 		},
 		Size = UDim2.fromOffset(24, 24),
 		Position = UDim2.new(1, -10, 1, -10),
@@ -1105,3765 +1204,10 @@ function library:CreateWindow(options)
 		NilFolder = Core:Object("Folder")
 	}, library)
 
-	local SettingsTab = library.CreateTab(mt, {
-		Name = "Settings",
-		Internal = SettingsTabIcon,
-		Icon = "rbxassetid://8559790237"
-	})
-
-	SettingsTab:AddThemeSelector()
-	
-	SettingsTab:AddKeybind({
-		Name = "Toggle key",
-		Description = "Key to show/hide UI.",
-		Keybind = Enum.KeyCode.RightShift,
-		Callback = function(val)
-			self.Toggled = not self.Toggled
-			
-			library:Show(self.Toggled)
-		end
-	})
-	
-	SettingsTab:AddToggle({
-		Name = "Lock Dragging",
-		Description = "Makes sure you can't drag UI outside window.",
-		Value = true,
-		Callback = function(val)
-			library.LockDragging = val
-		end
-	})
-
-	SettingsTab:AddSlider({
-		Name = "Drag Speed",
-		Description = "How smooth dragging looks.",
-		Min = 0,
-		Default = 10,
-		Max = 50,
-		Callback = function(val)
-			library.DragSpeed = (20 - val) / 100
-		end
-	})
-
-	local CreditsTab = library.CreateTab(mt, {
-		Name = "Credits",
-		Internal = CreditsTabIcon,
-		Icon = "http://www.roblox.com/asset/?id=8577523456"
-	})
-
-	rawset(mt, "CreditsContainer", CreditsTab.Container)
-
-	CreditsTab:AddCredit({
-		Name = "Abstract",
-		Description = "Original UI Library Developer.",
-		Discord = "Abstract#8007",
-		V3rmillion = "AbstractPoo"
-	})
-
-	CreditsTab:AddCredit({
-		Name = "Deity",
-		Description = "Original UI Library Developer.",
-		Discord = "Deity#0228",
-		V3rmillion = "0xDEITY"
-	})
-
-	CreditsTab:AddCredit({
-		Name = "Skillus (xX_XSI)",
-		Description = "Rework UI Library Developer and Script Developer.",
-		Discord = "discord.gg/ev8bxrAa9p"
-	})
-
 	return mt
 end
 
---[
---CreateNotification
---]
-
-function library:CreateNotification(options)
-	options = self:SetDefaults({
-		Title = "New Notification",
-		Text = "Test Notification.",
-		Duration = 5,
-		Callback = function()
-			print("Test Notification")
-		end
-	}, options)
-
-	local FadeOut
-
-	local Notification = self.Notifications:Object("Frame", {
-		BackgroundTransparency = 1,
-		Theme = {
-			BackgroundColor3 = "Main"
-		},
-		Size = UDim2.new(0, 300, 0, 0)
-	}):Round(10)
-
-	local _NotificationPadding = Notification:Object("UIPadding", {
-		PaddingBottom = UDim.new(0, 11),
-		PaddingTop = UDim.new(0, 11),
-		PaddingLeft = UDim.new(0, 11),
-		PaddingRight = UDim.new(0, 11)
-	})
-
-	local DropShadow = Notification:Object("Frame", {
-		ZIndex = 0,
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1)
-	})
-
-	local _Shadow = DropShadow:Object("ImageLabel", {
-		Centered = true,
-		Position = UDim2.fromScale(.5, .5),
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 70, 1, 70),
-		ZIndex = 0,
-		Image = "rbxassetid://6014261993",
-		ImageColor3 = Color3.fromRGB(0, 0, 0),
-		ImageTransparency = 1,
-		ScaleType = Enum.ScaleType.Slice,
-		SliceCenter = Rect.new(49, 49, 450, 450)
-	})
-
-	local DurationHolder = Notification:Object("Frame", {
-		BackgroundTransparency = 1,
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.new(1, 0, 0, 4)
-	}):Round(100)
-
-	local Length = DurationHolder:Object("Frame", {
-		BackgroundTransparency = 1,
-		Theme = {
-			BackgroundColor3 = "Tertiary"
-		},
-		Size = UDim2.fromScale(1, 1)
-	}):Round(100)
-
-	local Icon = Notification:Object("ImageLabel", {
-		BackgroundTransparency = 1,
-		ImageTransparency = 1,
-		Position = UDim2.fromOffset(1, 1),
-		Size = UDim2.fromOffset(18, 18),
-		Image = "rbxassetid://8628681683",
-		Theme = {
-			ImageColor3 = "Tertiary"
-		}
-	})
-
-	local Exit = Notification:Object("ImageButton", {
-		Image = "http://www.roblox.com/asset/?id=8497487650",
-		AnchorPoint = Vector2.new(1, 0),
-		ImageColor3 = Color3.fromRGB(255, 255, 255),
-		Position = UDim2.new(1, -3, 0, 3),
-		Size = UDim2.fromOffset(14, 14),
-		BackgroundTransparency = 1,
-		ImageTransparency = 1
-	})
-
-	Exit.MouseButton1Click:Connect(function()
-		FadeOut()
-	end)
-
-	local Text = Notification:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Text = options.Text,
-		Position = UDim2.new(0, 0, 0, 23),
-		Size = UDim2.new(1, 0, 100, 0),
-		TextSize = 16,
-		TextTransparency = 1,
-		TextWrapped = true,
-		TextColor3 = Color3.fromRGB(255, 255, 255),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-	})
-
-	Text:Tween({
-		Size = UDim2.new(1, 0, 0, Text.TextBounds.Y)
-	})
-
-	local Title = Notification:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(23, 0),
-		Size = UDim2.new(1, -60, 0, 20),
-		Font = Enum.Font.SourceSansBold,
-		Text = options.Title,
-		Theme = {
-			TextColor3 = "Tertiary"
-		},
-		TextSize = 17,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = true,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		TextTransparency = 1
-	})
-
-	FadeOut = function()
-		task.delay(0.3, function()
-			Notification.AbsoluteObject:Destroy()
-
-			options.Callback()
-		end)
-
-		Icon:Tween({
-			ImageTransparency = 1,
-			Length = 0.2
-		})
-
-		Exit:Tween({
-			ImageTransparency = 1,
-			Length = 0.2
-		})
-
-		DurationHolder:Tween({
-			BackgroundTransparency = 1,
-			Length = 0.2
-		})
-
-		Length:Tween({
-			BackgroundTransparency = 1,
-			Length = 0.2
-		})
-
-		Text:Tween({
-			TextTransparency = 1,
-			Length = 0.2
-		})
-
-		Title:Tween({
-			TextTransparency = 1,
-			Length = 0.2
-		}, function()
-			_Shadow:Tween({
-				ImageTransparency = 1,
-				Length = 0.2
-			})
-
-			Notification:Tween({
-				BackgroundTransparency = 1,
-				Length = 0.2,
-				Size = UDim2.fromOffset(300, 0)
-			})
-		end)
-	end
-
-	_Shadow:Tween({
-		ImageTransparency = .6,
-		Length = 0.2
-	})
-
-	Notification:Tween({
-		BackgroundTransparency = 0,
-		Length = 0.2,
-		Size = UDim2.fromOffset(300, Text.TextBounds.Y + 63)
-	}, function()
-		Icon:Tween({
-			ImageTransparency = 0,
-			Length = 0.2
-		})
-
-		Exit:Tween({
-			ImageTransparency = 0,
-			Length = 0.2
-		})
-
-		DurationHolder:Tween({
-			BackgroundTransparency = 0,
-			Length = 0.2
-		})
-
-		Length:Tween({
-			BackgroundTransparency = 0,
-			Length = 0.2
-		})
-
-		Text:Tween({
-			TextTransparency = 0,
-			Length = 0.2
-		})
-
-		Title:Tween({
-			TextTransparency = 0,
-			Length = 0.2
-		})
-	end)
-
-	Length:Tween({
-		Size = UDim2.fromScale(0, 1),
-		Length = options.Duration
-	}, function()
-		FadeOut()
-	end)
-end
-
---[
---CreateTab
---]
-
-function library:CreateTab(options)
-	options = self:SetDefaults({
-		Name = "New Tab",
-		Icon = "rbxassetid://8569322835"
-	}, options)
-
-	local Tab = self.Container:Object("ScrollingFrame", {
-		AnchorPoint = Vector2.new(0, 1),
-		Visible = false,
-		BackgroundTransparency = 1,
-		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.fromScale(1, 1),
-		ScrollBarThickness = 0,
-		ScrollingDirection = Enum.ScrollingDirection.Y
-	})
-
-	local QuickAccessButton
-	local QuickAccessIcon
-
-	if not options.Internal then
-		QuickAccessButton = self.QuickAccess:Object("TextButton", {
-			Theme = {
-				BackgroundColor3 = "Secondary"
-			}
-		}):Round(5):ToolTip(options.Name)
-
-		QuickAccessIcon = QuickAccessButton:Object("ImageLabel", {
-			BackgroundTransparency = 1,
-			Theme = {
-				ImageColor3 = "StrongText"
-			},
-			Image = options.Icon,
-			Size = UDim2.fromScale(0.5, 0.5),
-			Centered = true
-		})
-	else
-		QuickAccessButton = options.Internal
-	end
-
-	local Layout = Tab:Object("UIListLayout", {
-		Padding = UDim.new(0, 10),
-		HorizontalAlignment = Enum.HorizontalAlignment.Center
-	})
-
-	Tab:Object("UIPadding", {
-		PaddingTop = UDim.new(0, 10)
-	})
-
-	local TabButton = library:Object("TextButton", {
-		BackgroundTransparency = 1,
-		Parent = self.NilFolder.AbsoluteObject,
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(0, 125, 0, 25),
-		Visible = false
-	}):Round(5)
-
-	self.Tabs[#self.Tabs + 1] = {
-		Tab,
-		TabButton,
-		options.Name
-	}
-
-	do
-		local Down = false
-		local Hovered = false
-
-		TabButton.MouseEnter:Connect(function()
-			Hovered = true
-
-			TabButton:Tween({
-				BackgroundTransparency = ((SelectedTab == TabButton) and 0.15) or 0.3
-			})
-		end)
-
-		TabButton.MouseLeave:Connect(function()
-			Hovered = false
-
-			TabButton:Tween({
-				BackgroundTransparency = ((SelectedTab == TabButton) and 0.15) or 1
-			})
-		end)
-
-		TabButton.MouseButton1Down:Connect(function()
-			Hovered = false
-
-			TabButton:Tween({
-				BackgroundTransparency = 0
-			})
-		end)
-
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Down = false
-
-				TabButton:Tween({
-					BackgroundTransparency = ((SelectedTab and TabButton) and 0.15) or (Hovered and 0.3) or 1
-				})
-			end
-		end)
-
-		TabButton.MouseButton1Click:Connect(function()
-			for _, ti in next, self.Tabs do
-				local Page = ti[1]
-				local Button = ti[2]
-
-				Page.Visible = false
-			end
-
-			SelectedTab:Tween({
-				BackgroundTransparency = ((SelectedTab == TabButton) and 0.15) or 1
-			})
-
-			SelectedTab = TabButton
-
-			Tab.Visible = true
-
-			TabButton.BackgroundTransparency = 0
-
-			library.URLLabel.Text = library.URL .. "/" .. options.Name:lower()
-		end)
-
-		QuickAccessButton.MouseEnter:Connect(function()
-			QuickAccessButton:Tween({
-				BackgroundColor3 = library.CurrentTheme.Tertiary
-			})
-		end)
-
-		QuickAccessButton.MouseLeave:Connect(function()
-			QuickAccessButton:Tween({
-				BackgroundColor3 = library.CurrentTheme.Secondary
-			})
-		end)
-
-		QuickAccessButton.MouseButton1Click:Connect(function()
-			if not TabButton.Visible then
-				TabButton.Parent = self.Navigation.AbsoluteObject
-				TabButton.Size = UDim2.new(0, 50, TabButton.Size.Y.Scale, TabButton.Size.Y.Offset)
-				TabButton.Visible = true
-
-				TabButton:Fade(false, library.CurrentTheme.Main, 0.1)
-
-				TabButton:Tween({
-					Size = UDim2.new(0, 125, TabButton.Size.Y.Scale, TabButton.Size.Y.Offset),
-					Length = 0.1
-				})
-
-				for _, ti in next, self.Tabs do
-					local Page = ti[1]
-					local Button = ti[2]
-
-					Page.Visible = false
-				end
-
-				SelectedTab:Tween({
-					BackgroundTransparency = ((SelectedTab == TabButton) and 0.15) or 1
-				})
-
-				SelectedTab = TabButton
-
-				Tab.Visible = true
-
-				TabButton.BackgroundTransparency = 0
-
-				library.URLLabel.Text = library.URL .. "/" .. options.Name:lower()
-			end
-		end)
-	end
-
-	local TabButtonText = TabButton:Object("TextLabel", {
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		AnchorPoint = Vector2.new(0, .5),
-		BackgroundTransparency = 1,
-		TextSize = 14,
-		Text = options.Name,
-		Position = UDim2.new(0, 25, 0.5, 0),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, -45, 0.5, 0),
-		Font = Enum.Font.SourceSans,
-		TextTruncate = Enum.TextTruncate.AtEnd
-	})
-
-	local TabButtonIcon = TabButton:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 5, 0.5, 0),
-		Size = UDim2.new(0, 15, 0, 15),
-		Image = options.Icon,
-		Theme = {
-			ImageColor3 = "StrongText"
-		}
-	})
-
-	local TabButtonClose = TabButton:Object("ImageButton", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -5, 0.5, 0),
-		Size = UDim2.fromOffset(14, 14),
-		Image = "rbxassetid://8497487650",
-		Theme = {
-			ImageColor3 = "StrongText"
-		}
-	})
-	
-	TabButtonClose.MouseEnter:Connect(function()
-		TabButtonClose:Tween({
-			ImageColor3 = Color3.fromRGB(255, 125, 140)
-		})
-	end)
-	
-	TabButtonClose.MouseLeave:Connect(function()
-		TabButtonClose:Tween({
-			ImageColor3 = library.CurrentTheme.StrongText
-		})
-	end)
-
-	TabButtonClose.MouseButton1Click:Connect(function()
-		TabButton:Fade(true, library.CurrentTheme.Main, 0.1)
-
-		TabButton:Tween({
-			Size = UDim2.new(0, 50, TabButton.Size.Y.Scale, TabButton.Size.Y.Offset),
-			Length = 0.1
-		}, function()
-			TabButton.Visible = false
-
-			Tab.Visible = false
-
-			TabButton.Parent = self.NilFolder.AbsoluteObject
-
-			task.wait()
-		end)
-
-		local Visible = {}
-
-		for _, t in next, self.Tabs do
-			if not t[2] == SelectedTab then
-				t[1].Visible = false
-			end
-
-			if t[2].Visible then
-				Visible[#Visible + 1] = t
-			end
-		end
-
-		local LastTab = Visible[#Visible]
-
-		if SelectedTab == self.HomeButton then
-			Tab.Visible = false
-		elseif #Visible == 2 then
-			SelectedTab.Visible = false
-
-			Tab.Visible = false
-
-			self.HomePage.Visible = true
-
-			self.HomeButton:Tween({
-				BackgroundTransparency = 0.15
-			})
-
-			SelectedTab = self.HomeButton
-
-			library.URLLabel.Text = library.URL .. "/home"
-		elseif TabButton == LastTab[2] then
-			LastTab = Visible[#Visible - 1]
-
-			Tab.Visible = false
-
-			LastTab[2]:Tween({
-				BackgroundTransparency = 0.15
-			})
-
-			LastTab[1].Visible = true
-
-			SelectedTab = LastTab[2]
-
-			library.URLLabel.Text = library.URL .. "/" .. LastTab[3]:lower()
-		else
-			Tab.Visible = false
-
-			LastTab[2]:Tween({
-				BackgroundTransparency = 0.15
-			})
-
-			LastTab[1].Visible = true
-
-			SelectedTab = LastTab[2]
-
-			library.URLLabel.Text = library.URL .. "/" .. LastTab[3]:lower()
-		end
-	end)
-
-	return setmetatable({
-		StatusText = self.StatusText,
-		Container = Tab,
-		Theme = self.Theme,
-		Core = self.Core,
-		Layout = Layout
-	}, library)
-end
-
---[
---CreateSection
---]
-
-function library:CreateSection(options)
-	options = self:SetDefaults({
-		Name = "New Section"
-	}, options)
-
-	local SectionContainer = self.Container:Object("TextButton", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, -24, 0, 52)
-	}):Round(7):Stroke("Secondary", 2)
-
-	local Text = SectionContainer:Object("TextLabel", {
-		Position = UDim2.new(0.5),
-		Text = options.Name,
-		TextSize = 18,
-		Theme = {
-			TextColor3 = "StrongText",
-			BackgroundColor3 = {
-				"Secondary",
-				-10
-			}
-		},
-		TextXAlignment = Enum.TextXAlignment.Center,
-		AnchorPoint = Vector2.new(0.5, 0.5)
-	})
-
-	Text.Size = UDim2.fromOffset(Text.TextBounds.X + 4, Text.TextBounds.Y)
-
-	local FunctionContainer = SectionContainer:Object("Frame", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1
-	})
-
-	local Layout = FunctionContainer:Object("UIListLayout", {
-		Padding = UDim.new(0, 10),
-		HorizontalAlignment = Enum.HorizontalAlignment.Center
-	})
-
-	FunctionContainer:Object("UIPadding", {
-		PaddingTop = UDim.new(0, 10)
-	})
-
-	return setmetatable({
-		StatusText = self.StatusText,
-		Container = FunctionContainer,
-		SectionContainer = SectionContainer,
-		ParentContainer = self.Container,
-		Theme = self.Theme,
-		Core = self.Core,
-		ParentLayout = self.Layout,
-		Layout = Layout
-	}, library)
-end
-
---[
---ResizeTab
---]
-
-function library:ResizeTab()
-	if self.Container.ClassName == "ScrollingFrame" then
-		self.Container.CanvasSize = UDim2.fromOffset(0, self.Layout.AbsoluteContentSize.Y + 20)
-	else
-		self.SectionContainer.Size = UDim2.new(1, -24, 0, self.Layout.AbsoluteContentSize.Y + 20)
-
-		self.ParentContainer.CanvasSize = UDim2.fromOffset(0, self.ParentLayout.AbsoluteContentSize.Y + 20)
-	end
-end
-
---[
---AddThemeSelector
---]
-
-function library:AddThemeSelector()
-	local ThemesCount = 0
-
-	for _ in next, library.Themes do
-		ThemesCount += 1
-	end
-
-	local ThemeContainer = self.Container:Object("Frame", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 127)
-	}):Round(7)
-
-	local Text = ThemeContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 5),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		Text = "Theme",
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-
-	local ColorThemesContainer = ThemeContainer:Object("Frame", {
-		Size = UDim2.new(1, 0, 1, -32),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0.5, 0, 1, -5),
-		AnchorPoint = Vector2.new(0.5, 1)
-	})
-
-	local Grid = ColorThemesContainer:Object("UIGridLayout", {
-		CellPadding = UDim2.fromOffset(10, 10),
-		CellSize = UDim2.fromOffset(102, 83),
-		VerticalAlignment = Enum.VerticalAlignment.Center
-	})
-
-	ColorThemesContainer:Object("UIPadding", {
-		PaddingLeft = UDim.new(0, 10),
-		PaddingTop = UDim.new(0, 5)
-	})
-
-	for tn, tc in next, library.Themes do
-		local Count = 0
-
-		for _, c in next, tc do
-			if not (type(c) == "boolean") then
-				Count += 1
-			end
-		end
-
-		if Count >= 5 then
-			local Theme = ColorThemesContainer:Object("TextButton", {
-				BackgroundTransparency = 1
-			})
-
-			local ThemeColorsContainer = Theme:Object("Frame", {
-				Size = UDim2.new(1, 0, 1, -20),
-				BackgroundTransparency = 1
-			}):Round(5):Stroke("WeakText", 1)
-
-			local ThemeNameLabel = Theme:Object("TextLabel", {
-				BackgroundTransparency = 1,
-				Text = tn,
-				TextSize = 16,
-				Theme = {
-					TextColor3 = "StrongText"
-				},
-				Size = UDim2.new(1, 0, 0, 20),
-				Position = UDim2.fromScale(0, 1),
-				AnchorPoint = Vector2.new(0, 1)
-			})
-
-			local ColorMain = ThemeColorsContainer:Object("Frame", {
-				Centered = true,
-				Size = UDim2.fromScale(1, 1),
-				BackgroundColor3 = tc.Main
-			}):Round(4)
-
-			local ColorSecondary = ColorMain:Object("Frame", {
-				Centered = true,
-				Size = UDim2.new(1, -16, 1, -16),
-				BackgroundColor3 = tc.Secondary
-			}):Round(4)
-
-			ColorSecondary:Object("UIListLayout", {
-				Padding = UDim.new(0, 5)
-			})
-
-			ColorSecondary:Object("UIPadding", {
-				PaddingTop = UDim.new(0, 5),
-				PaddingLeft = UDim.new(0, 5)
-			})
-
-			local ColorTertiary = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -20, 0, 9),
-				BackgroundColor3 = tc.Tertiary
-			}):Round(100)
-
-			local ColorStrong = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -30, 0, 9),
-				BackgroundColor3 = tc.StrongText
-			}):Round(100)
-
-			local ColorTertiary2 = ColorSecondary:Object("Frame", {
-				Size = UDim2.new(1, -40, 0, 9),
-				BackgroundColor3 = tc.WeakText
-			}):Round(100)
-
-			Theme.MouseButton1Click:Connect(function()
-				library:ChangeTheme(library.Themes[tn])
-
-				UpdateSettings("Theme", tn)
-			end)
-		end
-	end
-
-	self:ResizeTab()
-end
-
---[
---CreatePrompt
---]
-
-function library:CreatePrompt(options)
-	options = self:SetDefaults({
-		FollowUp = false,
-		Title = "Prompt",
-		Text = "Test Prompt",
-		Buttons = {
-			Yes = function()
-				print("Yes")
-			end,
-			No = function()
-				print("No")
-			end
-		}
-	}, options)
-
-	if library._promptExists and not options.FollowUp then
-		return
-	end
-
-	library._promptExists = true
-
-	local Count = 0
-
-	for a, _ in next, options.Buttons do
-		Count += 1
-	end
-
-	local Darkener = self.Core:Object("Frame", {
-		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 1)
-	}):Round(10)
-
-	local PromptContainer = Darkener:Object("Frame", {
-		Theme = {
-			BackgroundColor3 = "Main"
-		},
-		BackgroundTransparency = 1,
-		Centered = true,
-		Size = UDim2.fromOffset(200, 120)
-	}):Round(6)
-
-	local _PromptContainerStroke = PromptContainer:Object("UIStroke", {
-		Theme = {
-			Color = "Tertiary"
-		},
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		Transparency = 1
-	})
-
-	local _Padding = PromptContainer:Object("UIPadding", {
-		PaddingTop = UDim.new(0, 5),
-		PaddingLeft = UDim.new(0, 5),
-		PaddingBottom = UDim.new(0, 5),
-		PaddingRight = UDim.new(0, 5)
-	})
-
-	local PromptTitle = PromptContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 20),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Font = Enum.Font.SourceSansBold,
-		Text = options.Title,
-		Theme = {
-			TextColor3 = {
-				"Tertiary",
-				15
-			}
-		},
-		TextSize = 16,
-		TextTransparency = 1
-	})
-
-	local PromptText = PromptContainer:Object("TextLabel", {
-		AnchorPoint = Vector2.new(0.5, 0),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0.5, 0, 0, 26),
-		Size = UDim2.new(1, -20, 1, -60),
-		TextSize = 14,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		Text = options.Text,
-		TextTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextWrapped = true,
-		TextTruncate = Enum.TextTruncate.AtEnd
-	})
-
-	local ButtonHolder = PromptContainer:Object("Frame", {
-		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 0, 1, -5),
-		Size = UDim2.new(1, 0, 0, 20)
-	})
-
-	local _GridButtonHolder = ButtonHolder:Object("UIGridLayout", {
-		CellPadding = UDim2.new(0, 10, 0, 5),
-		CellSize = UDim2.new(1 / Count, -10, 1, 0),
-		FillDirection = Enum.FillDirection.Horizontal,
-		HorizontalAlignment = Enum.HorizontalAlignment.Center
-	})
-
-	Darkener:Tween({
-		BackgroundTransparency = 0.4,
-		Length = 0.1
-	})
-
-	PromptContainer:Tween({
-		BackgroundTransparency = 0,
-		Length = 0.1
-	})
-
-	PromptTitle:Tween({
-		TextTransparency = 0,
-		Length = 0.1
-	})
-
-	_PromptContainerStroke:Tween({
-		Transparency = 0,
-		Length = 0.1
-	})
-
-	PromptText:Tween({
-		TextTransparency = 0,
-		Length = 0.1
-	})
-
-	local _TemporaryPromptButtons = {}
-
-	for t, c in next, options.Buttons do
-		local Button = ButtonHolder:Object("TextButton", {
-			AnchorPoint = Vector2.new(1, 1),
-			Theme = {
-				BackgroundColor3 = "Tertiary"
-			},
-			Text = tostring(t):upper(),
-			TextSize = 13,
-			Font = Enum.Font.SourceSansBold,
-			BackgroundTransparency = 1,
-			TextTransparency = 1
-		}):Round(4)
-
-		table.insert(_TemporaryPromptButtons, Button)
-
-		do
-			Button:Tween({
-				TextTransparency = 0,
-				BackgroundTransparency = 0
-			})
-
-			local Hovered = false
-			local Down = false
-
-			Button.MouseEnter:Connect(function()
-				Hovered = true
-
-				Button:Tween({
-					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
-				})
-			end)
-
-			Button.MouseLeave:Connect(function()
-				Hovered = false
-
-				if not Down then
-					Button:Tween({
-						BackgroundColor3 = library.CurrentTheme.Tertiary
-					})
-				end
-			end)
-
-			Button.MouseButton1Down:Connect(function()
-				Button:Tween({
-					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
-				})
-			end)
-
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					Button:Tween({
-						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
-					})
-				end
-			end)
-
-			Button.MouseButton1Click:Connect(function()
-				PromptContainer:Tween({
-					BackgroundTransparency = 1,
-					Length = 0.1
-				})
-
-				PromptTitle:Tween({
-					TextTransparency = 1,
-					Length = 0.1
-				})
-
-				_PromptContainerStroke:Tween({
-					Transparency = 1,
-					Length = 0.1
-				})
-
-				PromptText:Tween({
-					TextTransparency = 1,
-					Length = 0.1
-				})
-
-				for i, b in next, _TemporaryPromptButtons do
-					b:Tween({
-						TextTransparency = 1,
-						Length = 0.1
-					}, function()
-						Darkener.AbsoluteObject:Destroy()
-
-						task.delay(0.25, function()
-							library._promptExists = false
-						end)
-
-						c()
-					end)
-				end
-			end)
-		end
-	end
-end
-
---[
---AddLabel
---]
-
-function library:AddLabel(options)
-	options = self:SetDefaults({
-		Text = "New Label",
-		Description = "New Label Description",
-		Color = Color3.fromRGB(255, 255, 255)
-	}, options)
-	
-	local LabelContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52),
-		BackgroundTransparency = 1
-	}):Round(7):Stroke("Secondary", 2)
-	
-	local Text = LabelContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 5),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		Text = options.Text,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	local Description = LabelContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 10, 1, -5),
-		Size = UDim2.new(0.5, -10, 1, -22),
-		Text = options.Description,
-		TextSize = 18,
-		AnchorPoint = Vector2.new(0, 1),
-		Theme = {
-			TextColor3 = "WeakText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	self:ResizeTab()
-	
-	local LabelFunctions = {}
-	
-	--[
-	--SetText
-	--]
-	
-	function LabelFunctions:SetText(txt)
-		Text.Text = txt
-	end
-	
-	--[
-	--SetDescription
-	--]
-	
-	function LabelFunctions:SetDescription(txt)
-		Description.Text = txt
-	end
-	
-	return LabelFunctions
-end
-
---[
---AddButton
---]
-
-function library:AddButton(options)
-	options = self:SetDefaults({
-		Name = "New Button",
-		Description = "New Button Description",
-		Callback = function()
-			print("New Button")
-		end
-	}, options)
-	
-	local ButtonFunctions = {}
-	
-	local ButtonContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-	
-	local Text = ButtonContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	if options.Description then
-		local Description = ButtonContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-		
-		--[
-		--SetDescription
-		--]
-		
-		function ButtonFunctions:SetDescription(txt)
-			Description.Text = txt
-		end
-	end
-	
-	local Icon = ButtonContainer:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -11, 0.5, 0),
-		Size = UDim2.fromOffset(26, 26),
-		Image = "rbxassetid://8498776661",
-		Theme = {
-			ImageColor3 = "Tertiary"
-		}
-	})
-	
-	do
-		local Hovered = false
-		local Down = false
-		
-		ButtonContainer.MouseEnter:Connect(function()
-			Hovered = true
-			
-			ButtonContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-		
-		ButtonContainer.MouseLeave:Connect(function()
-			Hovered = false
-			
-			if not Down then
-				ButtonContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		ButtonContainer.MouseButton1Down:Connect(function()
-			ButtonContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-		end)
-		
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				ButtonContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		ButtonContainer.MouseButton1Click:Connect(function()
-			options.Callback()
-		end)
-	end
-	
-	self:ResizeTab()
-	
-	--[
-	--Fire
-	--]
-	
-	function ButtonFunctions:Fire()
-		options.Callback()
-	end
-	
-	--[
-	--SetName
-	--]
-	
-	function ButtonFunctions:SetName(txt)
-		Text.Text = txt
-	end
-	
-	return ButtonFunctions
-end
-
---[
---AddToggle
---]
-
-function library:AddToggle(options)
-	options = self:SetDefaults({
-		Name = "New Toggle",
-		Description = "New Toggle Description",
-		Value = false,
-		Callback = function(val)
-			print("Value: " .. val)
-		end
-	}, options)
-
-	local ToggleContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-
-	local ValueOn = "http://www.roblox.com/asset/?id=8498709213"
-	local ValueOff = "http://www.roblox.com/asset/?id=8498691125"
-
-	local Toggled = options.Value
-
-	local OnIcon = ToggleContainer:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(1, .5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -11, 0.5, 0),
-		Size = UDim2.new(0, 26, 0, 26),
-		Image = ValueOn,
-		Theme = {
-			ImageColor3 = "Tertiary"
-		},
-		ImageTransparency = (Toggled and 0) or 1
-	})
-
-	local OffIcon = ToggleContainer:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(1, .5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -11, 0.5, 0),
-		Size = UDim2.new(0, 26, 0, 26),
-		Image = ValueOff,
-		Theme = {
-			ImageColor3 = "WeakText"
-		},
-		ImageTransparency = (Toggled and 1) or 0
-	})
-
-	local Text = ToggleContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-
-	if options.Description then
-		local Description = ToggleContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-
-	local function Toggle()
-		Toggled = not Toggled
-
-		if Toggled then
-			OffIcon:CrossFade(OnIcon, 0.1)
-		else
-			OnIcon:CrossFade(OffIcon, 0.1)
-		end
-
-		options.Callback(Toggled)
-	end
-
-	do
-		local Hovered = false
-		local Down = false
-
-		ToggleContainer.MouseEnter:Connect(function()
-			Hovered = true
-
-			ToggleContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-
-		ToggleContainer.MouseLeave:Connect(function()
-			Hovered = false
-
-			if not Down then
-				ToggleContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-
-		ToggleContainer.MouseButton1Down:Connect(function()
-			ToggleContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-		end)
-
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				ToggleContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-
-		ToggleContainer.MouseButton1Click:Connect(function()
-			Toggle()
-		end)
-	end
-
-	self:ResizeTab()
-
-	local ToggleFunctions = {}
-
-	--[
-	--SetText
-	--]
-
-	function ToggleFunctions:SetText(txt)
-		Text.Text = txt
-	end
-
-	--[
-	--Toggle
-	--]
-
-	function ToggleFunctions:Toggle()
-		Toggle()
-	end
-
-	--[
-	--SetValue
-	--]
-
-	function ToggleFunctions:SetValue(val)
-		Toggled = val
-
-		if Toggled then
-			OffIcon:CrossFade(OnIcon, 0.1)
-		else
-			OnIcon:CrossFade(OffIcon, 0.1)
-		end
-
-		task.spawn(function()
-			options.Callback(Toggled)
-		end)
-	end
-
-	if options.Value then
-		ToggleFunctions:SetValue(true)
-	end
-
-	return ToggleFunctions
-end
-
---[
---AddSlider
---]
-
-function library:AddSlider(options)
-	options = self:SetDefaults({
-		Name = "New Slider",
-		Min = 0,
-		Default = 50,
-		Max = 100,
-		Callback = function(val)
-			print(val)
-		end
-	}, options)
-
-	local SliderContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 56)
-	}):Round(7)
-
-	local Text = SliderContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, 5),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-
-	if options.Description then
-		local Description = SliderContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-
-		SliderContainer.Size = UDim2.new(1, -20, 0, 76)
-	end
-
-	local ValueText = SliderContainer:Object("TextLabel", {
-		AnchorPoint = Vector2.new(1, 0),
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary",
-				-20
-			},
-			TextColor3 = "WeakText"
-		},
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.new(0, 50, 0, 20),
-		TextSize = 12,
-		Text = options.Default
-	}):Round(5):Stroke("Tertiary")
-
-	ValueText.Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
-
-	local SliderBar = SliderContainer:Object("Frame", {
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary",
-				-20
-			}
-		},
-		AnchorPoint = Vector2.new(0.5, 1),
-		Size = UDim2.new(1, -20, 0, 5),
-		Position = UDim2.new(0.5, 0, 1, -12)
-	}):Round(100)
-
-	local SliderLine = SliderBar:Object("Frame", {
-		Size = UDim2.fromScale(((options.Default - options.Min) / (options.Max - options.Min)), 1),
-		Theme = {
-			BackgroundColor3 = "Tertiary"
-		}
-	}):Round(100)
-
-	local SliderBall = SliderLine:Object("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(1, 0.5),
-		Size = UDim2.fromOffset(14, 14),
-		Theme = {
-			BackgroundColor3 = {
-				"Tertiary",
-				20
-			}
-		}
-	}):Round(100)
-
-	do
-		local Hovered = false
-		local Down = false
-
-		SliderContainer.MouseEnter:Connect(function()
-			Hovered = true
-
-			SliderContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-
-		SliderContainer.MouseLeave:Connect(function()
-			Hovered = false
-
-			if not Down then
-				SliderContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				Down = false
-
-				SliderContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-
-		SliderContainer.MouseButton1Down:Connect(function()
-			SliderContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-
-			Down = true
-
-			local Tween = ValueText:Tween({
-				Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
-			})
-
-			while RunService.RenderStepped:Wait() and Down do
-				local Percentage = math.clamp((Mouse.X - SliderBar.AbsolutePosition.X) / (SliderBar.AbsoluteSize.X), 0, 1)
-
-				local Value = ((options.Max - options.Min) * Percentage) + options.Min
-
-				Value = math.floor(Value)
-
-				ValueText.Text = Value
-
-				if Tween.PlaybackState == Enum.PlaybackState.Completed then
-					Tween = ValueText:Tween({
-						Size = UDim2.fromOffset(ValueText.TextBounds.X + 20, 20)
-					})
-				end
-
-				SliderLine:Tween({
-					Size = UDim2.fromScale(Percentage, 1),
-					Length = 0.06
-				})
-
-				options.Callback(Value)
-			end
-		end)
-	end
-
-	self:ResizeTab()
-
-	local SliderFunctions = {}
-
-	--[
-	--Set
-	--]
-
-	function SliderFunctions:Set(val)
-		SliderLine:Tween({
-			Size = UDim2.fromScale(((val - options.Min) / (options.Max - options.Min)), 1)
-		})
-	end
-
-	return SliderFunctions
-end
-
---[
---AddTextBox
---]
-
-function library:AddTextBox(options)
-	options = self:SetDefaults({
-		Name = "New Text Box",
-		Placeholder = "New Text Box Placeholder.",
-		Description = "New Text Box Description.",
-		Callback = function(val)
-			print(val)
-		end
-	}, options)
-	
-	local TextBoxContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-	
-	local Text = TextBoxContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	if options.Description then
-		local Description = TextBoxContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-	
-	local TextBox = TextBoxContainer:Object("TextBox", {
-		AnchorPoint = Vector2.new(1, 0),
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary",
-				-20
-			},
-			TextColor3 = "WeakText"
-		},
-		Position = UDim2.new(1, -50, 0, 16),
-		Size = UDim2.new(0, 50, 0, 20),
-		TextSize = 12,
-		PlaceholderText = options.Placeholder,
-		ClipsDescendants = true
-	}):Round(5):Stroke("Tertiary")
-	
-	local WriteIcon = TextBoxContainer:Object("ImageLabel", {
-		Image = "http://www.roblox.com/asset/?id=8569329416",
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -13, 0.5, 0),
-		Size = UDim2.new(0, 16, 0, 16),
-		Theme = {
-			ImageColor3 = "StrongText"
-		}
-	})
-	
-	TextBox.Size = UDim2.fromOffset(TextBox.TextBounds.X + 20, 20)
-	
-	do
-		local Hovered = false
-		local Down = false
-		local Focused = false
-		
-		TextBoxContainer.MouseEnter:Connect(function()
-			TextBoxContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-		
-		TextBoxContainer.MouseLeave:Connect(function()
-			Hovered = false
-			
-			if not Down then
-				TextBoxContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		TextBox.Focused:Connect(function()
-			Focused = true
-			
-			while Focused and RunService.RenderStepped:Wait() do
-				TextBox.AbsoluteObject:TweenSize(UDim2.fromOffset(math.clamp(TextBox.TextBounds.X + 20, 0, 0.5 * TextBoxContainer.AbsoluteSize.X), 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0.1, true)
-			end
-		end)
-		
-		TextBox.FocusLost:Connect(function()
-			Focused = false
-			
-			TextBox.AbsoluteObject:TweenSize(UDim2.fromOffset(math.clamp(TextBox.TextBounds.X + 20, 0, 0.5 * TextBoxContainer.AbsoluteSize.X), 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0.1, true)
-			
-			options.Callback(TextBox.Text)
-		end)
-	end
-	
-	self:ResizeTab()
-	
-	local TextBoxFunctions = {}
-	
-	--[
-	--Set
-	--]
-	
-	function TextBoxFunctions:Set(text)
-		TextBox.Text = text
-	end
-	
-	return TextBoxFunctions
-end
-
---[
---AddDropdown
---]
-
-function library:AddDropdown(options)
-	options = self:SetDefaults({
-		Name = "New Dropdown",
-		StartingText = "Select option...",
-		Items = {
-			"Drop 1",
-			"Drop 2",
-			"Drop 3"
-		},
-		Callback = function(val)
-			print("New Dropdown Value: " .. val)
-		end
-	}, options)
-	
-	local NewSize = 0
-	local Open = false
-	
-	local DropdownContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-	
-	local Text = DropdownContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 15),
-		Size = UDim2.new(0.5, -10, 0, 22),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	if options.Description then
-		local Description = DropdownContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-	
-	local Icon = DropdownContainer:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(1, 0),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -11, 0, 12),
-		Size = UDim2.fromOffset(26, 26),
-		Image = "rbxassetid://8498840035",
-		Theme = {
-			ImageColor3 = "Tertiary"
-		}
-	})
-	
-	local SelectedText = DropdownContainer:Object("TextLabel", {
-		AnchorPoint = Vector2.new(1, 0),
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary",
-				-20
-			},
-			TextColor3 = "WeakText"
-		},
-		Position = UDim2.new(1, -50, 0, 16),
-		Size = UDim2.fromOffset(200, 20),
-		TextSize = 14,
-		Text = options.StartingText
-	}):Round(5):Stroke("Tertiary")
-	
-	local ItemContainer = DropdownContainer:Object("Frame", {
-		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 5, 0, 55),
-		Size = UDim2.new(1, -10, 0, 0),
-		ClipsDescendants = true
-	})
-	
-	SelectedText.Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20)
-	
-	local _GridItemContainer = ItemContainer:Object("UIGridLayout", {
-		CellPadding = UDim2.fromOffset(0, 5),
-		CellSize = UDim2.new(1, 0, 0, 20),
-		FillDirection = Enum.FillDirection.Horizontal,
-		HorizontalAlignment = Enum.HorizontalAlignment.Left,
-		VerticalAlignment = Enum.VerticalAlignment.Top
-	})
-	
-	local Layout = self.Layout
-	local Container = self.Container
-	
-	local Items = setmetatable({}, {
-		__newindex = function(self, i, v)
-			rawset(self, i, v)
-			
-			if v ~= nil then
-				NewSize = (25 * #self) + 5
-				
-				ItemContainer.Size = UDim2.new(1, -10, 0, NewSize)
-			end
-		end
-	})
-	
-	for i, v in next, options.Items do
-		if typeof(v) == "table" then
-			Items[i] = v
-		else
-			Items[i] = {
-				tostring(v), v
-			}
-		end
-	end
-	
-	local Toggle
-	
-	for i, i2 in next, Items do
-		local Label = i2[1]
-		local Value = i2[2]
-		
-		local NewItem = ItemContainer:Object("TextButton", {
-			Theme = {
-				BackgroundColor3 = {
-					"Secondary",
-					25
-				},
-				TextColor3 = {
-					"StrongText",
-					25
-				}
-			},
-			Text = Label,
-			TextSize = 14
-		}):Round(5)
-		
-		Items[i] = {
-			{
-				Label,
-				Value
-			},
-			NewItem
-		}
-		
-		do
-			local Hovered = false
-			local Down = false
-			
-			NewItem.MouseEnter:Connect(function()
-				Hovered = true
-				
-				NewItem:Tween({
-					BackgroundColor3 = library.CurrentTheme.Tertiary
-				})
-			end)
-			
-			NewItem.MouseLeave:Connect(function()
-				Hovered = false
-				
-				if not Down then
-					NewItem:Tween({
-						BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 25)
-					})
-				end
-			end)
-			
-			NewItem.MouseButton1Down:Connect(function()
-				NewItem:Tween({
-					BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
-				})
-			end)
-			
-			UserInputService.InputEnded:Connect(function(input)
-				if input.UserInputType == Enum.UserInputType.MouseButton1 then
-					NewItem:Tween({
-						BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary, 5)) or self:Lighten(library.CurrentTheme.Secondary, 25)
-					})
-				end
-			end)
-			
-			NewItem.MouseButton1Click:Connect(function()
-				Toggle()
-				
-				SelectedText.Text = NewItem.Text
-				
-				SelectedText:Tween({
-					Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
-					Length = 0.05
-				})
-				
-				options.Callback(Value)
-			end)
-		end
-	end
-	
-	do
-		local Hovered = false
-		local Down = false
-		
-		NewSize = (25 * #Items) + 5
-		
-		ItemContainer.Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
-		
-		Toggle = function()
-			NewSize = (25 * #Items) + 5
-			
-			Open = not Open
-			
-			if Open then
-				ItemContainer:Tween({
-					Size = UDim2.new(1, -10, 0, NewSize)
-				})
-				
-				DropdownContainer:Tween({
-					Size = UDim2.new(1, -20, 0, 52 + NewSize)
-				}, function()
-					self:ResizeTab()
-				end)
-				
-				Icon:Tween({
-					Position = UDim2.new(1, -11, 0, 15),
-					Rotation = 180
-				})
-			else
-				ItemContainer:Tween({
-					Size = UDim2.new(1, -10, 0, 0)
-				})
-				
-				DropdownContainer:Tween({
-					Size = UDim2.new(1, -20, 0, 52)
-				}, function()
-					self:ResizeTab()
-				end)
-				
-				Icon:Tween({
-					Position = UDim2.new(1, -11, 0, 12),
-					Rotation = 0
-				})
-			end
-		end
-		
-		DropdownContainer.MouseEnter:Connect(function()
-			Hovered = true
-			
-			DropdownContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-		
-		DropdownContainer.MouseLeave:Connect(function()
-			Hovered = false
-			
-			if not Down then
-				DropdownContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		DropdownContainer.MouseButton1Down:Connect(function()
-			DropdownContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-		end)
-		
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				DropdownContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		DropdownContainer.MouseButton1Click:Connect(function()
-			Toggle()
-		end)
-	end
-	
-	self:ResizeTab()
-	
-	local DropdownFunctions = {}
-	
-	--[
-	--Set
-	--]
-	
-	function DropdownFunctions:Set(text)
-		SelectedText.Text = text
-		
-		SelectedText:Tween({
-			Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
-			Length = 0.05
-		})
-	end
-	
-	--[
-	--RemoveItems
-	--]
-	
-	function DropdownFunctions:RemoveItems(items)
-		for _, v in next, items do
-			for _2, v2 in next, Items do
-				local Label = v2[1][1]
-				
-				if Label:lower() == tostring(v):lower() then
-					v2[2].AbsoluteObject:Destroy()
-					
-					Items[_2] = nil
-					
-					table.remove(Items, _2)
-					
-					NewSize = (25 * #Items) + 5
-					
-					ItemContainer:Tween({
-						Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
-					})
-					
-					DropdownContainer:Tween({
-						Size = (not Open and UDim2.new(1, -20, 0, 52)) or UDim2.new(1, -20, 0, 52 + NewSize)
-					})
-				end
-			end
-		end
-	end
-	
-	--[
-	--Clear
-	--]
-	
-	function DropdownFunctions:Clear()
-		table.clear(Items)
-		
-		ItemContainer:Tween({
-			Size = UDim2.new(1, -10, 0, 0)
-		})
-		
-		DropdownContainer:Tween({
-			Size = UDim2.new(1, -20, 0, 52)
-		}, function()
-			for i, v in next, ItemContainer.AbsoluteObject:GetChildren() do
-				if v.ClassName == "TextButton" then
-					v:Destroy()
-				end
-			end
-		end)
-		
-		if Open then
-			Toggle()
-		end
-	end
-	
-	--[
-	--AddItems
-	--]
-	
-	function DropdownFunctions:AddItems(items)
-		for i, v in next, items do
-			if typeof(v) == "table" then
-				Items[#Items + 1] = v
-			else
-				Items[#Items + 1] = {
-					tostring(v),
-					v
-				}
-			end
-		end
-		
-		
-		NewSize = (25 * #Items) + 5
-		
-		ItemContainer:Tween({
-			Size = (not Open and UDim2.new(1, -10, 0, 0)) or UDim2.new(1, -10, 0, NewSize)
-		})
-		
-		DropdownContainer:Tween({
-			Size = (not Open and UDim2.new(1, -20, 0, 52)) or UDim2.new(1, -20, 0, 52 + NewSize)
-		})
-		
-		for i, i2 in next, Items do
-			local Label = i2[1]
-			local Value = i2[2]
-			
-			if type(Label) == "table" then
-				continue
-			end
-			
-			local NewItem = ItemContainer:Object("TextButton", {
-				Theme = {
-					BackgroundColor3 = {
-						"Secondary",
-						25
-					},
-					TextColor3 = {
-						"StrongText",
-						25
-					}
-				},
-				Text = Label,
-				TextSize = 14
-			}):Round(5)
-			
-			Items[i] = {
-				{
-					Label,
-					Value
-				},
-				NewItem
-			}
-			
-			do
-				local Hovered = false
-				local Down = false
-				
-				NewItem.MouseEnter:Connect(function()
-					Hovered = true
-					
-					NewItem:Tween({
-						BackgroundColor3 = library.CurrentTheme.Tertiary
-					})
-				end)
-				
-				NewItem.MouseLeave:Connect(function()
-					Hovered = false
-					
-					if not Down then
-						NewItem:Tween({
-							BackgroundColor3 = library:Lighten(library.CurrentTheme.Secondary, 25)
-						})
-					end
-				end)
-				
-				NewItem.MouseButton1Down:Connect(function()
-					NewItem:Tween({
-						BackgroundColor3 = library:Lighten(library.CurrentTheme.Tertiary, 10)
-					})
-				end)
-				
-				UserInputService.InputEnded:Connect(function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 then
-						NewItem:Tween({
-							BackgroundColor3 = (Hovered and library:Lighten(library.CurrentTheme.Tertiary, 5)) or library:Lighten(library.CurrentTheme.Secondary, 25)
-						})
-					end
-				end)
-				
-				NewItem.MouseButton1Click:Connect(function()
-					Toggle()
-					
-					SelectedText.Text = NewItem.Text
-					
-					SelectedText:Tween({
-						Size = UDim2.fromOffset(SelectedText.TextBounds.X + 20, 20),
-						Length = 0.05
-					})
-					
-					options.Callback(Value)
-				end)
-			end
-		end
-		
-		library.ResizeTab({
-			Container = Container,
-			Layout = Layout
-		})
-	end
-	
-	return DropdownFunctions
-end
-
---[
---AddKeybind
---]
-
-function library:AddKeybind(options)
-	options = self:SetDefaults({
-		Name = "New Keybind",
-		Description = "New Keybind Description",
-		Keybind = nil,
-		Callback = function(val)
-			print(val)
-		end
-	}, options)
-	
-	local KeybindContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-	
-	local Text = KeybindContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	if options.Description then
-		local Description = KeybindContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-	
-	local KeybindDisplay = KeybindContainer:Object("TextLabel", {
-		AnchorPoint = Vector2.new(1, 0),
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary",
-				-20
-			},
-			TextColor3 = "WeakText"
-		},
-		Position = UDim2.new(1, -20, 0, 16),
-		Size = UDim2.new(0, 50, 0, 20),
-		TextSize = 12,
-		Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
-	}):Round(5):Stroke("Tertiary")
-	
-	KeybindDisplay.Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20)
-	
-	do
-		local Hovered = false
-		local Down = false
-		local Listening = false
-		
-		KeybindContainer.MouseEnter:Connect(function()
-			Hovered = true
-			
-			KeybindContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-		
-		KeybindContainer.MouseLeave:Connect(function()
-			Hovered = false
-			
-			if not Down then
-				KeybindContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		KeybindContainer.MouseButton1Down:Connect(function()
-			KeybindContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-		end)
-		
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				KeybindContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		UserInputService.InputBegan:Connect(function(input)
-			if Listening and not UserInputService:GetFocusedTextBox() then
-				if input.UserInputType == Enum.UserInputType.Keyboard then
-					if input.KeyCode ~= Enum.KeyCode.Escape then
-						options.Keybind = input.KeyCode
-					end
-					
-					KeybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
-					
-					KeybindDisplay:Tween({
-						Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20),
-						Length = 0.05
-					})
-					
-					Listening = false
-				end
-			else
-				if input.KeyCode == options.Keybind then
-					options.Callback()
-				end
-			end
-		end)
-		
-		KeybindContainer.MouseButton1Click:Connect(function()
-			if not Listening then
-				Listening = true
-				
-				KeybindDisplay.Text = "[...]"
-			end
-		end)
-	end
-	
-	self:ResizeTab()
-	
-	local KeybindFunctions = {}
-	
-	--[
-	--Set
-	--]
-	
-	function KeybindFunctions:Set(keycode)
-		options.Keybind = keycode
-		
-		KeybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "[NONE]"
-		
-		KeybindDisplay:Tween({
-			Size = UDim2.fromOffset(KeybindDisplay.TextBounds.X + 20, 20),
-			Length = 0.05
-		})
-	end
-	
-	return KeybindFunctions
-end
-
---[
---AddColorPicker
---]
-
-function library:AddColorPicker(options)
-	options = self:SetDefaults({
-		Name = "New Color Picker",
-		Description = "New Color Picker Description",
-		Style = library.ColorPickerStyles.Modern,
-		FollowUp = false,
-		Callback = function(val)
-			print(val)
-		end
-	}, options)
-	
-	local ButtonContainer = self.Container:Object("TextButton", {
-		Theme = {
-			BackgroundColor3 = {
-				"Secondary"
-			}
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-	
-	local Text = ButtonContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-	
-	if options.Description then
-		local Description = ButtonContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-	
-	local Icon = ButtonContainer:Object("ImageLabel", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		BackgroundTransparency = 1,
-		Position = UDim2.new(1, -11, 0.5, 0),
-		Size = UDim2.fromOffset(26, 26),
-		Image = "rbxassetid://8604555937",
-		ImageColor3 = library.CurrentTheme.Tertiary
-	})
-	
-	do
-		local Hovered = false
-		local Down = false
-		
-		ButtonContainer.MouseEnter:Connect(function()
-			Hovered = true
-			
-			ButtonContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 10)
-			})
-		end)
-		
-		ButtonContainer.MouseLeave:Connect(function()
-			Hovered = false
-			
-			if not Down then
-				ButtonContainer:Tween({
-					BackgroundColor3 = library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		ButtonContainer.MouseButton1Down:Connect(function()
-			ButtonContainer:Tween({
-				BackgroundColor3 = self:Lighten(library.CurrentTheme.Secondary, 20)
-			})
-		end)
-		
-		UserInputService.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 then
-				ButtonContainer:Tween({
-					BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Secondary)) or library.CurrentTheme.Secondary
-				})
-			end
-		end)
-		
-		ButtonContainer.MouseButton1Click:Connect(function()
-			if library._colorPickerExists then
-				return
-			end
-			
-			library._colorPickerExists = true
-			
-			local HUE, SAT, VAL
-			local UpdatePicker, UpdateHUE
-			local FadeOut
-			
-			local SelectedColor = Color3.fromRGB(255, 255, 255)
-			
-			local Darkener = self.Core:Object("Frame", {
-				BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 1),
-				ZIndex = 2
-			}):Round(10)
-			
-			if options.Style == 1 then
-				do
-					local Arrow = Darkener:Object("ImageLabel", {
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 365, 0, 102),
-						Size = UDim2.new(0, 56, 0, 48),
-						ZIndex = 10,
-						Image = "rbxassetid://8579148508",
-						ImageColor3 = SelectedColor,
-						ImageTransparency = 1,
-						Rotation = 180
-					})
-					
-					local TextPicker = Darkener:Object("ImageLabel", {
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 364, 0, 158),
-						Rotation = -4,
-						Size = UDim2.new(0, 141, 0, 37),
-						ZIndex = 10,
-						Image = "rbxassetid://8579166120",
-						ImageColor3 = SelectedColor,
-						ImageTransparency = 0
-					})
-					
-					local CPHolder = Darkener:Object("Frame", {
-						AnchorPoint = Vector2.new(.5, .5),
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0.5, -50, 0.5, 0),
-						Size = UDim2.fromOffset(160, 240),
-						ZIndex = 12
-					})
-					
-					local _CPShadowHolder = CPHolder:Object("Frame", {
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 11
-					})
-					
-					local _CPShadow = _CPShadowHolder:Object("ImageLabel", {
-						Centered = true,
-						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 47, 1, 47),
-						ZIndex = 11,
-						Image = "rbxassetid://6015897843",
-						ImageColor3 = Color3.fromRGB(0, 0, 0),
-						ImageTransparency = 1,
-						SliceCenter = Rect.new(49, 49, 450, 450),
-						ScaleType = Enum.ScaleType.Slice,
-						SliceScale = 1
-					})
-					
-					local BtnHolder = CPHolder:Object("Frame", {
-						AnchorPoint = Vector2.new(1, 1),
-						BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-						BackgroundTransparency = 1,
-						Position = UDim2.fromScale(1, 1),
-						Size = UDim2.new(1, -5, 0, 50),
-						ZIndex = 12
-					})
-					
-					local Button = BtnHolder:Object("TextButton", {
-						Centered = true,
-						BackgroundTransparency = 1,
-						TextTransparency = 1,
-						Size = UDim2.fromOffset(80, 20),
-						ZIndex = 12,
-						Text = "Select",
-						TextSize = 13,
-						Theme = {
-							TextColor3 = {
-								"Tertiary",
-								-10
-							},
-							BackgroundColor3 = {
-								"Tertiary",
-								-10
-							}
-						}
-					}):Round(8):Stroke({
-						"Tertiary",
-						-10
-					})
-					
-					do
-						local Hovered = false
-						local Down = false
-						
-						Button.MouseEnter:Connect(function()
-							Hovered = true
-							
-							Button:Tween({
-								BackgroundTransparency = 0,
-								TextColor3 = self:Lighten(library.CurrentTheme.StrongText, 15)
-							})
-						end)
-						
-						Button.MouseLeave:Connect(function()
-							Hovered = false
-							
-							if not Down then
-								Button:Tween({
-									BackgroundTransparency = 1,
-									TextColor3 = self:Darken(library.CurrentTheme.Tertiary, 10)
-								})
-							end
-						end)
-						
-						Button.MouseButton1Down:Connect(function()
-							Button:Tween({
-								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
-							})
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								Button:Tween({
-									BackgroundTransparency = (Hovered and 0) or 1
-								})
-								
-								if Hovered then
-									Button:Tween({
-										BackgroundColor3 = library.CurrentTheme.Tertiary
-									})
-								end
-							end
-						end)
-						
-						Button.MouseButton1Click:Connect(function()
-							FadeOut()
-							
-							Icon:Tween({
-								ImageColor3 = SelectedColor
-							})
-							
-							options.Callback(SelectedColor)
-							
-							task.delay(0.35, function()
-								library._colorPickerExists = false
-							end)
-						end)
-					end
-					
-					local HUEBar = CPHolder:Object("TextButton", {
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BorderSizePixel = 0,
-						Text = "",
-						Size = UDim2.new(0, 5, 1, 0),
-						ZIndex = 12,
-						ClipsDescendants = true,
-						BackgroundTransparency = 1
-					})
-					
-					local _HUEBarGradient = HUEBar:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 0)),
-							ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
-							ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
-							ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
-							ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
-							ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 0))
-						}),
-						Rotation = 90
-					})
-					
-					local HUEDraggable = HUEBar:Object("ImageButton", {
-						BackgroundTransparency = 1,
-						ImageTransparency = 1,
-						Position = UDim2.new(-2, 3, 0, -10),
-						Size = UDim2.fromOffset(20, 20),
-						ZIndex = 12,
-						Image = "rbxassetid://8579244616"
-					})
-					
-					local PickerArea = CPHolder:Object("TextButton", {
-						Text = "",
-						AnchorPoint = Vector2.new(1, 0),
-						BackgroundTransparency = 1,
-						Position = UDim2.fromScale(1, 0),
-						ZIndex = 12,
-						ClipsDescendants = true
-					})
-					
-					local Color = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 13,
-						BackgroundColor3 = SelectedColor,
-						BackgroundTransparency = 1,
-						BorderSizePixel = 0
-					})
-					
-					local Brightness = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 14,
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BackgroundTransparency = 1,
-						BorderSizePixel = 0
-					})
-					
-					local _Brightness = Brightness:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))
-						}),
-						Transparency = NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 0),
-							NumberSequenceKeypoint.new(1, 1)
-						})
-					})
-					
-					local Black = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 16,
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BorderSizePixel = 0,
-						BackgroundTransparency = 1
-					})
-					
-					local _Black = Black:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
-						}),
-						Transparency = NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 0),
-							NumberSequenceKeypoint.new(1, 1)
-						}),
-						Rotation = -90
-					})
-					
-					local ColorPickerDraggable = PickerArea:Object("TextButton", {
-						Text = "",
-						AnchorPoint = Vector2.new(.5, .5),
-						BackgroundTransparency = 1,
-						Size = UDim2.fromOffset(6, 6),
-						Position = UDim2.new(0, 152, 0, 3),
-						ZIndex = 20
-					}):Round(100)
-					
-					local _ColorPickerDraggableStroke = ColorPickerDraggable:Object("UIStroke", {
-						Color = Color3.fromRGB(255, 255, 255),
-						Thickness = 1.6,
-						ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-						Transparency = 1
-					})
-					
-					do
-						UpdateHUE = function()
-							HUE = math.clamp((Mouse.Y - HUEBar.AbsolutePosition.Y) / (HUEBar.AbsoluteSize.Y), 0, 1)
-							
-							local TempVal = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
-							
-							local NewYPos = math.clamp((Mouse.Y - HUEBar.AbsolutePosition.Y) / (HUEBar.AbsoluteSize.Y) * HUEBar.AbsoluteSize.Y, 0, HUEBar.AbsoluteSize.Y)
-							
-							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
-							
-							Color:Tween({
-								BackgroundColor3 = Color3.fromHSV(HUE, 1, 1),
-								Length = 0.05
-							})
-							
-							Text:Tween({
-								ImageColor3 = SelectedColor,
-								Length = 0.05
-							})
-							
-							Arrow:Tween({
-								ImageColor3 = SelectedColor,
-								Length = 0.05
-							})
-							
-							HUEDraggable:Tween({
-								ImageColor3 = Color3.fromHSV(1, 0, -TempVal),
-								Position = UDim2.new(-2, 3, 0, math.clamp(NewYPos - 10, -10, HUEBar.AbsoluteSize.Y + 10)),
-								Length = 0.05
-							})
-						end
-						
-						local Down = false
-						
-						HUEBar.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdateHUE()
-							end
-						end)
-						
-						HUEDraggable.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdateHUE()
-							end
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								if Down then
-									Down = false
-								end
-							end
-						end)
-					end
-					
-					
-					do
-						local Down = false
-						
-						UpdatePicker = function()
-							SAT = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X), 0, 1)
-							VAL = 1 - math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
-							
-							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
-							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
-							
-							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
-							
-							ColorPickerDraggable:Tween({
-								Position = UDim2.fromOffset(NewXPos, NewYPos),
-								Length = 0.05
-							})
-							
-							Text:Tween({
-								ImageColor3 = SelectedColor,
-								Length = 0.05
-							})
-							
-							Arrow:Tween({
-								ImageColor3 = SelectedColor,
-								Length = 0.05
-							})
-						end
-						
-						PickerArea.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdatePicker()
-							end
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								if Down then
-									Down = false
-								end
-							end
-						end)
-					end
-					
-					Darkener:Tween({
-						BackgroundTransparency = .4,
-						Length = 0.1
-					})
-					
-					Arrow:Tween({
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					Text:Tween({
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					_CPShadow:Tween({
-						ImageTransparency = .6,
-						Length = 0.1
-					})
-					
-					BtnHolder:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					Button:Tween({
-						TextTransparency = 0,
-						Length = 0.1
-					})
-					
-					HUEBar:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					HUEDraggable:Tween({
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					Color:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					Brightness:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					Black:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_ColorPickerDraggableStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					FadeOut = function()
-						Darkener:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						Arrow:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-						
-						Text:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-						
-						_CPShadow:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-						
-						BtnHolder:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						Button:Tween({
-							TextTransparency = 1,
-							Length = 0.1
-						})
-						
-						HUEBar:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						HUEDraggable:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-						
-						Color:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						Brightness:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						Black:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-						
-						_ColorPickerDraggableStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						}, function()
-							task.delay(0.25, function()
-								Darkener.AbsoluteObject:Destroy()
-							end)
-						end)
-					end
-				end
-			else
-				do
-					local Holder = Darkener:Object("Frame", {
-						Centered = true,
-						Theme = {
-							BackgroundColor3 = "Secondary"
-						},
-						BackgroundTransparency = 1,
-						Size = UDim2.fromOffset(255, 170)
-					}):Round(6)
-					
-					local _HolderStroke = Holder:Object("UIStroke", {
-						Transparency = 1,
-						Theme = {
-							Color = "Tertiary"
-						},
-						Thickness = 1.6
-					})
-					
-					local _Padding = Holder:Object("UIPadding", {
-						PaddingLeft = UDim.new(0, 5),
-						PaddingRight = UDim.new(0, 5),
-						PaddingTop = UDim.new(0, 5),
-						PaddingBottom = UDim.new(0, 5)
-					})
-					
-					local PickerArea = Holder:Object("TextButton", {
-						Text = "",
-						BackgroundTransparency = 1,
-						Size = UDim2.new(0.5, -5, 1, -25)
-					}):Round(6)
-					
-					local _PickerAreaStroke = PickerArea:Object("UIStroke", {
-						Transparency = 1,
-						Theme = {
-							Color = "Tertiary"
-						},
-						Thickness = 1.6
-					})
-					
-					local Color = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						BackgroundColor3 = SelectedColor,
-						BackgroundTransparency = 1,
-						ZIndex = 10
-					}):Round(6)
-					
-					local Brightness = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 11,
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BackgroundTransparency = 1,
-						BorderSizePixel = 0
-					}):Round(6)
-					
-					local _Brightness = Brightness:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 255, 255)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 255, 255))
-						}),
-						Transparency = NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 0),
-							NumberSequenceKeypoint.new(1, 1)
-						})
-					})
-					
-					local Black = PickerArea:Object("Frame", {
-						Size = UDim2.fromScale(1, 1),
-						ZIndex = 12,
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BorderSizePixel = 0,
-						BackgroundTransparency = 1
-					}):Round(6)
-					
-					local _Black = Black:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(0, 0, 0)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(0, 0, 0))
-						}),
-						Transparency = NumberSequence.new({
-							NumberSequenceKeypoint.new(0, 0),
-							NumberSequenceKeypoint.new(1, 1)
-						}),
-						Rotation = -90
-					})
-					
-					local ColorPickerDraggable = PickerArea:Object("TextButton", {
-						Centered = true,
-						Text = "",
-						AnchorPoint = Vector2.new(.5, .5),
-						BackgroundTransparency = 1,
-						Size = UDim2.fromOffset(6, 6),
-						ZIndex = 20
-					}):Round(100)
-					
-					local _ColorPickerDraggableStroke = ColorPickerDraggable:Object("UIStroke", {
-						Transparency = 1,
-						Color = Color3.fromRGB(255, 255, 255),
-						Thickness = 1.6,
-						ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-					})
-					
-					local HUEArea = Holder:Object("TextButton", {
-						Text = "",
-						AnchorPoint = Vector2.new(0, 1),
-						Position = UDim2.fromScale(0, 1),
-						Size = UDim2.new(0.5, -5, 0, 20),
-						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-						BackgroundTransparency = 1,
-						ZIndex = 11
-					}):Round(6)
-					
-					local _HUEAreaStroke = HUEArea:Object("UIStroke", {
-						Transparency = 1,
-						Theme = {
-							Color = "Tertiary"
-						},
-						Thickness = 1.6
-					})
-					
-					local _HUEAreaGradient = HUEArea:Object("UIGradient", {
-						Color = ColorSequence.new({
-							ColorSequenceKeypoint.new(0.000, Color3.fromRGB(255, 0, 0)),
-							ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
-							ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
-							ColorSequenceKeypoint.new(0.500, Color3.fromRGB(0, 255, 255)),
-							ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
-							ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-							ColorSequenceKeypoint.new(1.000, Color3.fromRGB(255, 0, 0))
-						})
-					})
-					
-					local HUEDraggable = HUEArea:Object("TextButton", {
-						Centered = true,
-						Text = "",
-						BackgroundTransparency = 1,
-						Size = UDim2.new(0, 3, 1, 0),
-						ZIndex = 20
-					})
-					
-					local _HUEDraggableStroke = HUEDraggable:Object("UIStroke", {
-						Transparency = 1,
-						Color = Color3.fromRGB(255, 255, 255),
-						Thickness = 1.6,
-						ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-					})
-					
-					local Label = Holder:Object("TextLabel", {
-						Text = "Color Picker",
-						Font = Enum.Font.SourceSansBold,
-						AnchorPoint = Vector2.new(1, 0),
-						BackgroundTransparency = 1,
-						Position = UDim2.fromScale(1, 0),
-						Size = UDim2.new(0.5, 0, 0, 20),
-						Theme = {
-							TextColor3 = {
-								"Tertiary",
-								15
-							}
-						},
-						TextSize = 15,
-						TextTransparency = 1
-					})
-					
-					local Infos = Holder:Object("Frame", {
-						AnchorPoint = Vector2.new(1, 0),
-						BackgroundTransparency = 1,
-						Position = UDim2.new(1, 0, 0, 25),
-						Size = UDim2.new(0.5, 0, 0, 60)
-					})
-					
-					local _InfosList = Infos:Object("UIListLayout", {
-						Padding = UDim.new(0, 4),
-						HorizontalAlignment = Enum.HorizontalAlignment.Center,
-						SortOrder = Enum.SortOrder.Name
-					})
-					
-					local R = Infos:Object("TextLabel", {
-						AnchorPoint = Vector2.new(0.5, 0),
-						Name = "R",
-						Text = tostring(SelectedColor.R * 255),
-						Theme = {
-							BackgroundColor3 = {
-								"Secondary",
-								12
-							}
-						},
-						Size = UDim2.new(1, -10, 0, 18),
-						TextColor3 = Color3.fromHSV(0, 0.8, 1),
-						TextSize = 14,
-						BackgroundTransparency = 1,
-						TextTransparency = 1
-					}):Round(4)
-					
-					local G = Infos:Object("TextLabel", {
-						AnchorPoint = Vector2.new(0.5, 0),
-						Name = "G",
-						Text = tostring(SelectedColor.G * 255),
-						Theme = {
-							BackgroundColor3 = {
-								"Secondary",
-								12
-							}
-						},
-						Size = UDim2.new(1, -10, 0, 18),
-						TextColor3 = Color3.fromHSV(120 / 360, 0.8, 1),
-						TextSize = 14,
-						BackgroundTransparency = 1,
-						TextTransparency = 1
-					}):Round(4)
-					
-					local B = Infos:Object("TextLabel", {
-						AnchorPoint = Vector2.new(0.5, 0),
-						Text = tostring(SelectedColor.B * 255),
-						Name = "B",
-						Theme = {
-							BackgroundColor3 = {
-								"Secondary",
-								12
-							}
-						},
-						Size = UDim2.new(1, -10, 0, 18),
-						TextColor3 = Color3.fromHSV(240 / 360, 0.8, 1),
-						TextSize = 14,
-						BackgroundTransparency = 1,
-						TextTransparency = 1
-					}):Round(4)
-					
-					local PickBtn = Holder:Object("ImageButton", {
-						AnchorPoint = Vector2.new(1, 1),
-						Theme = {
-							BackgroundColor3 = "Tertiary"
-						},
-						Position = UDim2.fromScale(1, 1),
-						Size = UDim2.new(0.5, 0, 0, 20),
-						Image = "rbxassetid://8593962406",
-						ScaleType = Enum.ScaleType.Fit,
-						BackgroundTransparency = 1,
-						ImageTransparency = 1
-					}):Round(6)
-					
-					local PreviewLight = Holder:Object("Frame", {
-						AnchorPoint = Vector2.new(1, 1),
-						BackgroundColor3 = SelectedColor,
-						Position = UDim2.new(1, -65, 1, -25),
-						Size = UDim2.fromOffset(40, 40),
-						BackgroundTransparency = 1
-					}):Round(5)
-					
-					local _PreviewLightIcon = PreviewLight:Object("ImageLabel", {
-						Centered = true,
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(.6, .6),
-						Image = "rbxassetid://8593995344",
-						ImageColor3 = Color3.fromRGB(255, 255, 255),
-						ImageTransparency = 1
-					})
-					
-					local PreviewDark = Holder:Object("Frame", {
-						AnchorPoint = Vector2.new(1, 1),
-						BackgroundColor3 = SelectedColor,
-						Position = UDim2.new(1, -15, 1, -25),
-						Size = UDim2.fromOffset(40, 40),
-						BackgroundTransparency = 1
-					}):Round(5)
-					
-					local _PreviewDarkIcon = PreviewDark:Object("ImageLabel", {
-						Centered = true,
-						BackgroundTransparency = 1,
-						Size = UDim2.fromScale(.6, .6),
-						Image = "rbxassetid://8593995344",
-						ImageColor3 = Color3.fromRGB(0, 0, 0),
-						ImageTransparency = 1
-					})
-					
-					for _, v in next, Darkener.AbsoluteObject:GetDescendants() do
-						pcall(function()
-							v.ZIndex +=3
-						end)
-					end
-					
-					local function GlobalUpdate()
-						R.Text = tostring(math.floor(SelectedColor.R * 255))
-						G.Text = tostring(math.floor(SelectedColor.G * 255))
-						B.Text = tostring(math.floor(SelectedColor.B * 255))
-						
-						PreviewDark:Tween({
-							BackgroundColor3 = SelectedColor
-						})
-						
-						PreviewLight:Tween({
-							BackgroundColor3 = SelectedColor
-						})
-					end
-					
-					do
-						UpdateHUE = function()
-							HUE = math.clamp((Mouse.X - HUEArea.AbsolutePosition.X) / (HUEArea.AbsoluteSize.X), 0, 1)
-							
-							local NewXPos = math.clamp((Mouse.X - HUEArea.AbsolutePosition.X) / (HUEArea.AbsoluteSize.X) * HUEArea.AbsoluteSize.X, 0, HUEArea.AbsoluteSize.X)
-							
-							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
-							
-							Color:Tween({
-								BackgroundColor3 = Color3.fromHSV(HUE, 1, 1),
-								Length = 0.05
-							})
-							
-							HUEDraggable:Tween({
-								Position = UDim2.new(0, math.clamp(NewXPos, 0, HUEArea.AbsoluteSize.X), .5, 0),
-								Length = 0.05
-							})
-							
-							GlobalUpdate()
-						end
-						
-						local Down = false
-						
-						HUEArea.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdateHUE()
-							end
-						end)
-						
-						HUEDraggable.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdateHUE()
-							end
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								if Down then
-									Down = false
-								end
-							end
-						end)
-					end
-					
-					do
-						local Down = false
-						
-						UpdatePicker = function()
-							SAT = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X), 0, 1)
-							VAL = 1 - math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y), 0, 1)
-							
-							local NewXPos = math.clamp((Mouse.X - PickerArea.AbsolutePosition.X) / (PickerArea.AbsoluteSize.X) * PickerArea.AbsoluteSize.X, 0, PickerArea.AbsoluteSize.X)
-							local NewYPos = math.clamp((Mouse.Y - PickerArea.AbsolutePosition.Y) / (PickerArea.AbsoluteSize.Y) * PickerArea.AbsoluteSize.Y, 0, PickerArea.AbsoluteSize.Y)
-							
-							SelectedColor = Color3.fromHSV(HUE, SAT, VAL)
-							
-							GlobalUpdate()
-							
-							ColorPickerDraggable:Tween({
-								Position = UDim2.fromOffset(NewXPos, NewYPos),
-								Length = 0.05
-							})
-						end
-						
-						PickerArea.MouseButton1Down:Connect(function()
-							Down = true
-							
-							while RunService.RenderStepped:Wait() and Down do
-								UpdatePicker()
-							end
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								if Down then
-									Down = false
-								end
-							end
-						end)
-					end
-					
-					do
-						local Down = false
-						local Hovered = false
-						
-						PickBtn.MouseEnter:Connect(function()
-							Hovered = true
-							
-							PickBtn:Tween({
-								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 10)
-							})
-						end)
-						
-						PickBtn.MouseLeave:Connect(function()
-							Hovered = false
-							
-							if not Down then
-								PickBtn:Tween({
-									BackgroundColor3 = library.CurrentTheme.Tertiary
-								})
-							end
-						end)
-						
-						PickBtn.MouseButton1Down:Connect(function()
-							PickBtn:Tween({
-								BackgroundColor3 = self:Lighten(library.CurrentTheme.Tertiary, 20)
-							})
-						end)
-						
-						UserInputService.InputEnded:Connect(function(input)
-							if input.UserInputType == Enum.UserInputType.MouseButton1 then
-								PickBtn:Tween({
-									BackgroundColor3 = (Hovered and self:Lighten(library.CurrentTheme.Tertiary)) or library.CurrentTheme.Tertiary
-								})
-							end
-						end)
-						
-						PickBtn.MouseButton1Click:Connect(function()
-							FadeOut()
-							
-							Icon:Tween({
-								ImageColor3 = SelectedColor
-							})
-							
-							options.Callback(SelectedColor)
-							
-							task.delay(0.35, function()
-								library._colorPickerExists = false
-							end)
-						end)
-					end
-					
-					Holder:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_HolderStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					PickerArea:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_PickerAreaStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					Color:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					Brightness:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					Black:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_ColorPickerDraggableStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					HUEArea:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_HUEAreaStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					_HUEDraggableStroke:Tween({
-						Transparency = 0,
-						Length = 0.1
-					})
-					
-					Label:Tween({
-						TextTransparency = 0,
-						Length = 0.1
-					})
-					
-					R:Tween({
-						BackgroundTransparency = 0,
-						TextTransparency = 0,
-						Length = 0.1
-					})
-					
-					G:Tween({
-						BackgroundTransparency = 0,
-						TextTransparency = 0,
-						Length = 0.1
-					})
-					
-					B:Tween({
-						BackgroundTransparency = 0,
-						TextTransparency = 0,
-						Length = 0.1
-					})
-					
-					PickBtn:Tween({
-						BackgroundTransparency = 0,
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					PreviewLight:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_PreviewLightIcon:Tween({
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					PreviewDark:Tween({
-						BackgroundTransparency = 0,
-						Length = 0.1
-					})
-					
-					_PreviewDarkIcon:Tween({
-						ImageTransparency = 0,
-						Length = 0.1
-					})
-					
-					Darkener:Tween({
-						BackgroundTransparency = 0.5,
-						Length = 0.1
-					})
-					
-					FadeOut = function()
-						Holder:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_HolderStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						})
-
-						PickerArea:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_PickerAreaStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						})
-
-						Color:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						Brightness:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						Black:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_ColorPickerDraggableStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						})
-
-						HUEArea:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_HUEAreaStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						})
-
-						_HUEDraggableStroke:Tween({
-							Transparency = 1,
-							Length = 0.1
-						})
-
-						Label:Tween({
-							TextTransparency = 1,
-							Length = 0.1
-						})
-
-						R:Tween({
-							BackgroundTransparency = 1,
-							TextTransparency = 0,
-							Length = 0.1
-						})
-
-						G:Tween({
-							BackgroundTransparency = 1,
-							TextTransparency = 0,
-							Length = 0.1
-						})
-
-						B:Tween({
-							BackgroundTransparency = 1,
-							TextTransparency = 0,
-							Length = 0.1
-						})
-
-						PickBtn:Tween({
-							BackgroundTransparency = 1,
-							ImageTransparency = 0,
-							Length = 0.1
-						})
-
-						PreviewLight:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_PreviewLightIcon:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-
-						PreviewDark:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						})
-
-						_PreviewDarkIcon:Tween({
-							ImageTransparency = 1,
-							Length = 0.1
-						})
-
-						Darkener:Tween({
-							BackgroundTransparency = 1,
-							Length = 0.1
-						}, function()
-							task.delay(0.25, function()
-								Darkener.AbsoluteObject:Destroy()
-							end)
-						end)
-					end
-				end
-			end
-		end)
-	end
-	
-	self:ResizeTab()
-end
-
---[
---AddCredit
---]
-
-function library:AddCredit(options)
-	options = self:SetDefaults({
-		Name = "Credit",
-		Description = nil
-	}, options)
-
-	options.V3rmillion = options.V3rmillion or options.V3rm
-
-	local CreditContainer = (self.CreditsContainer or self.Container):Object("Frame", {
-		Theme = {
-			BackgroundColor3 = "Secondary"
-		},
-		Size = UDim2.new(1, -20, 0, 52)
-	}):Round(7)
-
-	local Name = CreditContainer:Object("TextLabel", {
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
-		Size = (options.Description and UDim2.new(0.5, -10, 0, 22)) or UDim2.new(0.5, -10, 1, 0),
-		Text = options.Name,
-		TextSize = 22,
-		Theme = {
-			TextColor3 = "StrongText"
-		},
-		TextXAlignment = Enum.TextXAlignment.Left
-	})
-
-	if options.Description then
-		local Description = CreditContainer:Object("TextLabel", {
-			BackgroundTransparency = 1,
-			Position = UDim2.fromOffset(10, 27),
-			Size = UDim2.new(0.5, -10, 0, 20),
-			Text = options.Description,
-			TextSize = 18,
-			Theme = {
-				TextColor3 = "WeakText"
-			},
-			TextXAlignment = Enum.TextXAlignment.Left
-		})
-	end
-
-	if setclipboard then
-		if options.Github then
-			local GithubContainer = CreditContainer:Object("TextButton", {
-				AnchorPoint = Vector2.new(1, 1),
-				Size = UDim2.fromOffset(24, 24),
-				Position = UDim2.new(1, -8, 1, -8),
-				Theme = {
-					BackgroundColor3 = {
-						"Main",
-						10
-					}
-				}
-			}):Round(5):ToolTip("Copy github")
-
-			local Github = GithubContainer:Object("ImageLabel", {
-				Image = "http://www.roblox.com/asset/?id=11965755499",
-				Size = UDim2.new(1, -4, 1, -4),
-				Centered = true,
-				BackgroundTransparency = 1
-			}):Round(100)
-
-			GithubContainer.MouseButton1Click:Connect(function()
-				setclipboard(options.Github)
-			end)
-		end
-
-		if options.Discord then
-			local DiscordContainer = CreditContainer:Object("TextButton", {
-				AnchorPoint = Vector2.new(1, 1),
-				Size = UDim2.fromOffset(24, 24),
-				Position = UDim2.new(1, -8, 1, -8),
-				BackgroundColor3 = Color3.fromRGB(90, 100, 240)
-			}):Round(5):ToolTip("Copy discord")
-
-			local Discord = DiscordContainer:Object("Frame", {
-				Size = UDim2.new(1, -6, 1, -6),
-				Centered = true,
-				BackgroundTransparency = 1
-			})
-
-			local tr = Discord:Object("ImageLabel", {
-				BackgroundTransparency = 1,
-				AnchorPoint = Vector2.new(1, 0),
-				Size = UDim2.new(0.5, 0, 0.5, 0),
-				Position = UDim2.new(1, 0, 0, -0),
-				ImageColor3 = Color3.fromRGB(255, 255, 255),
-				Image = "http://www.roblox.com/asset/?id=8594150191",
-				ScaleType = Enum.ScaleType.Crop
-			})
-
-			local tl = Discord:Object("ImageLabel", {
-				BackgroundTransparency = 1,
-				AnchorPoint = Vector2.new(0, 0),
-				Size = UDim2.new(0.5, 0, 0.5, 0),
-				Position = UDim2.new(0, 0, 0, -0),
-				ImageColor3 = Color3.fromRGB(255, 255, 255),
-				Image = "http://www.roblox.com/asset/?id=8594187532",
-				ScaleType = Enum.ScaleType.Crop
-			})
-
-			local bl = Discord:Object("ImageLabel", {
-				BackgroundTransparency = 1,
-				AnchorPoint = Vector2.new(0, 1),
-				Size = UDim2.new(0.5, 0, 0.5, 0),
-				Position = UDim2.new(0, 0, 1, 0),
-				ImageColor3 = Color3.fromRGB(255, 255, 255),
-				Image = "http://www.roblox.com/asset/?id=8594194954",
-				ScaleType = Enum.ScaleType.Crop
-			})
-
-			local br = Discord:Object("ImageLabel", {
-				BackgroundTransparency = 1,
-				AnchorPoint = Vector2.new(1, 1),
-				Size = UDim2.new(0.5, 0, 0.5, 0),
-				Position = UDim2.new(1, 0, 1, 0),
-				ImageColor3 = Color3.fromRGB(255, 255, 255),
-				Image = "http://www.roblox.com/asset/?id=8594206483",
-				ScaleType = Enum.ScaleType.Crop
-			})
-
-			DiscordContainer.MouseButton1Click:Connect(function()
-				setclipboard(options.Discord)
-			end)
-		end
-
-		if options.V3rmillion then
-			local V3rmillionContainer = CreditContainer:Object("TextButton", {
-				AnchorPoint = Vector2.new(1, 1),
-				Size = UDim2.fromOffset(24, 24),
-				Position = UDim2.new(1, -40, 1, -8),
-				Theme = {
-					BackgroundColor3 = {
-						"Main",
-						10
-					}
-				}
-			}):Round(5):ToolTip("Copy v3rm")
-
-			local V3rmillion = V3rmillionContainer:Object("ImageLabel", {
-				Image = "http://www.roblox.com/asset/?id=8594086769",
-				Size = UDim2.new(1, -4, 1, -4),
-				Centered = true,
-				BackgroundTransparency = 1
-			})
-
-			V3rmillionContainer.MouseButton1Click:Connect(function()
-				setclipboard(options.V3rmillion)
-			end)
-		end
-	end
-
-	self.ResizeTab({
-		Container = self.CreditsContainer or self.Container,
-		Layout = (self.CreditsContainer and self.CreditsContainer.AbsoluteObject.UIListLayout) or self.Layout
-	})
-end
-
---Meta
+--SetMetaTable
 
 return setmetatable(library, {
 	__index = function(_, i)
