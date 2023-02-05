@@ -787,12 +787,12 @@ function library:CreateWindow(options)
 		BackgroundTransparency = 1
 	})
 
-	local Link = URLBar:Object("TextBox", {
+	local Link = URLBar:Object("TextLabel", {
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 26, 0.5, 0),
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, -30, .6, 0),
-		PlaceholderText = options.Link .. "/home",
+		Text = options.Link .. "/home",
 		Theme = {
 			TextColor3 = "WeakText"
 		},
@@ -889,90 +889,6 @@ function library:CreateWindow(options)
 		Centered = true,
 		BackgroundTransparency = 1
 	})
-
-	local Text = Instance.new("TextBox")
-
-	Link.Focused:Connect(function()
-		local Search = tostring(Link.Text)
-
-		for i, v in pairs(SelectedTab:GetChildren()) do
-			if v:IsA("ScrollingFrame") then
-				if Search ~= "" then
-					if v.Name == "Label" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "Credit" then
-						local Item = tostring(v.Name.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "Button" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "Toggle" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "Slider" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "TextBox" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "Dropdown" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					elseif v.Name == "ColorPicker" then
-						local Item = tostring(v.Text.Text)
-
-						if string.find(Item, Search) then
-							v.Visible = true
-						else
-							v.Visible = false
-						end
-					end
-				else
-					v.Visible = true
-				end
-			end
-		end
-	end)
-
-	Link.FocusLost:Connect(function()
-		Link.Text = ""
-	end)
 
 	local Tabs = {}
 
