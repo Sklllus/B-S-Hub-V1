@@ -8,1108 +8,746 @@
 
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Client = Players.LocalPlayer
 
-local Mouse = Client:GetMouse()
-
 local library = {
-    Themes = {
-        Legacy = {
-            Main = Color3.fromHSV(260 / 360, 60 / 255, 35 / 255),
-            Secondary = Color3.fromHSV(240 / 360, 40 / 255, 65 / 255),
-            Tertiary = Color3.fromHSV(260 / 360, 60 / 255, 150 / 255),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
-        },
-        BreakSkill = {
-            Main = Color3.fromRGB(20, 20, 20),
-            Secondary = Color3.fromRGB(50, 50, 50),
-            Tertiary = Color3.fromRGB(220, 20, 30),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
-        },
-        Serika = {
-            Main = Color3.fromRGB(50, 50, 55),
-            Secondary = Color3.fromRGB(80, 80, 85),
-            Tertiary = Color3.fromRGB(225, 185, 20),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
-        },
-        Dark = {
-            Main = Color3.fromRGB(30, 30, 35),
-            Secondary = Color3.fromRGB(50, 50, 55),
-            Tertiary = Color3.fromRGB(180, 70, 70),
-            StrongText = Color3.fromRGB(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
-        },
-        Rust = {
-            Main = Color3.fromRGB(35, 35, 35),
-            Secondary = Color3.fromRGB(65, 65, 65),
-            Tertiary = Color3.fromRGB(235, 95, 40),
-            StrongText = Color3.fromHSV(0, 0, 1),
-            WeakText = Color3.fromHSV(0, 0, 170 / 255)
-        }
+    Version = "1.0",
+    WorkspaceName = "Break-Skill Hub - V1",
+    Flags = {},
+    Connections = {},
+    Objects = {},
+    Elements = {},
+    Globals = {},
+    Subs = {},
+    Colored = {},
+    ColorPickerConflicts = {},
+    RainbowFlags = {},
+    Configuration = {
+        EasingStyle = Enum.EasingStyle.Quart,
+        EasingDirection = Enum.EasingDirection.Out,
+        HideKeybind = Enum.KeyCode.RightShift,
+        SmoothDragging = false
     },
-    ThemeObjects = {
-        Main = {},
-        Secondary = {},
-        Tertiary = {},
-        StrongText = {},
-        WeakText = {}
+    Colors = {
+        Main = Color3.fromRGB(255, 30, 30),
+        Background = Color3.fromRGB(35, 35, 35),
+        OuterBorder = Color3.fromRGB(10, 10, 10),
+        InnerBorder = Color3.fromRGB(75, 65, 75),
+        TopGradient = Color3.fromRGB(35, 35, 35),
+        BottomGradient = Color3.fromRGB(30, 30, 30),
+        SectionBackground = Color3.fromRGB(35, 35, 35),
+        Section = Color3.fromRGB(175, 175, 175),
+        OtherElementText = Color3.fromRGB(130, 125, 130),
+        ElementText = Color3.fromRGB(145, 145, 145),
+        ElementBorder = Color3.fromRGB(20, 20, 20),
+        SelectedOption = Color3.fromRGB(55, 55, 55),
+        UnSelectedOption = Color3.fromRGB(40, 40, 40),
+        HoveredOptionTop = Color3.fromRGB(65, 65, 65),
+        UnHoveredOptionTop = Color3.fromRGB(50, 50, 50),
+        HoveredOptionBottom = Color3.fromRGB(45, 45, 45),
+        UnHoveredOptionBottom = Color3.fromRGB(35, 35, 35),
+        TabText = Color3.fromRGB(185, 185, 185)
     },
-    ColorPickerStyles = {
-        Modern = 0,
-        Legacy = 1
-    },
-    Toggled = true,
-    LockDragging = false,
-    CurrentTheme = nil,
-    WelcomeText = nil,
-    DisplayName = nil,
-    URLLabel = nil,
-    URL = nil,
-    DragSpeed = 0.06,
-    ToggleKey = Enum.KeyCode.RightShift
+    GUIParent = (function()
+        local x, c = pcall(function()
+            return CoreGui
+        end)
+
+        if x and c then
+            return c
+        end
+
+        x, c = pcall(function()
+            return (game:IsLoaded() or (game.Loaded:Wait() or 1)) and Client:WaitForChild("PlayerGui")
+        end)
+
+        if x and c then
+            return c
+        end
+
+        x, c = pcall(function()
+            return StarterGui
+        end)
+
+        if x and c then
+            return c
+        end
+    end),
+    ColorPicker = false,
+    RainbowS = 0,
+    RainbowSG = 0
 }
 
-library.__index = library
+local Flags = library.Flags
+local Colored = library.Colored
+local Colors = library.Colors
+local Elements = library.Elements
 
-library._promptExists = false
-library._colorPickerExists = false
+local ResolverCache = {}
 
-local SelectedTab
+local LastHideBind = 0
 
-local UpdateSettings = function() end
+local IsDraggingSomething = false
+
+library.Flags = Flags
+
+local MainScreenGui
+local ResolveVarArg
+local ConvertFileName
+local TextToSize
+local JSONEncode
+local JSONDecode
+
+local JSONEncodeFunc = HttpService.JSONEncode
+local JSONDecodeFunc = HttpService.JSONDecode
+
+do
+    local VarArgResolve = {
+        Window = {"Name", "Theme"},
+        Tab = {"Name", "Image"},
+        Section = {"Name", "Side"},
+        Label = {"Text", "Flag", "UnloadValue", "UnloadFunc"},
+        Button = {"Name", "Callback", "Locked", "Condition"},
+        Toggle = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Locked", "Keybind", "Condition", "AllowDuplicateCalls"},
+        Slider = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Min", "Max", "Decimals", "Format", "IllegalInput", "Textbox", "AllowDuplicateCalls"},
+        Dropdown = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "List", "Filter", "Method", "Nothing", "Sort", "MultiSelect", "ItemAdded","ItemRemoved", "ItemChanged", "ItemsCleared", "ScrollUpButton", "ScrollDownButton", "ScrollButtonRate", "DisablePrecisionScrolling", "AllowDuplicateCalls"},
+        SearchBox = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "List", "Filter", "Method", "Nothing", "Sort", "MultiSelect", "ItemAdded", "ItemRemoved", "ItemChanged", "ItemsCleared", "ScrollUpButton", "ScrollDownButton", "ScrollButtonRate", "DisablePrecisionScrolling", "RegEx", "AllowDuplicateCalls"},
+        Keybind = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Pressed", "KeyNames", "AllowDuplicateCalls"},
+        Textbox = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Placeholder", "Type", "Min", "Max", "Decimals", "Hex", "Binary", "Base", "RichTextBox", "MultiLine", "TextScaled", "TextFont", "PreFormat", "PostFormat", "CustomProperties", "AllowDuplicateCalls"},
+        Colorpicker = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Rainbow", "Random", "AllowDuplicateCalls"},
+        Persistence = {"Name", "Value", "Callback", "Flag", "Location", "LocationFlag", "UnloadValue", "UnloadFunc", "Workspace", "Persistive", "Suffix", "LoadCallback", "SaveCallback", "PostLoadCallback", "PostSaveCallback", "ScrollUpButton", "ScrollDownButton", "ScrollButtonRate", "DisablePrecisionScrolling", "AllowDuplicateCalls"}
+    }
+
+    function ResolveVarArg(objType, ...)
+        local Data = VarArgResolve[objType]
+
+        local Table = {}
+
+        if Data then
+            for i, v in next, {
+                ...
+            } do
+                Table[Data[i]] = v
+            end
+        end
+
+        return Table
+    end
+
+    function ConvertFileName(str, default, replace)
+        replace = replace or "_"
+
+        local Corrections = 0
+
+        local PredName = string.gsub(str, "%W", function(c)
+            local Byte = c:byte()
+
+            if ((Byte == 0) or (Byte == 32) or (Byte == 33) or (Byte == 59) or (Byte == 61) or ((Byte >= 35) and (Byte <= 41)) or ((Byte >= 43) and (Byte <= 57)) or ((Byte >= 64) and (Byte <= 123)) or ((Byte >= 125) and (Byte <= 127))) then
+
+            else
+                Corrections = 1 + Corrections
+
+                return replace
+            end
+        end)
+
+        return (default and Corrections == #PredName and tostring(default)) or PredName
+    end
+
+    function TextToSize(object)
+        return TextService:GetTextSize(object.Text, object.TextSize, object.Font, Vector2.one * math.huge)
+    end
+
+    function JSONEncode(...)
+        return pcall(JSONEncodeFunc, HttpService, ...)
+    end
+
+    function JSONDecode(...)
+        return pcall(JSONDecodeFunc, HttpService, ...)
+    end
+
+    library.Subs.TextToSize = TextToSize
+    library.Subs.ConvertFileName = ConvertFileName
+end
+
+local InstanceNew = (syn and syn.protect_gui and not gethui and function (...)
+    local x = {
+        Instance.new(...)
+    }
+
+    if x[1] then
+        library.Objects[1 + #library.Objects] = x[1]
+
+        pcall(syn.protect_gui, x[1])
+    end
+
+    return unpack(x)
+end or gethui and function (...)
+    local x = {
+        Instance.new(...)
+    }
+
+    if x[1] then
+        library.Objects[1 + #library.Objects] = x[1]
+
+        gethui(x[1])
+    end
+
+    return unpack(x)
+end) or function (...)
+    local x = {
+        Instance.new(...)
+    }
+
+    if x[1] then
+        library.Objects[1 + #library.Objects] = x[1]
+    end
+
+    return unpack(x)
+end
+
+local function MakeDraggable(topBarObject, object)
+    local Dragging = nil
+    local DragInput = nil
+    local DragStart = nil
+    local StartPos = nil
+
+    library.Connections[1 + #library.Connections] = topBarObject.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            Dragging = true
+
+            DragStart = input.Position
+            StartPos = object.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    Dragging = false
+                end
+            end)
+        end
+    end)
+
+    library.Connections[1 + #library.Connections] = topBarObject.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            DragInput = input
+        end
+    end)
+
+    library.Connections[1 + #library.Connections] = UserInputService.InputChanged:Connect(function(input)
+        if input == DragInput and Dragging then
+            local Delta = input.Position - DragStart
+
+            if not IsDraggingSomething and library.Configuration.SmoothDragging then
+                TweenService:Create(object, TweenInfo.new(0.25, library.Configuration.EasingStyle, library.Configuration.EasingDirection), {
+                    Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+                }):Play()
+            elseif not IsDraggingSomething and not library.Configuration.SmoothDragging then
+                object.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+            end
+        end
+    end)
+end
+
+local function ResolveID(image, flag)
+    if image then
+        if type(image) == "string" then
+            if (#image > 14 and string.sub(image, 1, 13) == "rbxassetid://") or (#image > 12 and string.sub(image, 1, 11) == "rbxasset://") or (#image > 12 and string.sub(image, 1, 11) ~= "rbxthumb://") then
+                if flag then
+                    local Thing = library.Elements[flag] or library.DesignerElements[flag]
+
+                    if Thing and Thing.Set then
+                        task.spawn(Thing.Set, Thing, image)
+                    end
+                end
+
+                return image
+            end
+        end
+
+        local Original = image
+
+        if ResolverCache[Original] then
+            if flag then
+                local Thing = library.Elements[flag] or library.DesignerElements[flag]
+
+                if Thing and Thing.Set then
+                    task.spawn(Thing.Set, Thing, ResolverCache[Original])
+                end
+            end
+
+            return ResolverCache[Original]
+        end
+
+        image = tonumber(image) or image
+
+        local Success = pcall(function()
+            local Type = type(image)
+
+            if Type == "string" then
+                if getsynasset then
+                    if #image > 11 and (string.sub(image, 1, 11) == "synasset://") then
+                        return getsynasset(string.sub(image, 12))
+                    elseif (#image > 14) and (string.sub(image, 1, 14) == "synasseturl://") then
+                        local x, e = pcall(function()
+                            local CodeName, Fixes = string.gsub(image, ".", function(c)
+                                if c:lower() == c:upper() and not tonumber(c) then
+                                    return ""
+                                end
+                            end)
+
+                            CodeName = string.sub(CodeName, 1, 24) .. tostring(Fixes)
+
+                            local Folder = isfolder("./" .. library.WorkspaceName)
+
+                            if not Folder then
+                                makefolder("./" .. library.WorkspaceName)
+                            end
+
+                            Folder = isfolder("./" .. library.WorkspaceName .. "/UI")
+
+                            if not Folder then
+                                makefolder("./" .. library.WorkspaceName .. "/UI")
+                            end
+
+                            Folder = isfolder("./" .. library.WorkspaceName .. "/UI/Themes")
+
+                            if not Folder then
+                                makefolder("./" .. library.WorkspaceName .. "/UI/Themes")
+                            end
+
+                            Folder = isfolder("./" .. library.WorkspaceName .. "/UI/Themes/SynapseAssetsCache")
+
+                            if not Folder then
+                                makefolder("./" .. library.WorkspaceName .. "/UI/Themes/SynapseAssetsCache")
+                            end
+
+                            if not Folder or not isfile("./" .. library.WorkspaceName .. "/UI/Themes/SynapseAssetsCache/" .. CodeName .. ".dat") then
+                                local Result = game:HttpGet(string.sub(image, 15))
+
+                                if Result ~= nil then
+                                    writefile("./" .. library.WorkspaceName .. "/UI/Themes/SynapseAssetsCache/" .. CodeName .. ".dat", Result)
+                                end
+                            end
+
+                            return getsynasset(readfile("./" .. library.WorkspaceName .. "/UI/Themes/SynapseAssetsCache/" .. CodeName .. ".dat"))
+                        end)
+
+                        if x and e ~= nil then
+                            return e
+                        end
+                    end
+                end
+
+                if (#image < 11) or ((string.sub(image, 1, 13) ~= "rbxassetid://") and (string.sub(image, 1, 11) ~= "rbxasset://") and string.sub(image, 1, 11) ~= "rbxthumb://") then
+                    image = tonumber(image:gsub("%D", ""), 10) or image
+
+                    Type = type(image)
+                end
+            end
+
+            if (Type == "number") and (image > 0) then
+                pcall(function()
+                    local Info = MarketplaceService and MarketplaceService:GetProductInfo(image)
+
+                    image = tostring(image)
+
+                    if Info and Info.AssetTypeId == 1 then
+                        image = "rbxassetid://" .. image
+                    elseif Info.AssetTypeId == 13 then
+                        local Decal = game:GetObjects("rbxassetid://" .. image)[1]
+
+                        image = "rbxassetid://" .. ((Decal and Decal.Texture) or "0"):match("%d+$")
+
+                        Decal = (Decal and Decal:Destroy() and nil) or nil
+                    end
+                end)
+            else
+                image = nil
+            end
+        end)
+
+        if Success and image then
+            if Original then
+                ResolverCache[Original] = image
+            end
+
+            ResolverCache[image] = image
+
+            if flag then
+                local Thing = library.Elements[flag] or library.DesignerElements[flag]
+
+                if Thing and Thing.Set then
+                    task.spawn(Thing.Set, Thing, image)
+                end
+            end
+        end
+    end
+
+    return image
+end
+
+library.Subs.InstanceNew = InstanceNew
+library.Subs.MakeDraggable = MakeDraggable
+library.Subs.ResolveID = ResolveID
+library.ResolverCache = ResolverCache
 
 --[
 --UI Library Functions
 --]
 
 --[
---SetDefaults
---]
-
-function library:SetDefaults(defaults, options)
-    defaults = defaults or {}
-    options = options or {}
-
-    for o, v in next, options do
-        defaults[o] = v
-    end
-
-    return defaults
-end
-
---[
---Darken
---]
-
-function library:Darken(color, f)
-    local H, S, V = Color3.toHSV(color)
-
-    f = 1 - ((f or 15) / 80)
-
-    return Color3.fromHSV(H, math.clamp(S / f, 0, 1), math.clamp(V * f, 0, 1))
-end
-
---[
---Lighten
---]
-
-function library:Lighten(color, f)
-    local H, S, V = Color3.toHSV(color)
-
-    f = 1 - ((f or 15) / 80)
-
-    return Color3.fromHSV(H, math.clamp(S * f, 0, 1), math.clamp(V / f, 0, 1))
-end
-
---[
---ChangeTheme
---]
-
-function library:ChangeTheme(toTheme)
-    library.CurrentTheme = toTheme
-
-    local Light = self:Lighten(toTheme.Tertiary, 20)
-
-    library.DisplayName.Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. ", " .. math.floor(Light.G * 255) .. ", " .. math.floor(Light.B * 255) .. ")'><b> " .. Client.DisplayName .. "</b></font>"
-
-    for c, o in next, library.ThemeObjects do
-        local ThemeColor = library.CurrentTheme[c]
-
-        for _, o2 in next, o do
-            local Element, Property, Theme, ColorAlter = o2[1], o2[2], o2[3], o2[4] or 0
-
-            ThemeColor = library.CurrentTheme[Theme]
-
-            local ModifiedColor = ThemeColor
-
-            if ColorAlter < 0 then
-                ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-            elseif ColorAlter > 0 then
-                ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
-            end
-
-            Element:Tween({
-                [Property] = ModifiedColor
-            })
-        end
-    end
-end
-
---[
---Object
---]
-
-function library:Object(class, props)
-    local LocalObject = Instance.new(class)
-
-    local ForcedProps = {
-        BorderSizePixel = 0,
-        AutoButtonColor = false,
-        Font = Enum.Font.SourceSans,
-        Text = ""
-    }
-
-    for p, v in next, ForcedProps do
-        pcall(function()
-            LocalObject[p] = v
-        end)
-    end
-
-    local Methods = {}
-
-    Methods.AbsoluteObject = LocalObject
-
-    --[
-    --Tween
-    --]
-
-    function Methods:Tween(options, callback)
-        options = library:SetDefaults({
-            Length = 0.2,
-            Style = Enum.EasingStyle.Linear,
-            Direction = Enum.EasingDirection.InOut
-        }, options)
-
-        callback = callback or function () return end
-
-        local TI = TweenInfo.new(options.Length, options.Style, options.Direction)
-
-        options.Length = nil
-        options.Style = nil
-        options.Direction = nil
-
-        local Tween = TweenService:Create(LocalObject, TI, options)
-
-        Tween:Play()
-
-        Tween.Completed:Connect(function()
-            callback()
-        end)
-
-        return Tween
-    end
-
-    --[
-    --Round
-    --]
-
-    function Methods:Round(radius)
-        radius = radius or 6
-
-        library:Object("UICorner", {
-            Parent = LocalObject,
-            CornerRadius = UDim.new(0, radius)
-        })
-
-        return Methods
-    end
-
-    --[
-    --Object
-    --]
-
-    function Methods:Object(class2, props2)
-        props2 = props2 or {}
-
-        props2.Parent = LocalObject
-
-        return library:Object(class2, props2)
-    end
-
-    --[
-    --CrossFade
-    --]
-
-    function library:CrossFade(p2, length)
-        length = length or .2
-
-        self:Tween({
-            ImageTransparency = 1
-        })
-
-        p2:Tween({
-            ImageTransparency = 0
-        })
-    end
-
-    --[
-    --Fade
-    --]
-
-    function library:Fade(state, colorOverride, length, instant)
-        length = length or 0.2
-
-        if not rawget(self, "FadeFrame") then
-            local Frame = self:Object("Frame", {
-                BackgroundColor3 = colorOverride or self.BackgroundColor3,
-                BackgroundTransparency = (state and 1) or 0,
-                Size = UDim2.fromScale(1, 1),
-                Centered = true,
-                ZIndex = 999
-            }):Round(self.AbsoluteObject:FindFirstChildOfClass("UICorner") and self.AbsoluteObject:FindFirstChildOfClass("UICorner").CornerRadius.Offset or 0)
-
-            rawset(self, "FadeFrame", Frame)
-        else
-            self.FadeFrame.BackgroundColor3 = colorOverride or self.BackgroundColor3
-        end
-
-        if instant then
-            if state then
-                self.FadeFrame.BackgroundTransparency = 0
-                self.FadeFrame.Visible = true
-            else
-                self.FadeFrame.BackgroundTransparency = 1
-                self.FadeFrame.Visible = false
-            end
-        else
-            if state then
-                self.FadeFrame.BackgroundTransparency = 1
-                self.FadeFrame.Visible = true
-
-                self.FadeFrame:Tween({
-                    BackgroundTransparency = 0,
-                    Length = length
-                })
-            else
-                self.FadeFrame.BackgroundTransparency = 0
-
-                self.FadeFrame:Tween({
-                    BackgroundTransparency = 1,
-                    Length = length
-                }, function()
-                    self.FadeFrame.Visible = false
-                end)
-            end
-        end
-    end
-
-    --[
-    --Stroke
-    --]
-
-    function Methods:Stroke(color, thickness, strokeMode)
-        thickness = thickness or 1
-        strokeMode = strokeMode or Enum.ApplyStrokeMode.Border
-
-        local Stroke = self:Object("UIStroke", {
-            ApplyStrokeMode = strokeMode,
-            Thickness = thickness
-        })
-
-        if type(color) == "table" then
-            local Theme, ColorAlter = color[1], color[2] or 0
-
-            local ThemeColor = library.CurrentTheme[Theme]
-
-            local ModifiedColor = ThemeColor
-
-            if ColorAlter < 0 then
-                ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-            elseif ColorAlter > 0 then
-                ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
-            end
-
-            Stroke.Color = ModifiedColor
-
-            table.insert(library.ThemeObjects[color], {
-                Stroke,
-                "Color",
-                color,
-                0
-            })
-        else
-            Stroke.Color = color
-        end
-
-        return Methods
-    end
-
-    --[
-    --ToolTip
-    --]
-
-    function Methods:ToolTip(text)
-        local ToolTipContainer = Methods:Object("TextLabel", {
-            Theme = {
-                BackgroundColor3 = {
-                    "Main",
-                    10
-                },
-                TextColor3 = {
-                    "WeakText"
-                }
-            },
-            TextSize = 16,
-            Text = text,
-            Position = UDim2.new(0.5, 0, 0, -8),
-            TextXAlignment = Enum.TextXAlignment.Center,
-            TextYAlignment = Enum.TextYAlignment.Center,
-            AnchorPoint = Vector2.new(0.5, 1),
-            BackgroundTransparency = 1,
-            TextTransparency = 1
-        }):Round(5)
-
-        ToolTipContainer.Size = UDim2.fromOffset(ToolTipContainer.TextBounds.X + 16, ToolTipContainer.TextBounds.Y + 8)
-
-        local ToolTipArrow = ToolTipContainer:Object("ImageLabel", {
-            Image = "http://www.roblox.com/asset/?id=4292970642",
-            Theme = {
-                ImageColor3 = {
-                    "Main",
-                    10
-                }
-            },
-            AnchorPoint = Vector2.new(0.5, 0),
-            Rotation = 180,
-            Position = UDim2.fromScale(0.5, 1),
-            Size = UDim2.fromOffset(10, 6),
-            BackgroundTransparency = 1,
-            ImageTransparency = 1
-        })
-
-        local Hovered = false
-
-        Methods.MouseEnter:Connect(function()
-            Hovered = true
-
-            task.wait(0.2)
-
-            if Hovered then
-                ToolTipContainer:Tween({
-                    BackgroundTransparency = 0.2,
-                    TextTransparency = 0.2
-                })
-
-                ToolTipArrow:Tween({
-                    ImageTransparency = 0.2
-                })
-            end
-        end)
-
-        Methods.MouseLeave:Connect(function()
-            Hovered = false
-
-            ToolTipContainer:Tween({
-                BackgroundTransparency = 1,
-                TextTransparency = 1
-            })
-
-            ToolTipArrow:Tween({
-                ImageTransparency = 1
-            })
-        end)
-
-        return Methods
-    end
-
-    local CustomHandlers = {
-        Centered = function(val)
-            if val then
-                LocalObject.AnchorPoint = Vector2.new(0.5, 0.5)
-                LocalObject.Position = UDim2.fromScale(0.5, 0.5)
-            end
-        end,
-        Theme = function(val)
-            for p, o in next, val do
-                if type(o) == "table" then
-                    local Theme, ColorAlter = o[1], o[2] or 0
-
-                    local ThemeColor = library.CurrentTheme[Theme]
-
-                    local ModifiedColor = ThemeColor
-
-                    if ColorAlter < 0 then
-                        ModifiedColor = library:Darken(ThemeColor, -1 * ColorAlter)
-                    elseif ColorAlter > 0 then
-                        ModifiedColor = library:Lighten(ThemeColor, ColorAlter)
-                    end
-
-                    LocalObject[p] = ModifiedColor
-
-                    table.insert(self.ThemeObjects[Theme], {
-                        Methods,
-                        p,
-                        Theme,
-                        ColorAlter
-                    })
-                else
-                    local ThemeColor = library.CurrentTheme[o]
-
-                    LocalObject[p] = ThemeColor
-
-                    table.insert(self.ThemeObjects[o], {
-                        Methods,
-                        p,
-                        o,
-                        0
-                    })
-                end
-            end
-        end
-    }
-
-    for p, v in next, props do
-        if CustomHandlers[p] then
-            CustomHandlers[p](v)
-        else
-            LocalObject[p] = v
-        end
-    end
-
-    return setmetatable(Methods, {
-        __index = function(_, property)
-            return LocalObject[property]
-        end,
-        __newindex = function(_, property, val)
-            LocalObject[property] = val
-        end
-    })
-end
-
---[
---Show
---]
-
-function library:Show(state)
-    self.Toggled = state
-
-    self.MainFrame.ClipsDescendants = true
-
-    if state then
-        self.MainFrame:Tween({
-            Size = self.MainFrame.OldSize,
-            Length = 0.25
-        }, function()
-            rawset(self.MainFrame, "OldSize", (state and self.MainFrame.OldSize) or self.MainFrame.Size)
-
-            self.MainFrame.ClipsDescendants = false
-        end)
-
-        task.wait(0.15)
-
-        self.MainFrame:Fade(not state, self.MainFrame.BackgroundColor3, 0.15)
-    else
-        self.MainFrame:Fade(not state, self.MainFrame.BackgroundColor3, 0.15)
-
-        task.wait(0.1)
-
-        self.MainFrame:Tween({
-            Size = UDim2.new(),
-            Length = 0.25
-        })
-    end
-end
-
---[
---SetStatus
---]
-
-function library:SetStatus(text)
-    self.StatusText.Text = text
-end
-
---[
 --CreateWindow
 --]
 
-function library:CreateWindow(options)
-    local Settings = {
-        Theme = "BreakSkill"
+function library:CreateWindow(options, ...)
+    options = (options and type(options) == "string" and ResolveVarArg("Window", options, ...)) or options
+
+    local HomePage = nil
+
+    local WindowOptions = options
+    local WindowName = options.Name or "New Window"
+
+    options.Name = WindowName
+
+    if WindowName and #WindowName > 0 and library.WorkspaceName == "Break-Skill Hub - V1" then
+        library.WorkspaceName = ConvertFileName(WindowName, "Break-Skill Hub - V1")
+    end
+
+    local Window = InstanceNew("ScreenGui")
+    local MainFrame = InstanceNew("Frame")
+    local MainBorder = InstanceNew("Frame")
+    local TabSlider = InstanceNew("Frame")
+    local InnerMain = InstanceNew("Frame")
+    local InnerMainBorder = InstanceNew("Frame")
+    local InnerBackdrop = InstanceNew("ImageLabel")
+    local InnerMainHolder = InstanceNew("Frame")
+    local TabsHolder = InstanceNew("ImageLabel")
+    local TabsHolderList = InstanceNew("UIListLayout")
+    local TabsHolderPadding = InstanceNew("UIPadding")
+    local HeadLine = InstanceNew("TextLabel")
+    local Splitter = InstanceNew("TextLabel")
+
+    library.MainScreenGui, MainScreenGui = Window, Window
+
+    local SubMenuOpen
+
+    library.Globals["__Window" .. options.Name] = {
+        SubMenuOpen = SubMenuOpen
     }
 
-    if readfile and writefile and isfile and isfolder and makefolder then
-        if not isfolder("./Break-Skill Hub - V1") then
-            makefolder("./Break-Skill Hub - V1")
-        end
+    Window.Name = "Window"
+    Window.ResetOnSpawn = false
+    Window.DisplayOrder = 10
+    Window.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    Window.Parent = library.GUIParent
 
-        if not isfolder("./Break-Skill Hub - V1/UI") then
-            makefolder("./Break-Skill Hub - V1/UI")
-        end
+    MainFrame.Name = "MainFrame"
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainFrame.Parent = Window
+    MainFrame.BackgroundColor3 = library.Colors.Background
+    MainFrame.BorderColor3 = library.Colors.OuterBorder
+    MainFrame.Position = UDim2.fromScale(0.5, 0.5)
+    MainFrame.Size = UDim2.fromOffset(500, 600)
 
-        if not isfile("./Break-Skill Hub - V1/UI/Settings.json") then
-            writefile("./Break-Skill Hub - V1/UI/Settings.json", HttpService:JSONEncode(Settings))
-        end
+    MakeDraggable(MainFrame, MainFrame)
 
-        Settings = HttpService:JSONDecode(readfile("Break-Skill Hub - V1/UI/Settings.json"))
+    MainBorder.Name = "MainBorder"
+    MainBorder.Parent = MainFrame
+    MainBorder.AnchorPoint = Vector2.new(0.5, 0.5)
+    MainBorder.BackgroundColor3 = library.Colors.Background
+    MainBorder.BorderColor3 = library.Colors.InnerBorder
+    MainBorder.BorderMode = Enum.BorderMode.Inset
+    MainBorder.Position = UDim2.fromScale(0.5, 0.5)
+    MainBorder.Size = UDim2.fromScale(1, 1)
 
-        library.CurrentTheme = library.Themes[Settings.Theme]
+    InnerMain.Name = "InnerMain"
+    InnerMain.Parent = MainFrame
+    InnerMain.AnchorPoint = Vector2.new(0.5, 0.5)
+    InnerMain.BackgroundColor3 = library.Colors.Background
+    InnerMain.BorderColor3 = library.Colors.OuterBorder
+    InnerMain.Position = UDim2.fromScale(0.5, 0.5)
+    InnerMain.Size = UDim2.new(1, -4, 1, -4)
 
-        UpdateSettings = function(property, val)
-            Settings[property] = val
+    InnerMainBorder.Name = "InnerMainBorder"
+    InnerMainBorder.Parent = InnerMain
+    InnerMainBorder.AnchorPoint = Vector2.new(0.5, 0.5)
+    InnerMainBorder.BackgroundColor3 = library.Colors.Background
+    InnerMainBorder.BorderColor3 = library.Colors.InnerBorder
+    InnerMainBorder.BorderMode = Enum.BorderMode.Inset
+    InnerMainBorder.Position = UDim2.fromScale(0.5, 0.5)
+    InnerMainBorder.Size = UDim2.fromScale(1, 1)
 
-            writefile("./Break-Skill Hub - V1/UI/Settings.json", HttpService:JSONEncode(Settings))
-        end
-    end
+    InnerMainHolder.Name = "InnerMainHolder"
+    InnerMainHolder.Parent = InnerMain
+    InnerMainHolder.BackgroundTransparency = 1
+    InnerMainHolder.Position = UDim2:fromOffset(25)
+    InnerMainHolder.Size = UDim2.new(1, 0, 1, -25)
 
-    options = self:SetDefaults({
-        Name = "Break-Skill Hub - V1",
-        Link = "https://github.com/Sklllus/Break-Skill-Hub-V1",
-        Size = UDim2.fromOffset(650, 550),
-        Theme = self.Themes[Settings.Theme]
-    }, options)
+    InnerBackdrop.Name = "InnerBackdrop"
+    InnerBackdrop.Parent = InnerMainHolder
+    InnerBackdrop.BackgroundTransparency = 1
+    InnerBackdrop.Size = UDim2.fromScale(1, 1)
+    InnerBackdrop.ZIndex = -1
+    InnerBackdrop.Visible = Flags["__Designer.Background.UseBackgroundImage"] and true
+    InnerBackdrop.ImageColor3 = Flags["__Designer.Background.ImageColor3"] or Color3.fromRGB(255, 255, 255)
+    InnerBackdrop.ImageTransparency = (Flags["__Designer.Background.ImageTransparency"] or 95) / 100
+    InnerBackdrop.Image = ResolveID(Flags["__Designer.Background.ImageAssetID"], "__Designer.Background.ImageAssetID") or ""
 
-    if getgenv and getgenv().BreakSkillUI then
-        getgenv():BreakSkillUI()
+    library.Backdrop = InnerBackdrop
 
-        getgenv().BreakSkillUI = nil
-    end
+    TabsHolder.Name = "TabsHolder"
+    TabsHolder.Parent = InnerMain
+    TabsHolder.BackgroundColor3 = library.Colors.TopGradient
+    TabsHolder.BorderSizePixel = 0
+    TabsHolder.Position = UDim2.fromOffset(1, 1)
+    TabsHolder.Size = UDim2.new(1, -2, 0, 23)
+    TabsHolder.Image = "rbxassetid://2454009026"
+    TabsHolder.ImageColor3 = library.Colors.BottomGradient
 
-    if options.Link:sub(-1, -1) == "/" then
-        options.Link = options.Link:sub(1, -2)
-    end
+    TabsHolderList.Name = "TabsHolderList"
+    TabsHolderList.Parent = TabsHolder
+    TabsHolderList.FillDirection = Enum.FillDirection.Horizontal
+    TabsHolderList.SortOrder = Enum.SortOrder.LayoutOrder
+    TabsHolderList.VerticalAlignment = Enum.VerticalAlignment.Center
+    TabsHolderList.Padding = UDim:new(3)
 
-    if options.Theme.Light then
-        self.Darken, self.Lighten = self.Lighten, self.Darken
-    end
+    TabsHolderPadding.Name = "TabsHolderPadding"
+    TabsHolderPadding.Parent = TabsHolder
+    TabsHolderPadding.PaddingLeft = UDim:new(7)
 
-    self.CurrentTheme = options.Theme
+    HeadLine.Name = "HeadLine"
+    HeadLine.Parent = TabsHolder
+    HeadLine.BackgroundTransparency = 1
+    HeadLine.LayoutOrder = 1
+    HeadLine.Font = Enum.Font.Code
+    HeadLine.Text = (WindowName and tostring(WindowName)) or "New Window"
+    HeadLine.TextColor3 = library.Colors.Main
+    HeadLine.TextSize = 14
+    HeadLine.TextStrokeColor3 = library.Colors.OuterBorder
+    HeadLine.TextStrokeTransparency = 0.75
+    HeadLine.Size = UDim2:new(TextToSize(HeadLine).X + 4, 1)
 
-    local Window = self:Object("ScreenGui", {
-        ZIndexBehavior = Enum.ZIndexBehavior.Global
-    })
+    Splitter.Name = "Splitter"
+    Splitter.Parent = TabsHolder
+    Splitter.BackgroundTransparency = 1
+    Splitter.LayoutOrder = 2
+    Splitter.Size = UDim2:new(6, 1)
+    Splitter.Font = Enum.Font.Code
+    Splitter.Text = "|"
+    Splitter.TextColor3 = library.Colors.TabText
+    Splitter.TextSize = 14
+    Splitter.TextStrokeColor3 = library.Colors.TabText
+    Splitter.TextStrokeTransparency = 0.75
 
-    if RunService:IsStudio() then
-        Window.Parent = script.Parent.Parent
-    end
+    TabSlider.Name = "TabSlider"
+    TabSlider.Parent = MainFrame
+    TabSlider.BackgroundColor3 = library.Colors.Main
+    TabSlider.BorderSizePixel = 0
+    TabSlider.Position = UDim2.fromOffset(100, 30)
+    TabSlider.Size = UDim2:fromOffset(1)
+    TabSlider.Visible = false
 
-    if gethui then
-        Window.Parent = gethui()
-    end
+    Colored[1 + #Colored] = {MainFrame, "BackgroundColor3", "Background"}
+    Colored[1 + #Colored] = {MainBorder, "BackgroundColor3", "Background"}
+    Colored[1 + #Colored] = {InnerMain, "BackgroundColor3", "Background"}
+    Colored[1 + #Colored] = {InnerMainBorder, "BackgroundColor3", "Background"}
+    Colored[1 + #Colored] = {TabsHolder, "BackgroundColor3", "TopGradient"}
+    Colored[1 + #Colored] = {TabSlider, "BackgroundColor3", "Main"}
+    Colored[1 + #Colored] = {MainFrame, "BorderColor3", "OuterBorder"}
+    Colored[1 + #Colored] = {MainBorder, "BorderColor3", "InnerBorder"}
+    Colored[1 + #Colored] = {InnerMain, "BorderColor3", "OuterBorder"}
+    Colored[1 + #Colored] = {InnerMainBorder, "BorderColor3", "InnerBorder"}
+    Colored[1 + #Colored] = {HeadLine, "TextColor3", "Main"}
+    Colored[1 + #Colored] = {Splitter, "TextColor3", "TabText"}
+    Colored[1 + #Colored] = {HeadLine, "TextStrokeColor3", "OuterBorder"}
+    Colored[1 + #Colored] = {Splitter, "TextStrokeColor3", "TabText"}
+    Colored[1 + #Colored] = {TabsHolder, "ImageColor3", "BottomGradient"}
 
-    if syn and syn.syn.protect_gui then
-        pcall(function()
-            Window.RobloxLocked = true
-        end)
-
-        syn.protect_gui(Window)
-
-        Window.Parent = CoreGui
-    end
-
-    local NotificationHolder = Window:Object("Frame", {
-        AnchorPoint = Vector2.new(1, 1),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1, -30, 1, -30),
-        Size = UDim2.new(0, 300, 1, -60)
-    })
-
-    local _NotificationHolderList = NotificationHolder:Object("UIListLayout", {
-        Padding = UDim.new(0, 20),
-        VerticalAlignment = Enum.VerticalAlignment.Bottom
-    })
-
-    local Core = Window:Object("Frame", {
-        Theme = {
-            BackgroundColor3 = "Main"
-        },
-        Size = UDim2.new(),
-        Centered = true,
-        ClipsDescendants = true
-    }):Round(10)
-
-    Core:Fade(true, nil, 0.2, true)
-    Core:Fade(false, nil, 0.4)
-
-    Core:Tween({
-        Size = options.Size,
-        Length = 0.3
-    }, function()
-        Core.ClipsDescendants = false
-    end)
+    local IgnoreCoreInputs
 
     do
-        local S, Event = pcall(function()
-            return Core.MouseEnter
+        local OsClock = os.clock
+
+        library.Connections[1 + #library.Connections] = UserInputService.InputBegan:Connect(function(input)
+            if IgnoreCoreInputs or UserInputService:GetFocusedTextBox() then
+                return
+            elseif input.KeyCode == library.Configuration.HideKeybind then
+                if not LastHideBind or ((OsClock() - LastHideBind) > 12) then
+                    MainFrame.Visible = not MainFrame.Visible
+                end
+
+                LastHideBind = nil
+            end
         end)
+    end
 
-        if S then
-            Core.Active = true
+    local WindowFunctions = {
+        TabCount = 0,
+        Selected = {},
+        Flags = Elements
+    }
 
-            Event:Connect(function()
-                local Input = Core.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        local ObjectPosition = Vector2.new(Mouse.X - Core.AbsolutePosition.X, Mouse.Y - Core.AbsolutePosition.Y)
+    library.Globals["__Window" .. WindowName].WindowFunctions = WindowFunctions
 
-                        while RunService.RenderStepped:Wait() and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                            if library.LockDragging then
-                                local FrameX, FrameY = math.clamp(Mouse.X - ObjectPosition.X, 0, Window.AbsoluteSize.X - Core.AbsoluteSize.X), math.clamp(Mouse.Y - ObjectPosition.Y, 0, Window.AbsoluteSize.Y - Core.AbsoluteSize.Y)
+    --[
+    --Show
+    --]
 
-                                Core:Tween({
-                                    Position = UDim2.fromOffset(FrameX + (Core.Size.X.Offset * Core.AnchorPoint.X), FrameY + (Core.Size.Y.Offset * Core.AnchorPoint.Y)),
-                                    Length = library.DragSpeed
-                                })
-                            else
-                                Core:Tween({
-                                    Position = UDim2.fromOffset(Mouse.X - ObjectPosition.X + (Core.Size.X.Offset * Core.AnchorPoint.X), Mouse.Y - ObjectPosition.Y + (Core.Size.Y.Offset * Core.AnchorPoint.Y)),
-                                    Length = library.DragSpeed
-                                })
-                            end
-                        end
+    function WindowFunctions:Show(x)
+        MainFrame.Visible = (x == nil) or (x == true) or (x == 1)
+
+        return MainFrame.Visible
+    end
+
+    --[
+    --Hide
+    --]
+
+    function WindowFunctions:Hide(x)
+        MainFrame.Visible = (x == false) or (x == 0)
+
+        return MainFrame.Visible
+    end
+
+    --[
+    --Visibility
+    --]
+
+    function WindowFunctions:Visibility(x)
+        if x == nil then
+            MainFrame.Visible = not MainFrame.Visible
+        else
+            MainFrame.Visible = x and true
+        end
+
+        return MainFrame.Visible
+    end
+
+    --[
+    --MoveTabSlider
+    --]
+
+    function WindowFunctions:MoveTabSlider(tabObject)
+        spawn(function()
+            TabSlider.Visible = true
+
+            TweenService:Create(TabSlider, TweenInfo.new(0.35, library.Configuration.EasingStyle, library.Configuration.EasingDirection), {
+                Size = UDim2.fromOffset(tabObject.AbsoluteSize.X, 1),
+                Position = UDim2.fromOffset(tabObject.AbsolutePosition.X, tabObject.AbsolutePosition.Y + tabObject.AbsoluteSize.Y) - UDim2.fromOffset(MainFrame.AbsolutePosition.X, MainFrame.AbsolutePosition.Y)
+            }):Play()
+        end)
+    end
+
+    WindowFunctions.LastTab = nil
+
+    --[
+    --UpdateAll
+    --]
+
+    function WindowFunctions:UpdateAll()
+        local Target = self or WindowFunctions
+
+        if Target and type(Target) == "table" and Target.Flags then
+            for _, e in next, Target.Flags do
+                if e and type(e) == "table" then
+                    if e.Update then
+                        pcall(e.Update)
                     end
-                end)
 
-                local Leave
+                    if e.UpdateAll then
+                        pcall(e.Update)
+                    end
+                end
+            end
 
-                Leave = Core.MouseLeave:Connect(function()
-                    Input:Disconnect()
-                    Leave:Disconnect()
-                end)
+            pcall(function()
+                if library.Backdrop then
+                    library.Backdrop.Visible = Flags["__Designer.Background.UseBackgroundImage"] and true
+                    library.Backdrop.Image = ResolveID(Flags["__Designer.Background.ImageAssetID"], "__Designer.Background.ImageAssetID") or ""
+                    library.Backdrop.ImageColor3 = Flags["__Designer.Background.ImageColor3"] or Color3.fromRGB(255, 255, 255)
+                    library.Backdrop.ImageTransparency = (Flags["__Designer.Background.ImageTransparency"] or 95) / 100
+                end
             end)
         end
     end
 
-    rawset(Core, "OldSize", options.Size)
+    library.UpdateAll = WindowFunctions.UpdateAll
 
-    self.MainFrame = Core
+    if options.Themeable or options.DefaultTheme or options.Theme then
+        spawn(function()
+            local OsClock = os.clock
 
-    local TabButtons = Core:Object("ScrollingFrame", {
-        Size = UDim2.new(1, -40, 0, 25),
-        Position = UDim2.fromOffset(5, 5),
-        BackgroundTransparency = 1,
-        ClipsDescendants = true,
-        ScrollBarThickness = 0,
-        ScrollingDirection = Enum.ScrollingDirection.X,
-        AutomaticCanvasSize = Enum.AutomaticSize.X
-    })
+            local StartTime = OsClock()
 
-    TabButtons:Object("UIListLayout", {
-        FillDirection = Enum.FillDirection.Horizontal,
-        HorizontalAlignment = Enum.HorizontalAlignment.Left,
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 4)
-    })
+            while OsClock() - StartTime < 12 do
+                if HomePage then
+                    WindowFunctions.GoHome = HomePage
 
-    local CloseButton = Core:Object("ImageButton", {
-        Theme = {
-            ImageColor3 = "StrongText"
-        },
-        BackgroundTransparency = 1,
-        Size = UDim2.fromOffset(14, 14),
-        Position = UDim2.new(1, -11, 0, 11),
-        Image = "http://www.roblox.com/asset/?id=8497487650",
-        AnchorPoint = Vector2.new(1)
-    })
+                    local x, e = pcall(HomePage)
 
-    CloseButton.MouseEnter:Connect(function()
-        CloseButton:Tween({
-            ImageColor3 = Color3.fromRGB(255, 50, 35)
-        })
-    end)
+                    if not x and e then
+                        warn("Error going to HomePage: ", e)
+                    end
 
-    CloseButton.MouseLeave:Connect(function()
-        CloseButton:Tween({
-            ImageColor3 = library.CurrentTheme.StrongText
-        })
-    end)
+                    x, e = nil
 
-    local function CloseUI()
-        Core.ClipsDescendants = true
+                    break
+                end
 
-        Core:Fade(true)
-
-        task.wait(0.1)
-
-        Core:Tween({
-            Size = UDim2.new()
-        }, function()
-            Window.AbsoluteObject:Destroy()
-        end)
-    end
-
-    if getgenv then
-        getgenv().BreakSkillUI = CloseUI
-    end
-
-    CloseButton.MouseButton1Click:Connect(function()
-        CloseUI()
-    end)
-
-    local URLBar = Core:Object("Frame", {
-        Size = UDim2.new(1, -10, 0, 25),
-        Theme = {
-            BackgroundColor3 = "Secondary"
-        },
-        Position = UDim2.new(0, 5, 0, 35)
-    }):Round(5)
-
-    local SearchIcon = URLBar:Object("ImageLabel", {
-        Theme = {
-            ImageColor3 = "Tertiary"
-        },
-        AnchorPoint = Vector2.new(0, .5),
-        Position = UDim2.new(0, 5, 0.5, 0),
-        Size = UDim2.fromOffset(16, 16),
-        Image = "http://www.roblox.com/asset/?id=8497489946",
-        BackgroundTransparency = 1
-    })
-
-    local Link = URLBar:Object("TextLabel", {
-        Theme = {
-            TextColor3 = "WeakText"
-        },
-        AnchorPoint = Vector2.new(0, 0.5),
-        Position = UDim2.new(0, 26, 0.5, 0),
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -30, .6, 0),
-        Text = options.Link .. "/home",
-        TextSize = 14,
-        TextScaled = false,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    library.URLLabel = Link
-    library.URL = options.Link
-
-    local ShadowHolder = Core:Object("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.fromScale(1, 1),
-        ZIndex = 0
-    })
-
-    local Shadow = ShadowHolder:Object("ImageLabel", {
-        Centered = true,
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, 47, 1, 47),
-        ZIndex = 0,
-        Image = "rbxassetid://6015897843",
-        ImageColor3 = Color3.fromRGB(0, 0, 0),
-        ImageTransparency = .6,
-        SliceCenter = Rect.new(47, 47, 450, 450),
-        ScaleType = Enum.ScaleType.Slice,
-        SliceScale = 1
-    })
-
-    local Content = Core:Object("Frame", {
-        Theme = {
-            BackgroundColor3 = {
-                "Secondary",
-                -10
-            }
-        },
-        AnchorPoint = Vector2.new(0.5, 1),
-        Position = UDim2.new(0.5, 0, 1, -20),
-        Size = UDim2.new(1, -10, 1, -86)
-    }):Round(7)
-
-    local Status = Core:Object("TextLabel", {
-        Theme = {
-            TextColor3 = "Tertiary"
-        },
-        AnchorPoint = Vector2.new(0, 1),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 5, 1, -6),
-        Size = UDim2.new(0.2, 0, 0, 10),
-        Text = "Status | Idle",
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local HomeButton = TabButtons:Object("TextButton", {
-        Theme = {
-            BackgroundColor3 = "Secondary"
-        },
-        Name = "Home",
-        BackgroundTransparency = 0,
-        Size = UDim2.new(0, 125, 0, 25)
-    }):Round(5)
-
-    local HomeButtonText = HomeButton:Object("TextLabel", {
-        Theme = {
-            TextColor3 = "StrongText"
-        },
-        AnchorPoint = Vector2.new(0, .5),
-        BackgroundTransparency = 1,
-        TextSize = 14,
-        Text = options.Name,
-        Position = UDim2.new(0, 25, 0.5, 0),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -45, 0.5, 0),
-        TextTruncate = Enum.TextTruncate.AtEnd
-    })
-
-    local HomeButtonIcon = HomeButton:Object("ImageLabel", {
-        Theme = {
-            ImageColor3 = "StrongText"
-        },
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 5, 0.5, 0),
-        Size = UDim2.new(0, 15, 0, 15),
-        Image = "http://www.roblox.com/asset/?id=8569322835"
-    })
-
-    local HomePage = Content:Object("Frame", {
-        Size = UDim2.fromScale(1, 1),
-        Centered = true,
-        BackgroundTransparency = 1
-    })
-
-    local Tabs = {}
-
-    SelectedTab = HomeButton
-
-    Tabs[#Tabs + 1] = {
-        HomePage,
-        HomeButton
-    }
-
-    do
-        local Down = false
-        local Hovered = false
-
-        HomeButton.MouseEnter:Connect(function()
-            Hovered = true
-
-            HomeButton:Tween({
-                BackgroundTransparency = ((SelectedTab == HomeButton) and 0.15) or 0.3
-            })
-        end)
-
-        HomeButton.MouseLeave:Connect(function()
-            Hovered = false
-
-            HomeButton:Tween({
-                BackgroundTransparency = ((SelectedTab == HomeButton) and 0.15) or 1
-            })
-        end)
-
-        HomeButton.MouseButton1Down:Connect(function()
-            Down = true
-
-            HomeButton:Tween({
-                BackgroundTransparency = 0
-            })
-        end)
-
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                Down = false
-
-                HomeButton:Tween({
-                    BackgroundTransparency = ((SelectedTab == HomeButton) and 0.15) or (Hovered and 0.3) or 1
-                })
-            end
-        end)
-
-        HomeButton.MouseButton1Click:Connect(function()
-            for _, ti in next, Tabs do
-                local Page = ti[1]
-                local Button = ti[2]
-
-                Page.Visible = false
+                task.wait()
             end
 
-            SelectedTab:Tween({
-                BackgroundTransparency = ((SelectedTab == HomeButton) and 0.15) or 1
-            })
+            local WhatDoILookLike = options.Themeable or options.DefaultTheme or options.Theme
 
-            SelectedTab = HomeButton
-
-            HomePage.Visible = true
-
-            HomeButton.BackgroundTransparency = 0
-
-            library.URLLabel.Text = library.URL .. "/home"
-        end)
-    end
-
-    self.SelectedTabButton = HomeButton
-
-    local HomePageLayout = HomePage:Object("UIListLayout", {
-        Padding = UDim.new(0, 10),
-        FillDirection = Enum.FillDirection.Vertical,
-        HorizontalAlignment = Enum.HorizontalAlignment.Center
-    })
-
-    local HomePagePadding = HomePage:Object("UIPadding", {
-        PaddingTop = UDim.new(0, 10)
-    })
-
-    local Profile = HomePage:Object("Frame", {
-        Theme = {
-            BackgroundColor3 = "Secondary"
-        },
-        AnchorPoint = Vector2.new(0, .5),
-        Size = UDim2.new(1, -20, 0, 100)
-    }):Round(7)
-
-    local ProfilePictureContainer = Profile:Object("ImageLabel", {
-        Theme = {
-            BackgroundColor3 = {
-                "Secondary",
-                10
-            }
-        },
-        Image = Players:GetUserThumbnailAsync(Client.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100),
-        AnchorPoint = Vector2.new(0, 0.5),
-        Position = UDim2.new(0, 10, 0.5),
-        Size = UDim2.fromOffset(80, 80)
-    }):Round(100)
-
-    local DisplayName
-
-    do
-        local H, S, V = Color3.toHSV(options.Theme.Tertiary)
-
-        local Light = self:Lighten(options.Theme.Tertiary, 20)
-
-        DisplayName = Profile:Object("TextLabel", {
-            Theme = {
-                TextColor3 = {
-                    "Tertiary",
-                    10
-                }
-            },
-            RichText = true,
-            Text = "Welcome, <font color='rgb(" .. math.floor(Light.R * 255) .. ", " .. math.floor(Light.G * 255) .. ", " .. math.floor(Light.B * 255) .. ")'><b> " .. Client.DisplayName .. "</b></font>",
-            TextScaled = true,
-            Position = UDim2.new(0, 105, 0, 10),
-            Size = UDim2.new(0, 400, 0, 40),
-            BackgroundTransparency = 1,
-            TextXAlignment = Enum.TextXAlignment.Left
-        })
-
-        library.DisplayName = DisplayName
-    end
-
-    local ProfileName = Profile:Object("TextLabel", {
-        Theme = {
-            TextColor3 = "Tertiary"
-        },
-        Text = "@" .. Client.Name,
-        Position = UDim2.new(0, 105, 0, 47),
-        Size = UDim2.new(0, 400, 0, 20),
-        BackgroundTransparency = 1,
-        TextXAlignment = Enum.TextXAlignment.Left
-    })
-
-    local TimeDisplay = Profile:Object("TextLabel", {
-        Theme = {
-            TextColor3 = {
-                "WeakText",
-                -20
-            }
-        },
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 105, 1, -10),
-        Size = UDim2.new(0, 400, 0, 20),
-        AnchorPoint = Vector2.new(0, 1),
-        TextScaled = true,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Text = tostring(os.date("%X")):sub(1, os.date("%X"):len() - 3)
-    })
-
-    do
-        local DesiredInterval = 1
-        local Counter = 0
-
-        RunService.Heartbeat:Connect(function(deltaTime)
-            Counter += deltaTime
-
-            if Counter >= DesiredInterval then
-                Counter -= DesiredInterval
-
-                local Date = tostring(os.date("%X"))
-
-                TimeDisplay.Text = Date:sub(1, Date:len() - 3)
+            if type(WhatDoILookLike) == "table" then
+                WhatDoILookLike.LockTheme = WhatDoILookLike.LockTheme or options.LockTheme or nil
+                WhatDoILookLike.HideTheme = WhatDoILookLike.HideTheme or options.HideTheme or nil
+            else
+                WhatDoILookLike = nil
             end
+
+            if getgenv()["Developer_345RTHD1"] then
+                WindowFunctions:CreateDesigner(WhatDoILookLike)
+            end
+
+            if options.DefaultTheme or options.Theme then
+                spawn(function()
+                    local Content = options.DefaultTheme or options.Theme or options.JSON or options.ThemeJSON
+
+                    if Content and type(Content) == "string" and #Content > 1 then
+                        local Good, JContent = JSONDecode(Content)
+
+                        if Good and JContent then
+                            for cf, v in next, JContent do
+                                local Data = Elements[cf]
+
+                                if Data and (Data.Type ~= "Persistence") then
+                                    if Data.Set then
+                                        Data:Set(v)
+                                    elseif Data.RawSet then
+                                        Data:RawSet(v)
+                                    else
+                                        library.Flags[cf] = v
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+
+            OsClock, StartTime = nil
         end)
     end
 
-    local SettingsTabIcon = Profile:Object("ImageButton", {
-        Theme = {
-            ImageColor3 = "WeakText"
-        },
-        BackgroundTransparency = 1,
-        Size = UDim2.fromOffset(24, 24),
-        Position = UDim2.new(1, -10, 1, -10),
-        AnchorPoint = Vector2.new(1, 1),
-        Image = "http://www.roblox.com/asset/?id=8559790237"
-    }):ToolTip("Settings")
-
-    local CreditsTabIcon = Profile:Object("ImageButton", {
-        Theme = {
-            ImageColor3 = "WeakText"
-        },
-        BackgroundTransparency = 1,
-        Size = UDim2.fromOffset(24, 24),
-        Position = UDim2.new(1, -44, 1, -10),
-        AnchorPoint = Vector2.new(1, 1),
-        Image = "http://www.roblox.com/asset/?id=8577523456"
-    }):ToolTip("Credits")
-
-    local QuickAccess = HomePage:Object("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.new(1, -20, 0, 180)
-    })
-
-    QuickAccess:Object("UIGridLayout", {
-        CellPadding = UDim2.fromOffset(10, 10),
-        CellSize = UDim2.fromOffset(55, 55),
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        VerticalAlignment = Enum.VerticalAlignment.Center
-    })
-
-    QuickAccess:Object("UIPadding", {
-        PaddingBottom = UDim.new(0, 10),
-        PaddingLeft = UDim.new(0, 70),
-        PaddingRight = UDim.new(0, 70),
-        PaddingTop = UDim.new(0, 5)
-    })
-
-    local mt = setmetatable({
-        Core = Core,
-        Notifications = NotificationHolder,
-        StatusText = Status,
-        Container = Content,
-        Navigation = TabButtons,
-        Theme = options.Theme,
-        Tabs = Tabs,
-        QuickAccess = QuickAccess,
-        HomeButton = HomeButton,
-        HomePage = HomePage,
-        NilFolder = Core:Object("Folder")
-    }, library)
-
-
-
-    return mt
+    return WindowFunctions
 end
 
---SetMetaTable
-
-return setmetatable({
-    library, {
-        __index = function(_, i)
-            return rawget(library, i:lower())
-        end
-    }
-})
+return library, Flags, library.Subs
