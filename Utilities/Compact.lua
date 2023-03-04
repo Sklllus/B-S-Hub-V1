@@ -2,8 +2,6 @@
 --Script Made By xS_Killus
 --]
 
---Instances And Functions
-
 local Strings = {
     "BetterConsole.lua",
     "HiddenUIFix.lua",
