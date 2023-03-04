@@ -1,0 +1,1 @@
+print("Compact.lua")
