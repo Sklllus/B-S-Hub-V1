@@ -1,3 +1,8 @@
+--[[ Credits
+    Matas#3535 @matas - Created UI
+    bored#9316 @wally hub user - Helped make library
+]]
+-- // Variables
 local ws = game:GetService("Workspace")
 local uis = game:GetService("UserInputService")
 local rs = game:GetService("RunService")
@@ -362,7 +367,7 @@ do
 	pages.__index = pages
 	sections.__index = sections
     --
-    function library:CreateWindow(info)
+    function library:New(info)
 		local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "UI Title"
         local size = info.size or info.Size or Vector2.new(504,604)
@@ -1029,7 +1034,7 @@ do
 		return setmetatable(window, library)
 	end
     --
-    function library:CreateTab(info)
+    function library:Page(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Page"
         --
@@ -1123,7 +1128,7 @@ do
         return setmetatable(page, pages)
     end
     --
-    function pages:CreateSection(info)
+    function pages:Section(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Section"
         local side = info.side or info.Side or "left"
@@ -1182,7 +1187,7 @@ do
         return setmetatable(section, sections)
     end
     --
-    function pages:CreateMultiSection(info)
+    function pages:MultiSection(info)
         local info = info or {}
         local msections = info.sections or info.Sections or {}
         local side = info.side or info.Side or "left"
@@ -1320,7 +1325,7 @@ do
         return table.unpack(multiSection.sections)
     end
     --
-    function sections:AddLabel(info)
+    function sections:Label(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Label"
         local middle = info.middle or info.Middle or false
@@ -1353,7 +1358,7 @@ do
         return label
     end
     --
-    function sections:AddToggle(info)
+    function sections:Toggle(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Toggle"
         local def = info.def or info.Def or info.default or info.Default or false
@@ -1437,7 +1442,7 @@ do
         section.currentAxis = section.currentAxis + 15 + 4
         section:Update()
         --
-        function toggle:AddColorPicker(info)
+        function toggle:Colorpicker(info)
             local info = info or {}
             local cpinfo = info.info or info.Info or name
             local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
@@ -1821,7 +1826,7 @@ do
             return colorpicker, toggle
         end
         --
-        function toggle:AddKeybind(info)
+        function toggle:Keybind(info)
             local info = info or {}
             local def = info.def or info.Def or info.default or info.Default or nil
             local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
@@ -2080,7 +2085,7 @@ do
         return toggle
     end
     --
-    function sections:AddSlider(info)
+    function sections:Slider(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Slider"
         local def = info.def or info.Def or info.default or info.Default or 10
@@ -2209,7 +2214,7 @@ do
         return slider
     end
     --
-    function sections:AddButton(info)
+    function sections:Button(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Button"
         local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
@@ -2278,7 +2283,7 @@ do
         return button
     end
     --
-    function sections:AddButtonHolder(info)
+    function sections:ButtonHolder(info)
         local info = info or {}
         local buttons = info.buttons or info.Buttons or {}
         --
@@ -2343,7 +2348,7 @@ do
         section:Update()
     end
     --
-    function sections:AddDropdown(info)
+    function sections:Dropdown(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Dropdown"
         local options = info.options or info.Options or {"1", "2", "3"}
@@ -2554,7 +2559,7 @@ do
         return dropdown
     end
     --
-    function sections:AddMultibox(info)
+    function sections:Multibox(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Multibox"
         local options = info.options or info.Options or {"1", "2", "3"}
@@ -2798,7 +2803,7 @@ do
         return multibox
     end
     --
-    function sections:AddKeybind(info)
+    function sections:Keybind(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Keybind"
         local def = info.def or info.Def or info.default or info.Default or nil
@@ -3059,7 +3064,7 @@ do
         return keybind
     end
     --
-    function sections:AddColorPicker(info)
+    function sections:Colorpicker(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Colorpicker"
         local cpinfo = info.info or info.Info or name
@@ -3446,7 +3451,7 @@ do
         section.currentAxis = section.currentAxis + 15 + 4
         section:Update()
         --
-        function colorpicker:AddColorPicker(info)
+        function colorpicker:Colorpicker(info)
             local info = info or {}
             local cpinfo = info.info or info.Info or name
             local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
@@ -3826,7 +3831,7 @@ do
         return colorpicker
     end
     --
-    function sections:AddConfigBox(info)
+    function sections:ConfigBox(info)
         local info = info or {}
         --
         local window = self.window
@@ -3914,4 +3919,4 @@ do
     end
 end
 
-return library, library.connections, utility, library.pointers, theme
+return library, utility, library.pointers, theme
