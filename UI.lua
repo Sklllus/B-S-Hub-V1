@@ -3914,4 +3914,4 @@ do
     end
 end
 
-return library, utility, library.pointers, theme
+return library, library.connections, utility, library.pointers, theme
