@@ -3929,4 +3929,4 @@ do
     end
 end
 
-return library, library.connections, utility, library.pointers, theme
+return library, utility, library.pointers, theme
