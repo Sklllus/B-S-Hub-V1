@@ -367,7 +367,7 @@ do
 	pages.__index = pages
 	sections.__index = sections
     --
-    function library:CreateWindow(info)
+    function library:New(info)
 		local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "UI Title"
         local size = info.size or info.Size or Vector2.new(504,604)
@@ -598,7 +598,7 @@ do
             uis.MouseIconEnabled = true
         end
         --
-        function window:CreateWatermark(info)
+        function window:Watermark(info)
             window.watermark = {visible = false}
             --
             local info = info or {}
@@ -694,7 +694,7 @@ do
             return window.watermark
         end
         --
-        function window:CreateKeybindsList(info)
+        function window:KeybindsList(info)
             window.keybindslist = {visible = false, keybinds = {}}
             --
             local info = info or {}
@@ -1034,7 +1034,7 @@ do
 		return setmetatable(window, library)
 	end
     --
-    function library:CreatePage(info)
+    function library:Page(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Page"
         --
@@ -1128,7 +1128,7 @@ do
         return setmetatable(page, pages)
     end
     --
-    function pages:CreateSection(info)
+    function pages:Section(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Section"
         local side = info.side or info.Side or "left"
@@ -1187,7 +1187,7 @@ do
         return setmetatable(section, sections)
     end
     --
-    function pages:CreateMultiSection(info)
+    function pages:MultiSection(info)
         local info = info or {}
         local msections = info.sections or info.Sections or {}
         local side = info.side or info.Side or "left"
@@ -1325,10 +1325,9 @@ do
         return table.unpack(multiSection.sections)
     end
     --
-    function sections:AddLabel(info)
+    function sections:Label(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Label"
-        local color = info.color or info.Color or Color3.fromRGB(255, 255, 255)
         local middle = info.middle or info.Middle or false
         local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
         --
@@ -1342,21 +1341,12 @@ do
             Text = name,
             Size = theme.textsize,
             Font = theme.font,
-            Color = color,
+            Color = theme.textcolor,
             OutlineColor = theme.textborder,
             Center = middle,
             Position = utility:Position(middle and 0.5 or 0, middle and 0 or 4, 0, 0, section.section_frame),
             Visible = page.open
         }, section.visibleContent)
-
-        function label:SetText(newText)
-            label_title.Text = newText
-        end
-
-        function label:SetColor(newColor)
-            label_title.Color = newColor
-        end
-
         --
         if pointer and tostring(pointer) ~= "" and tostring(pointer) ~= " " and not library.pointers[tostring(pointer)] then
             library.pointers[tostring(pointer)] = label
@@ -1368,7 +1358,7 @@ do
         return label
     end
     --
-    function sections:AddToggle(info)
+    function sections:Toggle(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Toggle"
         local def = info.def or info.Def or info.default or info.Default or false
@@ -1452,7 +1442,7 @@ do
         section.currentAxis = section.currentAxis + 15 + 4
         section:Update()
         --
-        function toggle:AddColorPicker(info)
+        function toggle:Colorpicker(info)
             local info = info or {}
             local cpinfo = info.info or info.Info or name
             local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
@@ -1836,7 +1826,7 @@ do
             return colorpicker, toggle
         end
         --
-        function toggle:AddKeybind(info)
+        function toggle:Keybind(info)
             local info = info or {}
             local def = info.def or info.Def or info.default or info.Default or nil
             local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
@@ -2095,7 +2085,7 @@ do
         return toggle
     end
     --
-    function sections:AddSlider(info)
+    function sections:Slider(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Slider"
         local def = info.def or info.Def or info.default or info.Default or 10
@@ -2224,7 +2214,7 @@ do
         return slider
     end
     --
-    function sections:AddButton(info)
+    function sections:Button(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Button"
         local pointer = info.pointer or info.Pointer or info.flag or info.Flag or nil
@@ -2293,7 +2283,7 @@ do
         return button
     end
     --
-    function sections:AddButtonHolder(info)
+    function sections:ButtonHolder(info)
         local info = info or {}
         local buttons = info.buttons or info.Buttons or {}
         --
@@ -2358,7 +2348,7 @@ do
         section:Update()
     end
     --
-    function sections:AddDropdown(info)
+    function sections:Dropdown(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Dropdown"
         local options = info.options or info.Options or {"1", "2", "3"}
@@ -2569,7 +2559,7 @@ do
         return dropdown
     end
     --
-    function sections:AddMultiBox(info)
+    function sections:Multibox(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Multibox"
         local options = info.options or info.Options or {"1", "2", "3"}
@@ -2813,7 +2803,7 @@ do
         return multibox
     end
     --
-    function sections:AddKeybind(info)
+    function sections:Keybind(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Keybind"
         local def = info.def or info.Def or info.default or info.Default or nil
@@ -3074,7 +3064,7 @@ do
         return keybind
     end
     --
-    function sections:AddColorPicker(info)
+    function sections:Colorpicker(info)
         local info = info or {}
         local name = info.name or info.Name or info.title or info.Title or "New Colorpicker"
         local cpinfo = info.info or info.Info or name
@@ -3461,7 +3451,7 @@ do
         section.currentAxis = section.currentAxis + 15 + 4
         section:Update()
         --
-        function colorpicker:AddColorPicker(info)
+        function colorpicker:Colorpicker(info)
             local info = info or {}
             local cpinfo = info.info or info.Info or name
             local def = info.def or info.Def or info.default or info.Default or Color3.fromRGB(255, 0, 0)
@@ -3841,7 +3831,7 @@ do
         return colorpicker
     end
     --
-    function sections:AddConfigBox(info)
+    function sections:ConfigBox(info)
         local info = info or {}
         --
         local window = self.window
@@ -3928,5 +3918,115 @@ do
         return configLoader
     end
 end
+-- // Init
+--[[do
+    local title_string = "Splix - Private | %A, %B"
+    local day = os.date(" %d", os.time())
+    local second_string = ", %Y."
+    title_string = os.date(title_string, os.time())..day..utility:GetSubPrefix(day)..os.date(second_string, os.time())
+    --
+    local lib = library:New({name = title_string})
+    --
+    local aimbot = lib:Page({name = "Aimbot"})
+    local visuals = lib:Page({name = "Visuals"})
+    local exploits = lib:Page({name = "Exploits"})
+    local misc = lib:Page({name = "Miscellaneous"})
+    --
+    local aimbot_main = aimbot:Section({name = "Main"})
+    local aimbot_br = aimbot:Section({name = "Bullet Redirection",side = "right"})
+    local aimbot_m, aimbot_mi, aimbot_s = aimbot:MultiSection({sections = {"Main", "Misc", "Settings"}, side = "left"})
+    --
+    local visuals_team, visuals_enemies, visuals_allies = visuals:MultiSection({sections = {"Team", "Enemies", "Allies"}, side = "left"})
+    local visuals_player = visuals:Section({name = "Players"})
+    local visuals_miscellaneous = visuals:Section({name = "Miscellaneous",side = "right"})
+    --
+    local exploits_main = exploits:Section({name = "Main"})
+    local exploits_skin = exploits:Section({name = "Skin Changer",side = "right"})
+    local exploits_freeze = exploits:Section({name = "Freeze Players"})
+    --
+    local misc_main = misc:Section({name = "Main"})
+    local misc_adj = misc:Section({name = "Adjustments",side = "right"})
+    --
+    local asd = aimbot_m:Toggle({name = "Aimbot Toggle", def = true, pointer = "aimbot_toggle"})
+    asd:Colorpicker({info = "Aimbot FOV Color", def = Color3.fromRGB(0,255,150), transparency = 0.5})
+    asd:Colorpicker({info = "Aimbot Outline FOV Color", def = Color3.fromRGB(45,45,45), transparency = 0.25})
+    aimbot_s:Label({name = "Some of the features\nhere, May be unsafe.\nUse with caution."})
+    aimbot_mi:Colorpicker({info = "Aimbot FOV Color", def = Color3.fromRGB(0,255,150), transparency = 0.5})
+    aimbot_mi:Multibox({name = "Aimbot Hitpart", min = 1, options = {"Head", "Torso", "Arms", "Legs"}, def = {"Head", "Torso"}})
+    aimbot_s:Dropdown({name = "Aimbot Hitpart", options = {"Head", "Torso", "Arms", "Legs"}, def = "Head"})
+    --
+    aimbot_main:Label({name = "Some of the features\nhere, May be unsafe.\nUse with caution."})
+    local aimbot_toggle = aimbot_main:Toggle({name = "Aimbot Toggle", def = true, pointer = "aimbot_toggle"})
+    aimbot_toggle:Colorpicker({info = "Aimbot FOV Color", def = Color3.fromRGB(0,255,150), transparency = 0.5})
+    aimbot_toggle:Colorpicker({info = "Aimbot Outline FOV Color", def = Color3.fromRGB(45,45,45), transparency = 0.25})
+    aimbot_main:Colorpicker({name = "Locking Color", info = "Aimbot Locked Player Color", def = Color3.fromRGB(205,50,50)}):Colorpicker({info = "Aimbot Outline FOV Color", def = Color3.fromRGB(45,45,45), transparency = 0.25})
+    aimbot_main:Toggle({name = "Aimbot Visible", def = true})
+    aimbot_main:Slider({name = "Watermark X Offset", min = 0, max = utility:GetScreenSize().X, def = 100, decimals = 1, callback = function(value)
+        if lib.watermark and lib.watermark.outline then
+            lib.watermark:Update("Offset", Vector2.new(value, lib.watermark.outline.Position.Y))
+        end
+    end})
+    aimbot_main:Slider({name = "Watermark Y Offset", min = 0, max = utility:GetScreenSize().Y, def = 38/2-10, decimals = 1, callback = function(value)
+        if lib.watermark and lib.watermark.outline then
+            lib.watermark:Update("Offset", Vector2.new(lib.watermark.outline.Position.X, value))
+        end
+    end})
+    aimbot_main:Slider({name = "Aimbot Field Of View", min = 0, max = 1000, def = 125, suffix = "°"})
+    aimbot_main:Toggle({name = "Aimbot Toggle", def = true, pointer = "aimbot_toggle"}):Keybind({callback = function(input, active) print(active) end})
+    aimbot_main:Keybind({name = "Aimbot Keybind", mode = "Toggle", callback = function(input, active) print(active) end})
+    aimbot_main:Keybind({name = "Aimbot Keybind", mode = "Hold", callback = function(input, active) print(active) end})
+    aimbot_main:Multibox({name = "Aimbot Hitpart", min = 1, options = {"Head", "Torso", "Arms", "Legs"}, def = {"Head", "Torso"}})
+    aimbot_main:Dropdown({name = "Aimbot Hitpart", options = {"Head", "Torso", "Arms", "Legs"}, def = "Head"})
+    --
+    aimbot_br:Toggle({name = "Bullet Redirection Toggle", def = true})
+    aimbot_br:Slider({name = "B.R. Hitchance", min = 0, max = 100, def = 65, suffix = "%"})
+    aimbot_br:Slider({name = "B.R. Accuracy", min = 0, max = 100, def = 90, suffix = "%"})
+    --
+    visuals_team:Toggle({name = "Draw Boxes", def = true})
+    visuals_team:Toggle({name = "Draw Names", def = true})
+    visuals_team:Toggle({name = "Draw Health", def = true})
+    --
+    visuals_enemies:Toggle({name = "Draw Boxes", def = true})
+    visuals_enemies:Toggle({name = "Draw Names", def = true})
+    visuals_enemies:Toggle({name = "Draw Health", def = true})
+    --
+    visuals_allies:Toggle({name = "Draw Boxes", def = true})
+    visuals_allies:Toggle({name = "Draw Names", def = true})
+    visuals_allies:Toggle({name = "Draw Health", def = true})
 
+    --
+    visuals_miscellaneous:Toggle({name = "Draw Field Of View"})
+    visuals_miscellaneous:Toggle({name = "Draw Server Position"})
+    --
+    exploits_main:Toggle({name = "God Mode"})
+    exploits_main:Toggle({name = "Bypass Suppresion"})
+    exploits_main:Toggle({name = "Bypass Fall"})
+    exploits_main:Button({name = "Stress Server"})
+    exploits_main:Button({name = "Crash Server"})
+    --
+    exploits_freeze:Toggle({name = "Freeze Toggle"})
+    exploits_freeze:Toggle({name = "Freeze On Shoot"})
+    exploits_freeze:Slider({name = "Freeze Interval", min = 1, max = 3000, def = 1000, suffix = "ms"})
+    --
+    exploits_skin:Toggle({name = "Custom Skin"})
+    exploits_skin:Slider({name = "Skin Offset Vertical", min = 0, max = 4, def = 1, decimals = 0.01})
+    exploits_skin:Slider({name = "Skin Offset Horizontal", min = 0, max = 4, def = 1, decimals = 0.01})
+    exploits_skin:Slider({name = "Skin Studs Vertical", min = 0, max = 4, def = 1, decimals = 0.01})
+    exploits_skin:Slider({name = "Skin Studs Horizontal", min = 0, max = 4, def = 1, decimals = 0.01})
+    --
+    misc_main:Toggle({name = "Fly"})
+    misc_main:Toggle({name = "Auto Spot", def = true})
+    misc_main:Toggle({name = "Hit Logs", def = true})
+    misc_main:Toggle({name = "Chat Spam"})
+    misc_main:Toggle({name = "Auto Vote"})
+    misc_main:Dropdown({name = "Auto Vote Options", options = {"Yes", "No"}, def = "Yes"})
+    --
+    misc_adj:Toggle({name = "Walk Speed"})
+    misc_adj:Toggle({name = "Jump Height"})
+    misc_adj:Slider({name = "Walk Speed", min = 16, max = 200, def = 16})
+    misc_adj:Slider({name = "Jump Height", min = 50, max = 400, def = 50})
+    --
+    lib:Initialize()
+end]]
+--
 return library, utility, library.pointers, theme
