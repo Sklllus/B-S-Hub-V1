@@ -19,9 +19,9 @@ local library = {
     ended = {},
     changed = {},
     folders = {
-        main = "splix",
-        assets = "splix/assets",
-        configs = "splix/configs"
+        main = "Break-Skill Hub - V1",
+        assets = "Break-Skill Hub - V1/Assets",
+        configs = "Break-Skill Hub - V1/Configs"
     },
     shared = {
         initialized = false,
