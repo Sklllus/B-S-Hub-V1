@@ -1,5 +1,5 @@
 local library = {
-	Version = "1.0.0",
+	Version = "0.36",
 	WorkspaceName = "Break-Skill Hub - V1",
 	flags = {},
 	signals = {},
@@ -170,23 +170,23 @@ local function resolveid(image, flag)
 							else
 								makefolder("./Break-Skill Hub - V1")
 							end
-							fold = isfolder("./Break-Skill Hub - V1/UI/Themes")
+							fold = isfolder("./Break-Skill Hub - V1/Themes")
 							if fold then
 							else
-								makefolder("./Break-Skill Hub - V1/UI/Themes")
+								makefolder("./Break-Skill Hub - V1/Themes")
 							end
-							fold = isfolder("./Break-Skill Hub - V1/UI/Themes/SynapseAssetsCache")
+							fold = isfolder("./Break-Skill Hub - V1/Themes/SynapseAssetsCache")
 							if fold then
 							else
-								makefolder("./Break-Skill Hub - V1/UI/Themes/SynapseAssetsCache")
+								makefolder("./Break-Skill Hub - V1 Themes/SynapseAssetsCache")
 							end
-							if not fold or not isfile("./Break-Skill Hub - V1/UI/Themes/SynapseAssetsCache/" .. codename .. ".dat") then
+							if not fold or not isfile("./Break-Skill Hub - V1/Themes/SynapseAssetsCache/" .. codename .. ".dat") then
 								local res = game:HttpGet(string.sub(image, 15))
 								if res ~= nil then
-									writefile("./Break-Skill Hub - V1/UI/Themes/SynapseAssetsCache/" .. codename .. ".dat", res)
+									writefile("./Break-Skill Hub - V1/Themes/SynapseAssetsCache/" .. codename .. ".dat", res)
 								end
 							end
-							return getsynasset(readfile("./Break-Skill Hub - V1/UI/Themes/SynapseAssetsCache/" .. codename .. ".dat"))
+							return getsynasset(readfile("./Break-Skill Hub - V1/Themes/SynapseAssetsCache/" .. codename .. ".dat"))
 						end)
 						if x and e ~= nil then
 							return e
@@ -1594,7 +1594,7 @@ function library:CreateWindow(options, ...)
 	innerMain.BorderColor3 = library.colors.outerBorder
 	colored[1 + #colored] = {innerMain, "BorderColor3", "outerBorder"}
 	innerMain.Position = UDim2.fromScale(0.5, 0.5)
-	innerMain.Size = UDim2.new(1, -4, 1, -4)
+	innerMain.Size = UDim2.new(1, -14, 1, -14)
 	innerMainBorder.Name = "innerMainBorder"
 	innerMainBorder.Parent = innerMain
 	innerMainBorder.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -1725,7 +1725,7 @@ function library:CreateWindow(options, ...)
 	windowFunctions.LastTab = nil
 	function windowFunctions:CreateTab(options, ...)
 		options = (options and (type(options) == "string") and resolvevararg("Tab", options, ...)) or options or {
-			Name = "New Tab"
+			Name = "Pepsi Style: Elite Lego Hax"
 		}
 		local image = options.Image
 		if image then
@@ -6917,7 +6917,7 @@ function library:CreateWindow(options, ...)
 		}}, {"AddPersistence", "__Designer.Persistence.ThemeFile", filessection, {
 			Name = "Theme Profile",
 			Flag = "__Designer.Files.ThemeFile",
-			Workspace = "Themes",
+			Workspace = "Break-Skill Hub - V1 Themes",
 			Flags = flags,
 			Suffix = "Theme",
 			Desginer = true
@@ -7185,10 +7185,9 @@ function library:CreateWindow(options, ...)
 				whatDoILookLike = nil
 			end
 
-            if getgenv()["Developer_345RTHD1"] then
-                windowFunctions:CreateDesigner(whatDoILookLike)
-            end
-
+			if getgenv()["Developer_345RTHD1"] then
+				windowFunctions:CreateDesigner(whatDoILookLike)
+			end
 			if options.DefaultTheme or options.Theme then
 				spawn(function()
 					local content = options.DefaultTheme or options.Theme or options.JSON or options.ThemeJSON
