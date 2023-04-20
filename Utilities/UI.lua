@@ -1574,7 +1574,7 @@ function library:CreateWindow(options, ...)
 	main.BorderColor3 = library.colors.outerBorder
 	colored[1 + #colored] = {main, "BorderColor3", "outerBorder"}
 	main.Position = UDim2.fromScale(0.5, 0.5)
-	main.Size = UDim2.fromOffset(500, 545)
+	main.Size = UDim2.fromOffset(550, 600)
 	makeDraggable(main, main)
 	mainBorder.Name = "mainBorder"
 	mainBorder.Parent = main
@@ -1594,7 +1594,7 @@ function library:CreateWindow(options, ...)
 	innerMain.BorderColor3 = library.colors.outerBorder
 	colored[1 + #colored] = {innerMain, "BorderColor3", "outerBorder"}
 	innerMain.Position = UDim2.fromScale(0.5, 0.5)
-	innerMain.Size = UDim2.new(1, -14, 1, -14)
+	innerMain.Size = UDim2.new(1, -4, 1, -4)
 	innerMainBorder.Name = "innerMainBorder"
 	innerMainBorder.Parent = innerMain
 	innerMainBorder.AnchorPoint = Vector2.new(0.5, 0.5)
