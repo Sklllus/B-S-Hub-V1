@@ -1,25 +1,24 @@
---[
---Script Made By xS_Killus
---]
+--// Script Loader By xS_Killus
+--// Break-Skill Hub - V1 Softwares
 
---[
---Game Loading
---]
+--// Game Loading
 
 repeat
     task.wait()
-until game.GameId ~= 0 and game:IsLoaded() and game:GetService("Players").LocalPlayer.Character:WaitForChild("HumanoidRootPart") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid") and game:GetService("Players").LocalPlayer.Character:WaitForChild("Humanoid").Health > 0
+until game.GameId ~= 0 and game:IsLoaded()
 
---Notification Library
+local StartTimer = tick()
+
+--// Notif Library
 
 getgenv()["IrisAd"] = true
 
 local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
 
---While Loading Script
+--// Script Already Loaded
 
 if getgenv()["Break-Skill_Hub_V1_Loaded"] then
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script already executed!</font></b>", "rbxassetid://7771536804", {
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script Already Loaded!</font></b>", "rbxassetid://7771536804", {
         Duration = 5,
         TitleSettings = {
             TextXAlignment = Enum.TextXAlignment.Left,
@@ -33,19 +32,19 @@ if getgenv()["Break-Skill_Hub_V1_Loaded"] then
         }
     })
 
-    error("Break-Skill Hub - V1 | Script already executed!")
+    error("Break-Skill Hub - V1 | Script Already Executed!")
 
     return
 end
 
---Instances And Functions
+--// Instances And Functions
 
-local CoreGui = game:GetService("CoreGui")
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
 
 local Client = Players.LocalPlayer
 
@@ -64,7 +63,7 @@ RunService.RenderStepped:Connect(function()
         if v:FindFirstChild("PropertiesFrame") then
             if v:FindFirstChild("ExplorerPanel") then
                 if v:FindFirstChild("SideMenu") then
-                    Client:Kick("\n[Break-Skill Hub - V1]:\n[Script Error]:\nDark Dex Detected!\nIf you keep trying to use Dark Dex while the script is running your whitelist may be blocked!\ndiscord.gg/ev8bxrAa9p")
+                    Client:Kick("\n[Break-Skill Hub - V1]\n[Script Error]\nDark Dex Detected!\nIf you keep trying to use Dark Dex while the script running your whitelist may be blocked!\n")
 
                     return
                 end
@@ -73,64 +72,88 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-if syn and not is_sirhurtclosure and not pebc_execute then
-
+if syn and not is_sirhurtclosure and not pebc_execute and not gethui then
+    getgenv()["Executor"] = "Synapse X V2"
+elseif syn and not is_sirhurtclosure and not pebc_execute and gethui then
+    getgenv()["Executor"] = "Synapse X V3"
 elseif getexecutorname then
-
+    getgenv()["Executor"] = "Script-Ware"
 elseif KRNL_LOADED then
-
+    getgenv()["Executor"] = "KRNL"
 else
-    Client:Kick("\n[Break-Skill Hub - V1]:\n[Executor Error]:\nYour executor is not supported!\nYou can find supported executors on our discord!\ndiscord.gg/ev8bxrAa9p")
+    Client:Kick("\n[Break-Skill Hub - V1]\n[Executor Error]\nYour executor is not supported!\nYou can find supported executors on our discord!")
 
     return
 end
 
---[
---Game Script Loading
---]
+--//
+--// Game Script Loading
+--//
 
-Client.OnTeleport:Connect(function(teleportState)
-    if teleportState == Enum.TeleportState.InProgress then
-        QueueOnTeleport([[
+local Success, Returned = pcall(function()
+    return game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/" .. game.PlaceId .. ".lua")
+end)
+
+if not (Success and Returned and #Returned ~= 0) then
+    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Game Not Supported!</font></b>", "rbxassetid://7771536804", {
+        Duration = 5,
+        TitleSettings = {
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Font = Enum.Font.SourceSansBold
+        },
+        GradientEnabled = {
+            GradientEnabled = false,
+            SolidColorEnabled = true,
+            SolidColor = Color3.fromRGB(255, 30, 30),
+            Retract = true
+        }
+    })
+
+    error("Break-Skill Hub - V1 | Game Not Supported!")
+
+    return
+end
+
+getgenv()["library"]:AddConnection(Client.OnTeleport, function(state)
+    if state == Enum.TeleportState.InProgress then
+        QueueOnTeleport(([[
             loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Loader.lua"))()
-        ]])
+        ]]))
     end
 end)
 
-if game.PlaceId == 2788229376 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/DH.lua"))()
+Notification.Notify("Break-Skill Hub - V1", "Loading Script For <b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b>!", "rbxassetid://7771536804", {
+    Duration = 10,
+    TitleSettings = {
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.SourceSansBold
+    },
+    GradientSettings = {
+        GradientEnabled = false,
+        SolidColorEnabled = true,
+        SolidColor = Color3.fromRGB(255, 30, 30),
+        Retract = true
+    }
+})
 
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b> loaded!", "rbxassetid://7771536804", {
-        Duration = 10,
-        TitleSettings = {
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Font = Enum.Font.SourceSansBold
-        },
-        GradientSettings = {
-            GradientEnabled = false,
-            SolidColorEnabled = true,
-            SolidColor = Color3.fromRGB(255, 30, 30),
-            Retract = true
-        }
-    })
+loadstring(tostring(Returned))()
 
-    getgenv()["Break-Skill_Hub_V1_Loaded"] = true
-elseif game.PlaceId == 443406476 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/PL.lua"))()
+local FinishLoadingTimer
 
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b> loaded!", "rbxassetid://7771536804", {
-        Duration = 10,
-        TitleSettings = {
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Font = Enum.Font.SourceSansBold
-        },
-        GradientSettings = {
-            GradientEnabled = false,
-            SolidColorEnabled = true,
-            SolidColor = Color3.fromRGB(255, 30, 30),
-            Retract = true
-        }
-    })
-
-    getgenv()["Break-Skill_Hub_V1_Loaded"] = true
+if getgenv()["library"].Loaded then
+    FinishLoadingTimer = tick()
 end
+
+Notification.Notify("Break-Skill Hub - V1", "Script Loaded In <b><font color=\"rgb(255, 30, 30)\">" .. FinishLoadingTimer .. "</font></b>.", "rbxassetid://7771536804", {
+    Duration = 10,
+    TitleSettings = {
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.SourceSansBold
+    },
+    GradientSettings = {
+        GradientEnabled = false,
+        SolidColorEnabled = true,
+        SolidColor = Color3.fromRGB(255, 30, 30),
+        Retract = true
+    }
+})
