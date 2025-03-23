@@ -62,7 +62,13 @@ local CoreGui = game:GetService("CoreGui")
 
 local Client = Players.LocalPlayer
 
-local QueueOnTeleport = queue_on_teleport or (syn and syn.queue_on_teleport)
+for _, v in next, getconnections(Client.Idled) do
+    if (v.Function) then
+        continue
+    end
+
+    v:Disable()
+end
 
 Client.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
@@ -118,14 +124,6 @@ if (not Success and Returned and #Returned ~= 0) then
 
     return
 end
-
-Client.OnTeleport:Connect(function(teleportState)
-    if teleportState == Enum.TeleportState.InProgress then
-        QueueOnTeleport(([[
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Loader.lua"))()
-        ]]))
-    end
-end)
 
 loadstring((tostring(Returned)))()
 
