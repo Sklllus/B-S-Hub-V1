@@ -127,9 +127,29 @@ Client.OnTeleport:Connect(function(teleportState)
     end
 end)
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Utils/RequireLoad.lua"))()
+loadstring((tostring(Returned)))()
 
-loadstring(game:HttpGet(tostring(Returned)))()
+getgenv().DisableEnvProtection = function() end
+getgenv().EnableEnvProtection = function() end
+getgenv().SX_VM_CNONE = function() end
+
+local __Scripts = {}
+
+getgenv().__Scripts = __Scripts
+
+local DebugInfo = debug.info
+
+local Info = DebugInfo(1, "s")
+
+__Scripts[Info] = "RequireLoad"
+
+local CachedRequires = {}
+
+_G.CachedRequires = CachedRequires
+
+getgenv().GetServerConstant = function(...)
+    return ...
+end
 
 if getgenv()["Break-Skill_Hub_V1_Script_Loaded"] then
     Notification.Notify(
