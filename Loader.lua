@@ -119,10 +119,10 @@ if (not Success and Returned and #Returned ~= 0) then
     return
 end
 
-getgenv()["library"]:AddConnection(Client.OnTeleport, function(state)
-    if state == Enum.TeleportState.InProgress then
+Client.OnTeleport:Connect(function(teleportState)
+    if teleportState == Enum.TeleportState.InProgress then
         QueueOnTeleport(([[
-            loadstring(game:HttpGet(""))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Loader.lua"))()
         ]]))
     end
 end)
