@@ -127,7 +127,9 @@ getgenv()["library"]:AddConnection(Client.OnTeleport, function(state)
     end
 end)
 
-loadstring(tostring(Returned))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Utils/RequireLoad.lua"))()
+
+loadstring(game:HttpGet(tostring(Returned)))()
 
 if getgenv()["Break-Skill_Hub_V1_Script_Loaded"] then
     Notification.Notify(
