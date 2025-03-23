@@ -1,43 +1,57 @@
---// Script Loader By xS_Killus
---// Break-Skill Hub - V1 Softwares
+--//
+--// Loader Script Made By xS_Killus
+--//
 
+--//
 --// Game Loading
+--//
 
 repeat
     task.wait()
 until game.GameId ~= 0 and game:IsLoaded()
 
-local StartTimer = tick()
-
---// Notif Library
+--//
+--// Notification Library
+--//
 
 getgenv()["IrisAd"] = true
 
 local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
 
---// Script Already Loaded
+--//
+--// While Script Already Loaded
+--//
 
 if getgenv()["Break-Skill_Hub_V1_Loaded"] then
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Script Already Loaded!</font></b>", "rbxassetid://7771536804", {
-        Duration = 5,
-        TitleSettings = {
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Font = Enum.Font.SourceSansBold
-        },
-        GradientSettings = {
-            GradientEnabled = false,
-            SolidColorEnabled = true,
-            SolidColor = Color3.fromRGB(255, 30, 30),
-            Retract = true
+    Notification.Notify(
+        "Break-Skill Hub - V1 | Loader",
+        "<b><font color=\"rgb(255, 30, 30)\">Script already loaded!</font></b>",
+        "rbxassetid://7771536804",
+        {
+            Duration = 5,
+            TitleSettings = {
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Font = Enum.Font.SourceSansBold
+            },
+            GradientSettings = {
+                GradientEnabled = false,
+                SolidColorEnabled = true,
+                Retract = true,
+                SolidColor = Color3.fromRGB(255, 30, 30)
+            }
         }
-    })
+    )
 
-    error("Break-Skill Hub - V1 | Script Already Executed!")
+    error("Break-Skill Hub - V1 | Loader | Script already loaded!")
 
     return
 end
 
+--//
 --// Instances And Functions
+--//
+
+getgenv()["Break-Skill_Hub_V1_Version"] = "v1.0.0"
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -63,7 +77,7 @@ RunService.RenderStepped:Connect(function()
         if v:FindFirstChild("PropertiesFrame") then
             if v:FindFirstChild("ExplorerPanel") then
                 if v:FindFirstChild("SideMenu") then
-                    Client:Kick("\n[Break-Skill Hub - V1]\n[Script Error]\nDark Dex Detected!\nIf you keep trying to use Dark Dex while the script running your whitelist may be blocked!\n")
+                    Client:Kick("\n[Break-Skill Hub - V1]:\n[Script Error]:\nDark Dex Detected!\nIf you keep trying to use Dark Dex while Break-Skill Hub is running your IP may be blocked!\ndiscord.gg/ev8bxrAa9p")
 
                     return
                 end
@@ -72,44 +86,35 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-if syn and not is_sirhurtclosure and not pebc_execute and not gethui then
-    getgenv()["Executor"] = "Synapse X V2"
-elseif syn and not is_sirhurtclosure and not pebc_execute and gethui then
-    getgenv()["Executor"] = "Synapse X V3"
-elseif getexecutorname then
-    getgenv()["Executor"] = "Script-Ware"
-elseif KRNL_LOADED then
-    getgenv()["Executor"] = "KRNL"
-else
-    Client:Kick("\n[Break-Skill Hub - V1]\n[Executor Error]\nYour executor is not supported!\nYou can find supported executors on our discord!")
-
-    return
-end
-
 --//
 --// Game Script Loading
 --//
 
 local Success, Returned = pcall(function()
-    return game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Games/" .. game.PlaceId .. ".lua")
+    return game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/" .. game.PlaceId .. ".lua")
 end)
 
-if not (Success and Returned and #Returned ~= 0) then
-    Notification.Notify("Break-Skill Hub - V1", "<b><font color=\"rgb(255, 30, 30)\">Game Not Supported!</font></b>", "rbxassetid://7771536804", {
-        Duration = 5,
-        TitleSettings = {
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Font = Enum.Font.SourceSansBold
-        },
-        GradientEnabled = {
-            GradientEnabled = false,
-            SolidColorEnabled = true,
-            SolidColor = Color3.fromRGB(255, 30, 30),
-            Retract = true
+if (not Success and Returned and #Returned ~= 0) then
+    Notification.Notify(
+        "Break-Skill Hub - V1 | Loader",
+        "<b><font color=\"rgb(255, 30, 30)\">Game not supported!</font></b>",
+        "rbxassetid://7771536804",
+        {
+            Duration = 5,
+            TitleSettings = {
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Font = Enum.Font.SourceSansBold
+            },
+            GradientSettings = {
+                GradientEnabled = false,
+                SolidColorEnabled = true,
+                Retract = true,
+                SolidColor = Color3.fromRGB(255, 30, 30)
+            }
         }
-    })
+    )
 
-    error("Break-Skill Hub - V1 | Game Not Supported!")
+    error("Break-Skill Hub - V1 | Loader | Game not supported!")
 
     return
 end
@@ -117,43 +122,30 @@ end
 getgenv()["library"]:AddConnection(Client.OnTeleport, function(state)
     if state == Enum.TeleportState.InProgress then
         QueueOnTeleport(([[
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/main/Loader.lua"))()
+            loadstring(game:HttpGet(""))()
         ]]))
     end
 end)
 
-Notification.Notify("Break-Skill Hub - V1", "Loading Script For <b><font color=\"rgb(255, 30, 30)\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b>!", "rbxassetid://7771536804", {
-    Duration = 10,
-    TitleSettings = {
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold
-    },
-    GradientSettings = {
-        GradientEnabled = false,
-        SolidColorEnabled = true,
-        SolidColor = Color3.fromRGB(255, 30, 30),
-        Retract = true
-    }
-})
-
 loadstring(tostring(Returned))()
 
-local FinishLoadingTimer
-
-if getgenv()["library"].Loaded then
-    FinishLoadingTimer = tick()
+if getgenv()["Break-Skill_Hub_V1_Script_Loaded"] then
+    Notification.Notify(
+        "Break-Skill Hub - V1 | Loader",
+        "Loading script for <b><font color=\"rgb(255, 30, 30\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b>!",
+        "rbxassetid://7771536804",
+        {
+            Duration = 10,
+            TitleSettings = {
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Font = Enum.Font.SourceSansBold
+            },
+            GradientSettings = {
+                GradientEnabled = false,
+                SolidColorEnabled = true,
+                Retract = true,
+                SolidColor = Color3.fromRGB(255, 30, 30)
+            }
+        }
+    )
 end
-
-Notification.Notify("Break-Skill Hub - V1", "Script Loaded In <b><font color=\"rgb(255, 30, 30)\">" .. FinishLoadingTimer .. "</font></b>.", "rbxassetid://7771536804", {
-    Duration = 10,
-    TitleSettings = {
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold
-    },
-    GradientSettings = {
-        GradientEnabled = false,
-        SolidColorEnabled = true,
-        SolidColor = Color3.fromRGB(255, 30, 30),
-        Retract = true
-    }
-})
