@@ -59,6 +59,15 @@ local Workspace = game:GetService("Workspace")
 
 local Client = Players.LocalPlayer
 
+getgenv().DisableEnvProtection = function() end
+getgenv().EnableEnvProtection = function() end
+
+getgenv().SX_VM_CNONE = function() end
+
+getgenv().GetServerConstant = function(...)
+    return ...
+end
+
 Client.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
 
