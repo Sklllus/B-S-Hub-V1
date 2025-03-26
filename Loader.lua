@@ -97,4 +97,25 @@ if game.PlaceId == 16732694052 then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/16732694052.lua"))()
 elseif game.PlaceId == 920587237 then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/920587237.lua"))()
+else
+    Notification.Notify(
+        "Break-Skill Hub - V1 | Loader",
+        "<b><font color=\"rgb(255, 30, 30)\">Game not supported!</font></b>",
+        "rbxassetid://7771536804",
+        {
+            Duration = 5,
+            TitleSettings = {
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Font = Enum.Font.SourceSansBold
+            },
+            GradientSettings = {
+                GradientEnabled = false,
+                SolidColorEnabled = true,
+                Retract = true,
+                SolidColor = Color3.fromRGB(255, 30, 30)
+            }
+        }
+    )
+
+    return
 end
