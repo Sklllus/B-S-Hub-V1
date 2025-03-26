@@ -51,24 +51,13 @@ end
 --// Instances And Functions
 --//
 
-getgenv()["Break-Skill_Hub_V1_Version"] = "v1.0.0"
-
-local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
 local VirtualUser = game:GetService("VirtualUser")
 local Workspace = game:GetService("Workspace")
-local CoreGui = game:GetService("CoreGui")
 
 local Client = Players.LocalPlayer
-
-for _, v in next, getconnections(Client.Idled) do
-    if (v.Function) then
-        continue
-    end
-
-    v:Disable()
-end
 
 Client.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
@@ -77,6 +66,14 @@ Client.Idled:Connect(function()
 
     VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
 end)
+
+for _, v in next, getconnections(Client.Idled) do
+    if (v.Function) then
+        continue
+    end
+
+    v:Disable()
+end
 
 RunService.RenderStepped:Connect(function()
     for i, v in pairs(CoreGui:GetChildren()) do
@@ -96,76 +93,8 @@ end)
 --// Game Script Loading
 --//
 
-local Success, Returned = pcall(function()
-    return game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/" .. game.PlaceId .. ".lua")
-end)
-
-if (not Success and Returned and #Returned ~= 0) then
-    Notification.Notify(
-        "Break-Skill Hub - V1 | Loader",
-        "<b><font color=\"rgb(255, 30, 30)\">Game not supported!</font></b>",
-        "rbxassetid://7771536804",
-        {
-            Duration = 5,
-            TitleSettings = {
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Font = Enum.Font.SourceSansBold
-            },
-            GradientSettings = {
-                GradientEnabled = false,
-                SolidColorEnabled = true,
-                Retract = true,
-                SolidColor = Color3.fromRGB(255, 30, 30)
-            }
-        }
-    )
-
-    error("Break-Skill Hub - V1 | Loader | Game not supported!")
-
-    return
-end
-
-loadstring((tostring(Returned)))()
-
-getgenv().DisableEnvProtection = function() end
-getgenv().EnableEnvProtection = function() end
-getgenv().SX_VM_CNONE = function() end
-
-local __Scripts = {}
-
-getgenv().__Scripts = __Scripts
-
-local DebugInfo = debug.info
-
-local Info = DebugInfo(1, "s")
-
-__Scripts[Info] = "RequireLoad"
-
-local CachedRequires = {}
-
-_G.CachedRequires = CachedRequires
-
-getgenv().GetServerConstant = function(...)
-    return ...
-end
-
-if getgenv()["Break-Skill_Hub_V1_Script_Loaded"] then
-    Notification.Notify(
-        "Break-Skill Hub - V1 | Loader",
-        "Loading script for <b><font color=\"rgb(255, 30, 30\">" .. MarketplaceService:GetProductInfo(game.PlaceId).Name .. "</font></b>!",
-        "rbxassetid://7771536804",
-        {
-            Duration = 10,
-            TitleSettings = {
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Font = Enum.Font.SourceSansBold
-            },
-            GradientSettings = {
-                GradientEnabled = false,
-                SolidColorEnabled = true,
-                Retract = true,
-                SolidColor = Color3.fromRGB(255, 30, 30)
-            }
-        }
-    )
+if game.PlaceId == 16732694052 then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/16732694052.lua"))()
+elseif game.PlaceId == 920587237 then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/920587237.lua"))()
 end
