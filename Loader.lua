@@ -59,15 +59,6 @@ local Workspace = game:GetService("Workspace")
 
 local Client = Players.LocalPlayer
 
-getgenv().DisableEnvProtection = function() end
-getgenv().EnableEnvProtection = function() end
-
-getgenv().SX_VM_CNONE = function() end
-
-getgenv().GetServerConstant = function(...)
-    return ...
-end
-
 Client.Idled:Connect(function()
     VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
 
@@ -102,10 +93,8 @@ end)
 --// Game Script Loading
 --//
 
-if game.PlaceId == 16732694052 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/16732694052.lua"))()
-elseif game.PlaceId == 920587237 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/920587237.lua"))()
+if game.PlaceId == 920587237 then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Sklllus/B-S-Hub-V1/refs/heads/main/Games/Adopt%20Me.lua"))()
 else
     Notification.Notify(
         "Break-Skill Hub - V1 | Loader",
