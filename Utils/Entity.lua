@@ -47,9 +47,9 @@ local cloneref = cloneref or function (obj)
     return obj
 end
 
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
+local Players = cloneref(game:GetService("Players"))
+local UserInputService = cloneref(game:GetService("UserInputService"))
+local Workspace = cloneref(game:GetService("Workspace"))
 
 local Client = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
