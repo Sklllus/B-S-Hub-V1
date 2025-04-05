@@ -31,6 +31,8 @@ local library = {
     Design = getgenv()["Design"] == "kali" and "kali" or "uwuware",
 }
 
+getgenv()["library"] = library
+
 local Dragging, DragInput, DragStart, StartPos, DragObject
 
 local BlacklistedKeys = {
