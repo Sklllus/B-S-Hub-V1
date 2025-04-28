@@ -18,6 +18,8 @@ getgenv()["IrisAd"] = true
 
 local Notification = loadstring(game:HttpGet("https://api.irisapp.ca/Scripts/IrisBetterNotifications.lua"))()
 
+getgenv().Notification = Notification
+
 --//
 --// While Script Already Loaded
 --//
