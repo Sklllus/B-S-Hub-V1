@@ -984,6 +984,7 @@ local SilentAimGroupBox = CombatTab:CreateGroupbox({
 
 local SilentAimToggle = SilentAimGroupBox:CreateToggle({
     Name = "Enabled",
+    CurrentValue = false,
     Style = 2
 }, "SilentAimToggle")
 
@@ -1017,11 +1018,13 @@ local SilentAimDivider1 = SilentAimGroupBox:CreateDivider()
 
 local SilentAimTeamCheck = SilentAimGroupBox:CreateToggle({
     Name = "Team Check",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimWallCheck = SilentAimGroupBox:CreateToggle({
     Name = "Wall Check",
+    CurrentValue = false,
     Style = 2
 })
 
@@ -1029,31 +1032,37 @@ local SilentAimDivider2 = SilentAimGroupBox:CreateDivider()
 
 local SilentAimIgnoreGuards = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Guards",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimIgnoreCriminals = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Criminals",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimIgnoreInnocent = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Innocent",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimIgnoreHostile = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Hostile",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimIgnoreTrespass = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Trespass",
+    CurrentValue = false,
     Style = 2
 })
 
 local SilentAimIgnoreForceField = SilentAimGroupBox:CreateToggle({
     Name = "Ignore ForceField",
+    CurrentValue = false,
     Style = 2
 })
 
@@ -1061,6 +1070,7 @@ local SilentAimDivider3 = SilentAimGroupBox:CreateDivider()
 
 local SilentAimShowFOV = SilentAimGroupBox:CreateToggle({
     Name = "Show FOV",
+    CurrentValue = false,
     Style = 2,
     Callback = function(val)
         SilentCircle.Transparency = val and 1 or 0
@@ -1069,6 +1079,7 @@ local SilentAimShowFOV = SilentAimGroupBox:CreateToggle({
 
 local SilentAimFOVFollowMouse = SilentAimGroupBox:CreateToggle({
     Name = "Follow Mouse",
+    CurrentValue = false,
     Style = 2
 })
 
