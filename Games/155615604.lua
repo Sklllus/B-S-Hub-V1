@@ -988,11 +988,11 @@ local SilentAimToggle = SilentAimGroupBox:CreateToggle({
     Style = 2
 }, "SilentAimToggle")
 
-local BodyPartsDropdownLabel = SilentAimGroupBox:CreateLabel({
+local SilentAimBodyPartsDropdownLabel = SilentAimGroupBox:CreateLabel({
     Name = "Body Parts"
 }, "BodyPartsDropdownLabel")
 
-local BodyPartsDropdown = BodyPartsDropdownLabel:AddDropdown({
+local BodyPartsDropdown = SilentAimBodyPartsDropdownLabel:AddDropdown({
     Options = {
         "Head",
         "Left Arm",
@@ -1002,7 +1002,7 @@ local BodyPartsDropdown = BodyPartsDropdownLabel:AddDropdown({
         "HumanoidRootPart"
     },
     CurrentOption = "Head"
-})
+}, "BodyPartsDropdown")
 
 local SilentAimHitChance = SilentAimGroupBox:CreateSlider({
     Name = "Hit Chance",
@@ -1012,7 +1012,7 @@ local SilentAimHitChance = SilentAimGroupBox:CreateSlider({
         Minimum = 1,
         Maximum = 100
     }
-})
+}, "SilentAimHitChance")
 
 local SilentAimDivider1 = SilentAimGroupBox:CreateDivider()
 
@@ -1020,13 +1020,13 @@ local SilentAimTeamCheck = SilentAimGroupBox:CreateToggle({
     Name = "Team Check",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimTeamCheck")
 
 local SilentAimWallCheck = SilentAimGroupBox:CreateToggle({
     Name = "Wall Check",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimWallCheck")
 
 local SilentAimDivider2 = SilentAimGroupBox:CreateDivider()
 
@@ -1034,37 +1034,37 @@ local SilentAimIgnoreGuards = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Guards",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreGuards")
 
 local SilentAimIgnoreCriminals = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Criminals",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreCriminals")
 
 local SilentAimIgnoreInnocent = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Innocent",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreInnocent")
 
 local SilentAimIgnoreHostile = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Hostile",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreHostile")
 
 local SilentAimIgnoreTrespass = SilentAimGroupBox:CreateToggle({
     Name = "Ignore Trespass",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreTrespass")
 
 local SilentAimIgnoreForceField = SilentAimGroupBox:CreateToggle({
     Name = "Ignore ForceField",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimIgnoreForceField")
 
 local SilentAimDivider3 = SilentAimGroupBox:CreateDivider()
 
@@ -1075,13 +1075,13 @@ local SilentAimShowFOV = SilentAimGroupBox:CreateToggle({
     Callback = function(val)
         SilentCircle.Transparency = val and 1 or 0
     end
-})
+}, "SilentAimShowFOV")
 
 local SilentAimFOVFollowMouse = SilentAimGroupBox:CreateToggle({
     Name = "Follow Mouse",
     CurrentValue = false,
     Style = 2
-})
+}, "SilentAimFOVFollowMouse")
 
 local SilentAimFOVSize = SilentAimGroupBox:CreateSlider({
     Name = "FOV Size",
@@ -1093,7 +1093,30 @@ local SilentAimFOVSize = SilentAimGroupBox:CreateSlider({
     Callback = function(val)
         SilentCircle.Radius = val
     end
-})
+}, "SilentAimFOVSize")
+
+--//
+--// Settings Tab
+--//
+
+local SettingsTabSection = Window:CreateTabSection("Settings")
+
+local SettingsTab = SettingsTabSection:CreateTab({
+    Name = "Settings",
+    Columns = 2
+}, "SettingsTab")
+
+--// ThemeGroupbox
+
+SettingsTab:BuildThemeGroupbox(2)
+
+getgenv()["library"]:LoadAutoloadTheme()
+
+--// ConfigGroupbox
+
+SettingsTab:BuildConfigGroupbox(1)
+
+getgenv()["library"]:LoadAutoloadConfig()
 
 --//
 --// XD
